@@ -17,6 +17,15 @@ import { legalHandlers } from "./handlers/_legal";
 import { logsHandlers } from "./handlers/_logs";
 import { menuList } from "./handlers/_menu";
 import { notificationHandlers } from "./handlers/_notifications";
+import { partnerAuthHandlers } from "./handlers/_partner-auth";
+import { partnerDriversHandlers } from "./handlers/_partner-drivers";
+import { partnerEarningsHandlers } from "./handlers/_partner-earnings";
+import { partnerMessagesHandlers } from "./handlers/_partner-messages";
+import { partnerProfileHandlers } from "./handlers/_partner-profile";
+import { partnerReviewsHandlers } from "./handlers/_partner-reviews";
+import { partnerScheduleHandlers } from "./handlers/_partner-schedule";
+import { partnerServicesHandlers } from "./handlers/_partner-services";
+import { partnerSettingsHandlers } from "./handlers/_partner-settings";
 import { partnerHandlers } from "./handlers/_partners";
 import { settingsHandlers } from "./handlers/_settings";
 import { supportHandlers } from "./handlers/_support";
@@ -44,6 +53,15 @@ const handlers = [
 	...legalHandlers,
 	...supportHandlers,
 	...logsHandlers,
+	...partnerAuthHandlers,
+	...partnerServicesHandlers,
+	...partnerScheduleHandlers,
+	...partnerEarningsHandlers,
+	...partnerReviewsHandlers,
+	...partnerMessagesHandlers,
+	...partnerDriversHandlers,
+	...partnerProfileHandlers,
+	...partnerSettingsHandlers,
 ];
 const worker = setupWorker(...handlers);
 
