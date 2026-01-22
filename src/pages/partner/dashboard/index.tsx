@@ -11,7 +11,7 @@ import {
 	XCircle,
 } from "lucide-react";
 import { Link } from "react-router";
-import { Chart } from "@/components/chart/chart";
+import { Chart } from "@/components/chart";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card";

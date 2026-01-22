@@ -1,11 +1,11 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 
 import dashboardService from "@/api/services/dashboardService";
-import { Chart } from "@/components/chart/chart";
+import { Chart } from "@/components/chart";
+import { Button } from "@/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 import { Skeleton } from "@/ui/skeleton";
-import { Button } from "@/ui/button";
 
 export default function RevenueTrendChart() {
 	const [days, setDays] = useState(7);

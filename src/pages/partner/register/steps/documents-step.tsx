@@ -17,7 +17,7 @@ function FileUploadBox({
 	label,
 	description,
 	file,
-	preview,
+	preview: _preview,
 	onFileChange,
 	accept = ".pdf,.jpg,.jpeg,.png",
 }: FileUploadProps) {

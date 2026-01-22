@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import dashboardService from "@/api/services/dashboardService";
-import { Chart } from "@/components/chart/chart";
+import { Chart } from "@/components/chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 import { Skeleton } from "@/ui/skeleton";
 

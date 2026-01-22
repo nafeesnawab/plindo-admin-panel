@@ -1,16 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useParams, useNavigate } from "react-router";
-
-import partnerService from "@/api/services/partnerService";
-import { Chart } from "@/components/chart/chart";
-import { Avatar, AvatarFallback } from "@/ui/avatar";
-import { Badge } from "@/ui/badge";
-import { Button } from "@/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
-import { Separator } from "@/ui/separator";
-import { Skeleton } from "@/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/tabs";
-import { formatDistanceToNow, format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import {
 	ArrowLeft,
 	Building2,
@@ -24,6 +13,16 @@ import {
 	TrendingUp,
 	User,
 } from "lucide-react";
+import { useNavigate, useParams } from "react-router";
+import partnerService from "@/api/services/partnerService";
+import { Chart } from "@/components/chart";
+import { Avatar, AvatarFallback } from "@/ui/avatar";
+import { Badge } from "@/ui/badge";
+import { Button } from "@/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
+import { Separator } from "@/ui/separator";
+import { Skeleton } from "@/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/tabs";
 
 export default function PartnerDetails() {
 	const { id } = useParams<{ id: string }>();
@@ -73,9 +72,7 @@ export default function PartnerDetails() {
 		yaxis: { labels: { formatter: (v) => `€${v.toFixed(0)}` } },
 	};
 
-	const earningsSeries = [
-		{ name: "Earnings", data: partner.earningsHistory.map((e) => e.earnings) },
-	];
+	const earningsSeries = [{ name: "Earnings", data: partner.earningsHistory.map((e) => e.earnings) }];
 
 	return (
 		<div className="space-y-6">
@@ -104,7 +101,11 @@ export default function PartnerDetails() {
 						<div className="flex items-center gap-4">
 							<Avatar className="h-16 w-16">
 								<AvatarFallback className="bg-primary/10 text-primary text-lg">
-									{partner.businessName.split(" ").slice(0, 2).map((n) => n[0]).join("")}
+									{partner.businessName
+										.split(" ")
+										.slice(0, 2)
+										.map((n) => n[0])
+										.join("")}
 								</AvatarFallback>
 							</Avatar>
 							<div>
@@ -150,7 +151,9 @@ export default function PartnerDetails() {
 								{Object.entries(partner.workingHours).map(([day, hours]) => (
 									<div key={day} className="flex justify-between">
 										<span className="capitalize text-muted-foreground">{day}</span>
-										<span>{hours.open} - {hours.close}</span>
+										<span>
+											{hours.open} - {hours.close}
+										</span>
 									</div>
 								))}
 							</div>
@@ -210,10 +213,7 @@ export default function PartnerDetails() {
 								<CardContent className="pt-6">
 									<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 										{partner.services.map((service) => (
-											<div
-												key={service.name}
-												className="flex items-center justify-between p-4 border rounded-lg"
-											>
+											<div key={service.name} className="flex items-center justify-between p-4 border rounded-lg">
 												<span className="font-medium">{service.name}</span>
 												<Badge variant="secondary">€{service.price.toFixed(2)}</Badge>
 											</div>
@@ -235,7 +235,10 @@ export default function PartnerDetails() {
 													<div className="flex items-center gap-2">
 														<Avatar className="h-8 w-8">
 															<AvatarFallback className="text-xs">
-																{review.customerName.split(" ").map((n) => n[0]).join("")}
+																{review.customerName
+																	.split(" ")
+																	.map((n) => n[0])
+																	.join("")}
 															</AvatarFallback>
 														</Avatar>
 														<span className="font-medium text-sm">{review.customerName}</span>
@@ -245,9 +248,7 @@ export default function PartnerDetails() {
 															<Star
 																key={i}
 																className={`h-4 w-4 ${
-																	i < review.rating
-																		? "fill-yellow-400 text-yellow-400"
-																		: "text-gray-300"
+																	i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
 																}`}
 															/>
 														))}
@@ -270,12 +271,7 @@ export default function PartnerDetails() {
 									<CardTitle className="text-base">Earnings History (Last 6 Months)</CardTitle>
 								</CardHeader>
 								<CardContent>
-									<Chart
-										type="bar"
-										height={300}
-										options={earningsChartOptions}
-										series={earningsSeries}
-									/>
+									<Chart type="bar" height={300} options={earningsChartOptions} series={earningsSeries} />
 								</CardContent>
 							</Card>
 						</TabsContent>
