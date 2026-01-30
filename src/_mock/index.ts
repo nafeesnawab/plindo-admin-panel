@@ -1,6 +1,7 @@
 import { setupWorker } from "msw/browser";
 import { analyticsHandlers } from "./handlers/_analytics";
 import { bookingHandlers } from "./handlers/_bookings";
+import { carsHandlers } from "./handlers/_cars";
 import { customerHandlers } from "./handlers/_customers";
 import {
 	getBookingsTrend,
@@ -62,6 +63,7 @@ const handlers = [
 	...partnerDriversHandlers,
 	...partnerProfileHandlers,
 	...partnerSettingsHandlers,
+	...carsHandlers,
 ];
 const worker = setupWorker(...handlers);
 

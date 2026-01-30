@@ -40,6 +40,11 @@ export const frontendNavData: NavProps["data"] = [
 				icon: <Icon icon="solar:user-rounded-bold-duotone" size="24" />,
 			},
 			{
+				title: "Cars Management",
+				path: "/cars",
+				icon: <Icon icon="mdi:car" size="24" />,
+			},
+			{
 				title: "Booking Management",
 				path: "/bookings",
 				icon: <Icon icon="solar:calendar-bold-duotone" size="24" />,

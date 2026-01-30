@@ -2,25 +2,41 @@ import { faker } from "@faker-js/faker";
 import { delay, HttpResponse, http } from "msw";
 import { ResultStatus } from "@/types/enum";
 
-// Types
-interface BodyTypePricing {
+// Service Types
+export type ServiceType = "book_me" | "pick_by_me" | "washing_van";
+
+// Car pricing for a specific car model
+export interface CarPricing {
+	carId: string;
+	make: string;
+	model: string;
 	bodyType: string;
 	price: number;
-	enabled: boolean;
 }
 
-interface Service {
+// Distance charges for pick_by_me service type only (max 3km)
+export interface DistanceCharges {
+	"0-1km": number;
+	"1-2km": number;
+	"2-3km": number;
+}
+
+// Service interface with new fields
+export interface Service {
 	id: string;
 	name: string;
 	description: string;
 	category: string;
+	serviceType: ServiceType;
 	duration: number;
-	imageUrl?: string;
-	bodyTypePricing: BodyTypePricing[];
+	bannerUrl?: string;
+	carPricing: CarPricing[];
+	distanceCharges?: DistanceCharges;
+	additionalCharges?: {
+		name: string;
+		amount: number;
+	}[];
 	features: {
-		pickAndClean: boolean;
-		atYourPlace: boolean;
-		atShopOnly: boolean;
 		expressService: boolean;
 		parkingAvailable: boolean;
 	};
@@ -34,31 +50,21 @@ interface Service {
 	partnerId: string;
 }
 
-// Body types with default prices
-const BODY_TYPES = [
-	"Hatchback",
-	"Sedan",
-	"SUV",
-	"Coupe",
-	"Convertible",
-	"Van",
-	"Pickup Truck",
-	"MPV/Minivan",
-	"Station Wagon",
-	"Crossover",
+// Service categories
+export const SERVICE_CATEGORIES = [
+	"Basic Wash",
+	"Premium Wash",
+	"Interior Cleaning",
+	"Full Detailing",
+	"Express Wash",
+	"Specialty Services",
 ];
 
-const DEFAULT_BODY_TYPE_PRICES: Record<string, number> = {
-	Hatchback: 10,
-	Sedan: 12,
-	SUV: 15,
-	Coupe: 12,
-	Convertible: 14,
-	Van: 18,
-	"Pickup Truck": 16,
-	"MPV/Minivan": 15,
-	"Station Wagon": 13,
-	Crossover: 14,
+// Service type labels
+export const SERVICE_TYPE_LABELS: Record<ServiceType, string> = {
+	book_me: "Book Me (Customer drives to station)",
+	pick_by_me: "Pick By Me (Driver picks up car)",
+	washing_van: "Washing Van (Service at doorstep)",
 };
 
 const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -72,19 +78,21 @@ const generateMockServices = (partnerId: string) => {
 		{
 			id: faker.string.uuid(),
 			name: "Basic Exterior Wash",
-			description: "Quick exterior wash including rinse, soap, and hand dry.",
+			description: "Quick exterior wash including rinse, soap, and hand dry. Customer drives to our station.",
 			category: "Basic Wash",
+			serviceType: "book_me",
 			duration: 30,
-			imageUrl: faker.image.urlLoremFlickr({ category: "car" }),
-			bodyTypePricing: BODY_TYPES.map((type) => ({
-				bodyType: type,
-				price: DEFAULT_BODY_TYPE_PRICES[type],
-				enabled: true,
-			})),
+			bannerUrl: "https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?w=800",
+			carPricing: [
+				{ carId: "1", make: "Toyota", model: "Corolla", bodyType: "Sedan", price: 12 },
+				{ carId: "2", make: "Toyota", model: "Camry", bodyType: "Sedan", price: 14 },
+				{ carId: "3", make: "Toyota", model: "RAV4", bodyType: "SUV", price: 18 },
+				{ carId: "4", make: "Honda", model: "Civic", bodyType: "Sedan", price: 12 },
+				{ carId: "5", make: "Honda", model: "CR-V", bodyType: "SUV", price: 18 },
+				{ carId: "6", make: "BMW", model: "3 Series", bodyType: "Sedan", price: 15 },
+				{ carId: "7", make: "BMW", model: "X5", bodyType: "SUV", price: 22 },
+			],
 			features: {
-				pickAndClean: true,
-				atYourPlace: true,
-				atShopOnly: true,
 				expressService: true,
 				parkingAvailable: true,
 			},
@@ -99,20 +107,29 @@ const generateMockServices = (partnerId: string) => {
 		},
 		{
 			id: faker.string.uuid(),
-			name: "Premium Full Detail",
-			description: "Complete interior and exterior detailing with wax and polish.",
+			name: "Premium Full Detail - Pick Up",
+			description: "Complete interior and exterior detailing. We pick up your car and deliver it back sparkling clean.",
 			category: "Full Detailing",
+			serviceType: "pick_by_me",
 			duration: 180,
-			imageUrl: faker.image.urlLoremFlickr({ category: "car" }),
-			bodyTypePricing: BODY_TYPES.map((type) => ({
-				bodyType: type,
-				price: DEFAULT_BODY_TYPE_PRICES[type] * 3,
-				enabled: true,
-			})),
+			bannerUrl: "https://images.unsplash.com/photo-1507136566006-cfc505b114fc?w=800",
+			carPricing: [
+				{ carId: "1", make: "Toyota", model: "Corolla", bodyType: "Sedan", price: 45 },
+				{ carId: "2", make: "Toyota", model: "Camry", bodyType: "Sedan", price: 50 },
+				{ carId: "3", make: "Toyota", model: "RAV4", bodyType: "SUV", price: 60 },
+				{ carId: "4", make: "Honda", model: "Civic", bodyType: "Sedan", price: 45 },
+				{ carId: "5", make: "Honda", model: "CR-V", bodyType: "SUV", price: 60 },
+				{ carId: "6", make: "BMW", model: "3 Series", bodyType: "Sedan", price: 55 },
+				{ carId: "7", make: "BMW", model: "X5", bodyType: "SUV", price: 75 },
+				{ carId: "8", make: "Mercedes-Benz", model: "C-Class", bodyType: "Sedan", price: 55 },
+				{ carId: "9", make: "Mercedes-Benz", model: "GLE", bodyType: "SUV", price: 80 },
+			],
+			distanceCharges: {
+				"0-1km": 3,
+				"1-2km": 5,
+				"2-3km": 8,
+			},
 			features: {
-				pickAndClean: true,
-				atYourPlace: false,
-				atShopOnly: true,
 				expressService: false,
 				parkingAvailable: true,
 			},
@@ -127,20 +144,50 @@ const generateMockServices = (partnerId: string) => {
 		},
 		{
 			id: faker.string.uuid(),
-			name: "Interior Deep Clean",
-			description: "Thorough interior cleaning including seats, carpets, and dashboard.",
-			category: "Interior Cleaning",
-			duration: 90,
-			imageUrl: faker.image.urlLoremFlickr({ category: "car" }),
-			bodyTypePricing: BODY_TYPES.map((type) => ({
-				bodyType: type,
-				price: DEFAULT_BODY_TYPE_PRICES[type] * 2,
-				enabled: true,
-			})),
+			name: "Doorstep Express Wash",
+			description: "Our washing van comes to your doorstep. Professional wash without leaving your home.",
+			category: "Express Wash",
+			serviceType: "washing_van",
+			duration: 45,
+			bannerUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800",
+			carPricing: [
+				{ carId: "1", make: "Toyota", model: "Corolla", bodyType: "Sedan", price: 20 },
+				{ carId: "2", make: "Toyota", model: "Camry", bodyType: "Sedan", price: 22 },
+				{ carId: "3", make: "Toyota", model: "RAV4", bodyType: "SUV", price: 28 },
+				{ carId: "4", make: "Honda", model: "Civic", bodyType: "Sedan", price: 20 },
+				{ carId: "5", make: "Honda", model: "CR-V", bodyType: "SUV", price: 28 },
+				{ carId: "6", make: "BMW", model: "3 Series", bodyType: "Sedan", price: 25 },
+				{ carId: "7", make: "BMW", model: "X5", bodyType: "SUV", price: 35 },
+			],
+			additionalCharges: [{ name: "Van dispatch fee", amount: 5 }],
 			features: {
-				pickAndClean: true,
-				atYourPlace: true,
-				atShopOnly: true,
+				expressService: true,
+				parkingAvailable: false,
+			},
+			availability: {
+				weekdays: true,
+				weekends: true,
+				specificDays: DAYS_OF_WEEK,
+			},
+			status: "active",
+			createdAt: faker.date.past().toISOString().split("T")[0],
+			partnerId,
+		},
+		{
+			id: faker.string.uuid(),
+			name: "Interior Deep Clean",
+			description: "Thorough interior cleaning including seats, carpets, and dashboard at our station.",
+			category: "Interior Cleaning",
+			serviceType: "book_me",
+			duration: 90,
+			carPricing: [
+				{ carId: "1", make: "Toyota", model: "Corolla", bodyType: "Sedan", price: 25 },
+				{ carId: "2", make: "Toyota", model: "Camry", bodyType: "Sedan", price: 28 },
+				{ carId: "3", make: "Toyota", model: "RAV4", bodyType: "SUV", price: 35 },
+				{ carId: "4", make: "Honda", model: "Civic", bodyType: "Sedan", price: 25 },
+				{ carId: "5", make: "Honda", model: "CR-V", bodyType: "SUV", price: 35 },
+			],
+			features: {
 				expressService: false,
 				parkingAvailable: true,
 			},
@@ -341,16 +388,17 @@ const duplicateService = http.post("/api/partner/services/:id/duplicate", async 
 	});
 });
 
-// Get body types (for reference)
-const getBodyTypes = http.get("/api/partner/body-types", async () => {
+// Get service types
+const getServiceTypes = http.get("/api/partner/service-types", async () => {
 	await delay(100);
 
 	return HttpResponse.json({
 		status: ResultStatus.SUCCESS,
 		message: "",
 		data: {
-			bodyTypes: BODY_TYPES,
-			defaultPrices: DEFAULT_BODY_TYPE_PRICES,
+			serviceTypes: Object.keys(SERVICE_TYPE_LABELS),
+			serviceTypeLabels: SERVICE_TYPE_LABELS,
+			categories: SERVICE_CATEGORIES,
 		},
 	});
 });
@@ -363,5 +411,5 @@ export const partnerServicesHandlers = [
 	deleteService,
 	toggleServiceStatus,
 	duplicateService,
-	getBodyTypes,
+	getServiceTypes,
 ];

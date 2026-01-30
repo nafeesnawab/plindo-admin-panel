@@ -106,6 +106,12 @@ export function getFrontendDashboardRoutes(): RouteObject[] {
 			],
 		},
 
+		// Cars Management
+		{
+			path: "cars",
+			element: Component("/pages/management/cars"),
+		},
+
 		// System Logs
 		{ path: "system-logs", element: Component("/pages/system-logs") },
 

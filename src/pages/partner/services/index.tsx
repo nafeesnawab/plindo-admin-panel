@@ -1,5 +1,21 @@
-import { Copy, Edit, MoreHorizontal, Plus, Power, Search, Trash2 } from "lucide-react";
-import { useState } from "react";
+import {
+	Building2,
+	Car,
+	Copy,
+	Edit,
+	Filter,
+	Image,
+	MapPin,
+	MoreHorizontal,
+	Plus,
+	Power,
+	Search,
+	Trash2,
+	Truck,
+	Upload,
+	X,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
@@ -21,11 +37,27 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Textarea } from "@/ui/textarea";
 import { cn } from "@/utils";
 
-// Types
-interface BodyTypePricing {
+type ServiceType = "book_me" | "pick_by_me" | "washing_van";
+
+interface CarPricing {
+	carId: string;
+	make: string;
+	model: string;
 	bodyType: string;
 	price: number;
-	enabled: boolean;
+}
+
+interface DistanceCharges {
+	"0-1km": number;
+	"1-2km": number;
+	"2-3km": number;
+}
+
+interface AdminCar {
+	id: string;
+	make: string;
+	model: string;
+	bodyType: string;
 }
 
 interface Service {
@@ -33,13 +65,12 @@ interface Service {
 	name: string;
 	description: string;
 	category: string;
+	serviceType: ServiceType;
 	duration: number;
-	imageUrl?: string;
-	bodyTypePricing: BodyTypePricing[];
+	bannerUrl?: string;
+	carPricing: CarPricing[];
+	distanceCharges?: DistanceCharges;
 	features: {
-		pickAndClean: boolean;
-		atYourPlace: boolean;
-		atShopOnly: boolean;
 		expressService: boolean;
 		parkingAvailable: boolean;
 	};
@@ -52,34 +83,6 @@ interface Service {
 	createdAt: string;
 }
 
-// Body types
-const BODY_TYPES = [
-	"Hatchback",
-	"Sedan",
-	"SUV",
-	"Coupe",
-	"Convertible",
-	"Van",
-	"Pickup Truck",
-	"MPV/Minivan",
-	"Station Wagon",
-	"Crossover",
-];
-
-const DEFAULT_BODY_TYPE_PRICES: Record<string, number> = {
-	Hatchback: 10,
-	Sedan: 12,
-	SUV: 15,
-	Coupe: 12,
-	Convertible: 14,
-	Van: 18,
-	"Pickup Truck": 16,
-	"MPV/Minivan": 15,
-	"Station Wagon": 13,
-	Crossover: 14,
-};
-
-// Service categories
 const SERVICE_CATEGORIES = [
 	"Basic Wash",
 	"Premium Wash",
@@ -89,138 +92,103 @@ const SERVICE_CATEGORIES = [
 	"Specialty Services",
 ];
 
+const SERVICE_TYPE_CONFIG: Record<ServiceType, { label: string; icon: React.ReactNode; color: string }> = {
+	book_me: {
+		label: "Book Me",
+		icon: <Building2 className="h-5 w-5" />,
+		color: "bg-blue-100 text-blue-800 border-blue-200",
+	},
+	pick_by_me: {
+		label: "Pick By Me",
+		icon: <Truck className="h-5 w-5" />,
+		color: "bg-purple-100 text-purple-800 border-purple-200",
+	},
+	washing_van: {
+		label: "Washing Van",
+		icon: <MapPin className="h-5 w-5" />,
+		color: "bg-orange-100 text-orange-800 border-orange-200",
+	},
+};
+
 const DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
-// Mock services
-const mockServices: Service[] = [
-	{
-		id: "1",
-		name: "Basic Exterior Wash",
-		description: "Quick exterior wash including rinse, soap, and hand dry.",
-		category: "Basic Wash",
-		duration: 30,
-		bodyTypePricing: BODY_TYPES.map((type) => ({
-			bodyType: type,
-			price: DEFAULT_BODY_TYPE_PRICES[type],
-			enabled: true,
-		})),
-		features: {
-			pickAndClean: true,
-			atYourPlace: true,
-			atShopOnly: true,
-			expressService: true,
-			parkingAvailable: true,
-		},
-		availability: {
-			weekdays: true,
-			weekends: true,
-			specificDays: DAYS_OF_WEEK,
-		},
-		status: "active",
-		createdAt: "2024-01-15",
-	},
-	{
-		id: "2",
-		name: "Premium Full Detail",
-		description: "Complete interior and exterior detailing with wax and polish.",
-		category: "Full Detailing",
-		duration: 180,
-		bodyTypePricing: BODY_TYPES.map((type) => ({
-			bodyType: type,
-			price: DEFAULT_BODY_TYPE_PRICES[type] * 3,
-			enabled: true,
-		})),
-		features: {
-			pickAndClean: true,
-			atYourPlace: false,
-			atShopOnly: true,
-			expressService: false,
-			parkingAvailable: true,
-		},
-		availability: {
-			weekdays: true,
-			weekends: false,
-			specificDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-		},
-		status: "active",
-		createdAt: "2024-01-10",
-	},
-	{
-		id: "3",
-		name: "Interior Deep Clean",
-		description: "Thorough interior cleaning including seats, carpets, and dashboard.",
-		category: "Interior Cleaning",
-		duration: 90,
-		bodyTypePricing: BODY_TYPES.map((type) => ({
-			bodyType: type,
-			price: DEFAULT_BODY_TYPE_PRICES[type] * 2,
-			enabled: true,
-		})),
-		features: {
-			pickAndClean: true,
-			atYourPlace: true,
-			atShopOnly: true,
-			expressService: false,
-			parkingAvailable: true,
-		},
-		availability: {
-			weekdays: true,
-			weekends: true,
-			specificDays: DAYS_OF_WEEK,
-		},
-		status: "inactive",
-		createdAt: "2024-01-05",
-	},
-];
+const getInitialDistanceCharges = (): DistanceCharges => ({
+	"0-1km": 3,
+	"1-2km": 5,
+	"2-3km": 8,
+});
 
-// Initial form state
 const getInitialFormState = (): Omit<Service, "id" | "createdAt"> => ({
 	name: "",
 	description: "",
 	category: "",
+	serviceType: "book_me",
 	duration: 30,
-	imageUrl: "",
-	bodyTypePricing: BODY_TYPES.map((type) => ({
-		bodyType: type,
-		price: DEFAULT_BODY_TYPE_PRICES[type],
-		enabled: true,
-	})),
-	features: {
-		pickAndClean: false,
-		atYourPlace: false,
-		atShopOnly: true,
-		expressService: false,
-		parkingAvailable: false,
-	},
-	availability: {
-		weekdays: true,
-		weekends: true,
-		specificDays: DAYS_OF_WEEK,
-	},
+	bannerUrl: "",
+	carPricing: [],
+	features: { expressService: false, parkingAvailable: false },
+	availability: { weekdays: true, weekends: true, specificDays: DAYS_OF_WEEK },
 	status: "active",
 });
 
 export default function PartnerServicesPage() {
-	const [services, setServices] = useState<Service[]>(mockServices);
+	const [services, setServices] = useState<Service[]>([]);
+	const [adminCars, setAdminCars] = useState<AdminCar[]>([]);
+	const [loading, setLoading] = useState(true);
 	const [searchQuery, setSearchQuery] = useState("");
+	const [filterServiceType, setFilterServiceType] = useState<string>("all");
+	const [filterCategory, setFilterCategory] = useState<string>("all");
+	const [filterStatus, setFilterStatus] = useState<string>("all");
+	const [showFilters, setShowFilters] = useState(false);
 	const [formDialogOpen, setFormDialogOpen] = useState(false);
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+	const [carPricingDialogOpen, setCarPricingDialogOpen] = useState(false);
 	const [selectedService, setSelectedService] = useState<Service | null>(null);
 	const [formData, setFormData] = useState<Omit<Service, "id" | "createdAt">>(getInitialFormState());
 	const [isEditing, setIsEditing] = useState(false);
+	const [selectedMake, setSelectedMake] = useState<string>("");
+	const [selectedModel, setSelectedModel] = useState<string>("");
+	const [carPrice, setCarPrice] = useState<number>(10);
+	const [bannerPreview, setBannerPreview] = useState<string>("");
+	const fileInputRef = useRef<HTMLInputElement>(null);
 
-	// Filter services
-	const filteredServices = services.filter(
-		(service) =>
+	useEffect(() => {
+		const fetchData = async () => {
+			try {
+				setLoading(true);
+				const [servicesRes, carsRes] = await Promise.all([fetch("/api/partner/services"), fetch("/api/admin/cars")]);
+				const servicesData = await servicesRes.json();
+				const carsData = await carsRes.json();
+				if (servicesData.status === 0) setServices(servicesData.data.services);
+				if (carsData.status === 0) setAdminCars(carsData.data.cars);
+			} catch {
+				toast.error("Failed to fetch data");
+			} finally {
+				setLoading(false);
+			}
+		};
+		fetchData();
+	}, []);
+
+	const uniqueMakes = [...new Set(adminCars.map((car) => car.make))].sort();
+	const modelsForMake = selectedMake ? adminCars.filter((car) => car.make === selectedMake) : [];
+
+	const filteredServices = services.filter((service) => {
+		const matchesSearch =
+			searchQuery === "" ||
 			service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-			service.category.toLowerCase().includes(searchQuery.toLowerCase()),
-	);
+			service.category.toLowerCase().includes(searchQuery.toLowerCase());
+		const matchesType = filterServiceType === "all" || service.serviceType === filterServiceType;
+		const matchesCategory = filterCategory === "all" || service.category === filterCategory;
+		const matchesStatus = filterStatus === "all" || service.status === filterStatus;
+		return matchesSearch && matchesType && matchesCategory && matchesStatus;
+	});
 
-	// Handlers
 	const handleCreateNew = () => {
 		setIsEditing(false);
 		setSelectedService(null);
 		setFormData(getInitialFormState());
+		setBannerPreview("");
 		setFormDialogOpen(true);
 	};
 
@@ -231,32 +199,45 @@ export default function PartnerServicesPage() {
 			name: service.name,
 			description: service.description,
 			category: service.category,
+			serviceType: service.serviceType,
 			duration: service.duration,
-			imageUrl: service.imageUrl,
-			bodyTypePricing: service.bodyTypePricing,
+			bannerUrl: service.bannerUrl || "",
+			carPricing: service.carPricing,
+			distanceCharges: service.distanceCharges,
 			features: service.features,
 			availability: service.availability,
 			status: service.status,
 		});
+		setBannerPreview(service.bannerUrl || "");
 		setFormDialogOpen(true);
 	};
 
-	const handleDuplicate = (service: Service) => {
-		const newService: Service = {
-			...service,
-			id: `${Date.now()}`,
-			name: `${service.name} (Copy)`,
-			createdAt: new Date().toISOString().split("T")[0],
-		};
-		setServices((prev) => [...prev, newService]);
-		toast.success("Service duplicated");
+	const handleDuplicate = async (service: Service) => {
+		try {
+			const response = await fetch(`/api/partner/services/${service.id}/duplicate`, { method: "POST" });
+			const data = await response.json();
+			if (data.status === 0) {
+				setServices((prev) => [...prev, data.data.service]);
+				toast.success("Service duplicated");
+			} else {
+				toast.error(data.message || "Failed to duplicate");
+			}
+		} catch {
+			toast.error("Failed to duplicate service");
+		}
 	};
 
-	const handleToggleStatus = (serviceId: string) => {
-		setServices((prev) =>
-			prev.map((s) => (s.id === serviceId ? { ...s, status: s.status === "active" ? "inactive" : "active" } : s)),
-		);
-		toast.success("Service status updated");
+	const handleToggleStatus = async (serviceId: string) => {
+		try {
+			const response = await fetch(`/api/partner/services/${serviceId}/status`, { method: "PATCH" });
+			const data = await response.json();
+			if (data.status === 0) {
+				setServices((prev) => prev.map((s) => (s.id === serviceId ? data.data.service : s)));
+				toast.success("Status updated");
+			}
+		} catch {
+			toast.error("Failed to update status");
+		}
 	};
 
 	const handleDeleteClick = (service: Service) => {
@@ -264,47 +245,136 @@ export default function PartnerServicesPage() {
 		setDeleteDialogOpen(true);
 	};
 
-	const handleDeleteConfirm = () => {
-		if (selectedService) {
-			setServices((prev) => prev.filter((s) => s.id !== selectedService.id));
-			toast.success("Service deleted");
-			setDeleteDialogOpen(false);
-			setSelectedService(null);
+	const handleDeleteConfirm = async () => {
+		if (!selectedService) return;
+		try {
+			const response = await fetch(`/api/partner/services/${selectedService.id}`, { method: "DELETE" });
+			const data = await response.json();
+			if (data.status === 0) {
+				setServices((prev) => prev.filter((s) => s.id !== selectedService.id));
+				toast.success("Service deleted");
+			}
+		} catch {
+			toast.error("Failed to delete");
 		}
+		setDeleteDialogOpen(false);
+		setSelectedService(null);
 	};
 
-	const handleSave = () => {
-		if (!formData.name || !formData.category) {
+	const handleSave = async () => {
+		if (!formData.name || !formData.category || !formData.serviceType) {
 			toast.error("Please fill in all required fields");
 			return;
 		}
-
-		if (isEditing && selectedService) {
-			setServices((prev) => prev.map((s) => (s.id === selectedService.id ? { ...s, ...formData } : s)));
-			toast.success("Service updated");
-		} else {
-			const newService: Service = {
-				...formData,
-				id: `${Date.now()}`,
-				createdAt: new Date().toISOString().split("T")[0],
-			};
-			setServices((prev) => [...prev, newService]);
-			toast.success("Service created");
+		if (formData.carPricing.length === 0) {
+			toast.error("Please add at least one car pricing");
+			return;
 		}
-		setFormDialogOpen(false);
+
+		const payload = {
+			...formData,
+			bannerUrl: bannerPreview || formData.bannerUrl,
+			distanceCharges:
+				formData.serviceType === "pick_by_me" ? formData.distanceCharges || getInitialDistanceCharges() : undefined,
+		};
+
+		try {
+			if (isEditing && selectedService) {
+				const response = await fetch(`/api/partner/services/${selectedService.id}`, {
+					method: "PUT",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(payload),
+				});
+				const data = await response.json();
+				if (data.status === 0) {
+					setServices((prev) => prev.map((s) => (s.id === selectedService.id ? data.data.service : s)));
+					toast.success("Service updated");
+				} else {
+					toast.error(data.message || "Failed to update");
+					return;
+				}
+			} else {
+				const response = await fetch("/api/partner/services", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify(payload),
+				});
+				const data = await response.json();
+				if (data.status === 0) {
+					setServices((prev) => [...prev, data.data.service]);
+					toast.success("Service created");
+				} else {
+					toast.error(data.message || "Failed to create");
+					return;
+				}
+			}
+			setFormDialogOpen(false);
+		} catch {
+			toast.error("An error occurred");
+		}
 	};
 
-	const handleBodyTypePriceChange = (bodyType: string, price: number) => {
+	const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0];
+		if (file) {
+			if (!file.type.startsWith("image/")) {
+				toast.error("Please upload an image file");
+				return;
+			}
+			if (file.size > 5 * 1024 * 1024) {
+				toast.error("Image size should be less than 5MB");
+				return;
+			}
+			const reader = new FileReader();
+			reader.onloadend = () => {
+				const result = reader.result as string;
+				setBannerPreview(result);
+				setFormData((prev) => ({ ...prev, bannerUrl: result }));
+			};
+			reader.readAsDataURL(file);
+		}
+	};
+
+	const handleRemoveBanner = () => {
+		setBannerPreview("");
+		setFormData((prev) => ({ ...prev, bannerUrl: "" }));
+		if (fileInputRef.current) {
+			fileInputRef.current.value = "";
+		}
+	};
+
+	const handleAddCarPricing = () => {
+		if (!selectedMake || !selectedModel || carPrice <= 0) {
+			toast.error("Please select make, model and enter a valid price");
+			return;
+		}
+		const car = adminCars.find((c) => c.make === selectedMake && c.model === selectedModel);
+		if (!car) return;
+		if (formData.carPricing.some((cp) => cp.make === selectedMake && cp.model === selectedModel)) {
+			toast.error("This car is already added");
+			return;
+		}
 		setFormData((prev) => ({
 			...prev,
-			bodyTypePricing: prev.bodyTypePricing.map((bt) => (bt.bodyType === bodyType ? { ...bt, price } : bt)),
+			carPricing: [
+				...prev.carPricing,
+				{ carId: car.id, make: car.make, model: car.model, bodyType: car.bodyType, price: carPrice },
+			],
 		}));
+		setSelectedMake("");
+		setSelectedModel("");
+		setCarPrice(10);
+		setCarPricingDialogOpen(false);
 	};
 
-	const handleBodyTypeToggle = (bodyType: string, enabled: boolean) => {
+	const handleRemoveCarPricing = (carId: string) => {
+		setFormData((prev) => ({ ...prev, carPricing: prev.carPricing.filter((cp) => cp.carId !== carId) }));
+	};
+
+	const handleUpdateCarPrice = (carId: string, price: number) => {
 		setFormData((prev) => ({
 			...prev,
-			bodyTypePricing: prev.bodyTypePricing.map((bt) => (bt.bodyType === bodyType ? { ...bt, enabled } : bt)),
+			carPricing: prev.carPricing.map((cp) => (cp.carId === carId ? { ...cp, price } : cp)),
 		}));
 	};
 
@@ -320,12 +390,20 @@ export default function PartnerServicesPage() {
 		}));
 	};
 
+	const handleServiceTypeChange = (type: ServiceType) => {
+		setFormData((prev) => ({
+			...prev,
+			serviceType: type,
+			distanceCharges: type === "pick_by_me" ? getInitialDistanceCharges() : undefined,
+		}));
+	};
+
 	const getBasePrice = (service: Service) => {
-		const enabledPrices = service.bodyTypePricing.filter((bt) => bt.enabled);
-		if (enabledPrices.length === 0) return "N/A";
-		const minPrice = Math.min(...enabledPrices.map((bt) => bt.price));
-		const maxPrice = Math.max(...enabledPrices.map((bt) => bt.price));
-		return minPrice === maxPrice ? `€${minPrice}` : `€${minPrice} - €${maxPrice}`;
+		if (service.carPricing.length === 0) return "N/A";
+		const prices = service.carPricing.map((cp) => cp.price);
+		const minPrice = Math.min(...prices);
+		const maxPrice = Math.max(...prices);
+		return minPrice === maxPrice ? `£${minPrice}` : `£${minPrice} - £${maxPrice}`;
 	};
 
 	const formatDuration = (minutes: number) => {
@@ -335,9 +413,21 @@ export default function PartnerServicesPage() {
 		return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
 	};
 
+	const clearFilters = () => {
+		setFilterServiceType("all");
+		setFilterCategory("all");
+		setFilterStatus("all");
+		setSearchQuery("");
+	};
+
+	const activeFiltersCount = [filterServiceType !== "all", filterCategory !== "all", filterStatus !== "all"].filter(
+		Boolean,
+	).length;
+
+	const needsDistanceCharges = formData.serviceType === "pick_by_me";
+
 	return (
 		<div className="space-y-6">
-			{/* Header */}
 			<div className="flex items-center justify-between">
 				<div>
 					<h1 className="text-2xl font-bold">Services</h1>
@@ -349,121 +439,266 @@ export default function PartnerServicesPage() {
 				</Button>
 			</div>
 
-			{/* Search */}
 			<Card>
 				<CardContent className="pt-6">
-					<div className="relative">
-						<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-						<Input
-							placeholder="Search services..."
-							className="pl-10"
-							value={searchQuery}
-							onChange={(e) => setSearchQuery(e.target.value)}
-						/>
+					<div className="flex flex-col gap-4">
+						<div className="flex gap-4">
+							<div className="relative flex-1">
+								<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+								<Input
+									placeholder="Search services..."
+									className="pl-10"
+									value={searchQuery}
+									onChange={(e) => setSearchQuery(e.target.value)}
+								/>
+							</div>
+							<Button
+								variant={showFilters ? "secondary" : "outline"}
+								onClick={() => setShowFilters(!showFilters)}
+								className="gap-2"
+							>
+								<Filter className="h-4 w-4" />
+								Filters
+								{activeFiltersCount > 0 && (
+									<Badge variant="secondary" className="ml-1">
+										{activeFiltersCount}
+									</Badge>
+								)}
+							</Button>
+						</div>
+						{showFilters && (
+							<div className="flex flex-wrap gap-4 pt-2 border-t">
+								<div className="flex-1 min-w-[180px]">
+									<Label className="text-sm text-muted-foreground mb-2 block">Service Type</Label>
+									<Select value={filterServiceType} onValueChange={setFilterServiceType}>
+										<SelectTrigger>
+											<SelectValue placeholder="All Types" />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="all">All Types</SelectItem>
+											<SelectItem value="book_me">Book Me</SelectItem>
+											<SelectItem value="pick_by_me">Pick By Me</SelectItem>
+											<SelectItem value="washing_van">Washing Van</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+								<div className="flex-1 min-w-[180px]">
+									<Label className="text-sm text-muted-foreground mb-2 block">Category</Label>
+									<Select value={filterCategory} onValueChange={setFilterCategory}>
+										<SelectTrigger>
+											<SelectValue placeholder="All Categories" />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="all">All Categories</SelectItem>
+											{SERVICE_CATEGORIES.map((cat) => (
+												<SelectItem key={cat} value={cat}>
+													{cat}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+								</div>
+								<div className="flex-1 min-w-[180px]">
+									<Label className="text-sm text-muted-foreground mb-2 block">Status</Label>
+									<Select value={filterStatus} onValueChange={setFilterStatus}>
+										<SelectTrigger>
+											<SelectValue placeholder="All Status" />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="all">All Status</SelectItem>
+											<SelectItem value="active">Active</SelectItem>
+											<SelectItem value="inactive">Inactive</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+								<div className="flex items-end">
+									<Button variant="ghost" onClick={clearFilters}>
+										Clear Filters
+									</Button>
+								</div>
+							</div>
+						)}
 					</div>
 				</CardContent>
 			</Card>
 
-			{/* Services Table */}
 			<Card>
 				<CardHeader>
 					<CardTitle>All Services</CardTitle>
-					<CardDescription>{filteredServices.length} services total</CardDescription>
+					<CardDescription>
+						{filteredServices.length} of {services.length} services{activeFiltersCount > 0 && " (filtered)"}
+					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead>Service Name</TableHead>
-								<TableHead>Category</TableHead>
-								<TableHead>Price Range</TableHead>
-								<TableHead>Duration</TableHead>
-								<TableHead>Status</TableHead>
-								<TableHead className="text-right">Actions</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{filteredServices.map((service) => (
-								<TableRow key={service.id} className="cursor-pointer hover:bg-muted/50">
-									<TableCell>
-										<div>
-											<p className="font-medium">{service.name}</p>
-											<p className="text-sm text-muted-foreground line-clamp-1">{service.description}</p>
-										</div>
-									</TableCell>
-									<TableCell>
-										<Badge variant="outline">{service.category}</Badge>
-									</TableCell>
-									<TableCell className="font-medium">{getBasePrice(service)}</TableCell>
-									<TableCell>{formatDuration(service.duration)}</TableCell>
-									<TableCell>
-										<Badge
-											className={cn(
-												service.status === "active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800",
-											)}
-										>
-											{service.status}
-										</Badge>
-									</TableCell>
-									<TableCell className="text-right">
-										<DropdownMenu>
-											<DropdownMenuTrigger asChild>
-												<Button variant="ghost" size="icon">
-													<MoreHorizontal className="h-4 w-4" />
-												</Button>
-											</DropdownMenuTrigger>
-											<DropdownMenuContent align="end">
-												<DropdownMenuItem onClick={() => handleEdit(service)}>
-													<Edit className="mr-2 h-4 w-4" />
-													Edit
-												</DropdownMenuItem>
-												<DropdownMenuItem onClick={() => handleDuplicate(service)}>
-													<Copy className="mr-2 h-4 w-4" />
-													Duplicate
-												</DropdownMenuItem>
-												<DropdownMenuItem onClick={() => handleToggleStatus(service.id)}>
-													<Power className="mr-2 h-4 w-4" />
-													{service.status === "active" ? "Deactivate" : "Activate"}
-												</DropdownMenuItem>
-												<DropdownMenuSeparator />
-												<DropdownMenuItem onClick={() => handleDeleteClick(service)} className="text-destructive">
-													<Trash2 className="mr-2 h-4 w-4" />
-													Delete
-												</DropdownMenuItem>
-											</DropdownMenuContent>
-										</DropdownMenu>
-									</TableCell>
-								</TableRow>
-							))}
-							{filteredServices.length === 0 && (
+					{loading ? (
+						<div className="flex items-center justify-center py-8">
+							<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+						</div>
+					) : (
+						<Table>
+							<TableHeader>
 								<TableRow>
-									<TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-										No services found
-									</TableCell>
+									<TableHead>Service</TableHead>
+									<TableHead>Type</TableHead>
+									<TableHead>Category</TableHead>
+									<TableHead>Price Range</TableHead>
+									<TableHead>Duration</TableHead>
+									<TableHead>Status</TableHead>
+									<TableHead className="text-right">Actions</TableHead>
 								</TableRow>
-							)}
-						</TableBody>
-					</Table>
+							</TableHeader>
+							<TableBody>
+								{filteredServices.map((service) => (
+									<TableRow key={service.id} className="cursor-pointer hover:bg-muted/50">
+										<TableCell>
+											<div className="flex items-center gap-3">
+												{service.bannerUrl ? (
+													<img
+														src={service.bannerUrl}
+														alt={service.name}
+														className="w-12 h-12 rounded-lg object-cover"
+													/>
+												) : (
+													<div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
+														<Image className="h-5 w-5 text-muted-foreground" />
+													</div>
+												)}
+												<div>
+													<p className="font-medium">{service.name}</p>
+													<p className="text-sm text-muted-foreground line-clamp-1 max-w-[200px]">
+														{service.description}
+													</p>
+												</div>
+											</div>
+										</TableCell>
+										<TableCell>
+											<Badge className={SERVICE_TYPE_CONFIG[service.serviceType].color}>
+												{SERVICE_TYPE_CONFIG[service.serviceType].label}
+											</Badge>
+										</TableCell>
+										<TableCell>
+											<Badge variant="outline">{service.category}</Badge>
+										</TableCell>
+										<TableCell className="font-medium">{getBasePrice(service)}</TableCell>
+										<TableCell>{formatDuration(service.duration)}</TableCell>
+										<TableCell>
+											<Badge
+												className={cn(
+													service.status === "active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800",
+												)}
+											>
+												{service.status}
+											</Badge>
+										</TableCell>
+										<TableCell className="text-right">
+											<DropdownMenu>
+												<DropdownMenuTrigger asChild>
+													<Button variant="ghost" size="icon">
+														<MoreHorizontal className="h-4 w-4" />
+													</Button>
+												</DropdownMenuTrigger>
+												<DropdownMenuContent align="end">
+													<DropdownMenuItem onClick={() => handleEdit(service)}>
+														<Edit className="mr-2 h-4 w-4" />
+														Edit
+													</DropdownMenuItem>
+													<DropdownMenuItem onClick={() => handleDuplicate(service)}>
+														<Copy className="mr-2 h-4 w-4" />
+														Duplicate
+													</DropdownMenuItem>
+													<DropdownMenuItem onClick={() => handleToggleStatus(service.id)}>
+														<Power className="mr-2 h-4 w-4" />
+														{service.status === "active" ? "Deactivate" : "Activate"}
+													</DropdownMenuItem>
+													<DropdownMenuSeparator />
+													<DropdownMenuItem onClick={() => handleDeleteClick(service)} className="text-destructive">
+														<Trash2 className="mr-2 h-4 w-4" />
+														Delete
+													</DropdownMenuItem>
+												</DropdownMenuContent>
+											</DropdownMenu>
+										</TableCell>
+									</TableRow>
+								))}
+								{filteredServices.length === 0 && (
+									<TableRow>
+										<TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+											{services.length === 0 ? "No services added yet" : "No services match your filters"}
+										</TableCell>
+									</TableRow>
+								)}
+							</TableBody>
+						</Table>
+					)}
 				</CardContent>
 			</Card>
 
 			{/* Create/Edit Service Dialog */}
 			<Dialog open={formDialogOpen} onOpenChange={setFormDialogOpen}>
-				<DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+				<DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto overflow-x-hidden p-6">
 					<DialogHeader>
 						<DialogTitle>{isEditing ? "Edit Service" : "Create New Service"}</DialogTitle>
 						<DialogDescription>
 							{isEditing ? "Update your service details" : "Add a new service to your offerings"}
 						</DialogDescription>
 					</DialogHeader>
+					<div className="space-y-6 py-4 w-full">
+						{/* Service Type - Show selection when creating, display when editing */}
+						{isEditing ? (
+							<div className="space-y-2 w-full">
+								<h3 className="font-semibold text-base">Service Type</h3>
+								<div className="flex items-center gap-2 p-3 border rounded-lg bg-muted/50">
+									<div className={cn("p-2 rounded-lg", SERVICE_TYPE_CONFIG[formData.serviceType].color)}>
+										<div className="w-4 h-4">{SERVICE_TYPE_CONFIG[formData.serviceType].icon}</div>
+									</div>
+									<span className="font-medium text-sm">{SERVICE_TYPE_CONFIG[formData.serviceType].label}</span>
+								</div>
+							</div>
+						) : (
+							<div className="space-y-3 w-full">
+								<div>
+									<h3 className="font-semibold text-base">Service Type *</h3>
+									<p className="text-xs text-muted-foreground">
+										Choose how this service will be delivered to customers
+									</p>
+								</div>
+								<div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
+									{(Object.keys(SERVICE_TYPE_CONFIG) as ServiceType[]).map((type) => {
+										const config = SERVICE_TYPE_CONFIG[type];
+										const isSelected = formData.serviceType === type;
+										return (
+											<button
+												key={type}
+												type="button"
+												onClick={() => handleServiceTypeChange(type)}
+												className={cn(
+													"border-2 rounded-lg p-2.5 text-left transition-all w-full cursor-pointer",
+													isSelected
+														? "border-primary bg-primary/5 ring-2 ring-primary ring-offset-2"
+														: "border-border hover:border-primary/50 hover:bg-muted/50",
+												)}
+											>
+												<div className="flex items-center gap-2">
+													<div className={cn("p-1.5 rounded-lg shrink-0", config.color)}>
+														<div className="w-4 h-4">{config.icon}</div>
+													</div>
+													<h4 className="font-medium text-sm">{config.label}</h4>
+												</div>
+											</button>
+										);
+									})}
+								</div>
+							</div>
+						)}
 
-					<div className="space-y-6 py-4">
 						{/* Basic Information */}
-						<div className="space-y-4">
-							<h3 className="font-semibold">Basic Information</h3>
-							<div className="grid gap-4 md:grid-cols-2">
-								<div className="space-y-2">
-									<Label htmlFor="name">Service Name *</Label>
+						<div className="space-y-3 w-full">
+							<h3 className="font-semibold text-base border-b pb-2">Basic Information</h3>
+							<div className="grid gap-3 grid-cols-1 md:grid-cols-2 w-full">
+								<div className="space-y-1.5">
+									<Label htmlFor="name" className="text-sm">
+										Service Name *
+									</Label>
 									<Input
 										id="name"
 										placeholder="e.g., Basic Exterior Wash"
@@ -471,8 +706,10 @@ export default function PartnerServicesPage() {
 										onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
 									/>
 								</div>
-								<div className="space-y-2">
-									<Label htmlFor="category">Category *</Label>
+								<div className="space-y-1.5">
+									<Label htmlFor="category" className="text-sm">
+										Category *
+									</Label>
 									<Select
 										value={formData.category}
 										onValueChange={(value) => setFormData((prev) => ({ ...prev, category: value }))}
@@ -490,25 +727,24 @@ export default function PartnerServicesPage() {
 									</Select>
 								</div>
 							</div>
-							<div className="space-y-2">
-								<Label htmlFor="description">Description (max 500 chars)</Label>
+							<div className="space-y-1.5">
+								<Label htmlFor="description" className="text-sm">
+									Description (max 500 chars)
+								</Label>
 								<Textarea
 									id="description"
 									placeholder="Describe your service..."
 									value={formData.description}
-									onChange={(e) =>
-										setFormData((prev) => ({
-											...prev,
-											description: e.target.value.slice(0, 500),
-										}))
-									}
-									className="min-h-[80px]"
+									onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value.slice(0, 500) }))}
+									className="min-h-[80px] resize-none text-sm"
 								/>
 								<p className="text-xs text-muted-foreground text-right">{formData.description.length}/500</p>
 							</div>
-							<div className="grid gap-4 md:grid-cols-2">
-								<div className="space-y-2">
-									<Label htmlFor="duration">Duration (minutes) *</Label>
+							<div className="grid gap-3 grid-cols-1 md:grid-cols-2 w-full">
+								<div className="space-y-1.5">
+									<Label htmlFor="duration" className="text-sm">
+										Duration (minutes) *
+									</Label>
 									<Input
 										id="duration"
 										type="number"
@@ -518,114 +754,204 @@ export default function PartnerServicesPage() {
 										onChange={(e) => setFormData((prev) => ({ ...prev, duration: parseInt(e.target.value) || 30 }))}
 									/>
 								</div>
-								<div className="space-y-2">
-									<Label>Status</Label>
-									<div className="flex items-center gap-2 pt-2">
+								<div className="space-y-1.5">
+									<Label className="text-sm">Status</Label>
+									<div className="flex items-center gap-3 pt-2">
 										<Switch
 											checked={formData.status === "active"}
 											onCheckedChange={(checked) =>
 												setFormData((prev) => ({ ...prev, status: checked ? "active" : "inactive" }))
 											}
 										/>
-										<span className="text-sm">{formData.status === "active" ? "Active" : "Inactive"}</span>
+										<span className="text-sm font-medium">{formData.status === "active" ? "Active" : "Inactive"}</span>
 									</div>
 								</div>
 							</div>
 						</div>
 
-						{/* Body Type Pricing */}
-						<div className="space-y-4">
-							<h3 className="font-semibold">Body Type Pricing</h3>
-							<p className="text-sm text-muted-foreground">
-								Set different prices for each vehicle body type. Disable types you don't service.
-							</p>
-							<div className="border rounded-lg overflow-hidden">
-								<Table>
-									<TableHeader>
-										<TableRow>
-											<TableHead>Body Type</TableHead>
-											<TableHead>Price (€)</TableHead>
-											<TableHead className="text-center">Enabled</TableHead>
-										</TableRow>
-									</TableHeader>
-									<TableBody>
-										{formData.bodyTypePricing.map((bt) => (
-											<TableRow key={bt.bodyType}>
-												<TableCell className="font-medium">{bt.bodyType}</TableCell>
-												<TableCell>
-													<Input
-														type="number"
-														min={0}
-														step={0.5}
-														value={bt.price}
-														onChange={(e) => handleBodyTypePriceChange(bt.bodyType, parseFloat(e.target.value) || 0)}
-														className="w-24"
-														disabled={!bt.enabled}
-													/>
-												</TableCell>
-												<TableCell className="text-center">
-													<Checkbox
-														checked={bt.enabled}
-														onCheckedChange={(checked) => handleBodyTypeToggle(bt.bodyType, checked as boolean)}
-													/>
-												</TableCell>
-											</TableRow>
-										))}
-									</TableBody>
-								</Table>
+						{/* Service Banner - Direct Upload */}
+						<div className="space-y-3 w-full">
+							<h3 className="font-semibold text-base border-b pb-2">Service Banner</h3>
+							<div className="space-y-2">
+								<input
+									ref={fileInputRef}
+									type="file"
+									accept="image/*"
+									onChange={handleFileUpload}
+									className="hidden"
+									id="banner-upload"
+								/>
+								{bannerPreview ? (
+									<div className="relative w-full h-40 rounded-lg overflow-hidden border">
+										<img src={bannerPreview} alt="Banner preview" className="w-full h-full object-cover" />
+										<div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+											<Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()}>
+												<Upload className="h-4 w-4 mr-2" />
+												Change
+											</Button>
+											<Button variant="destructive" size="sm" onClick={handleRemoveBanner}>
+												<X className="h-4 w-4 mr-2" />
+												Remove
+											</Button>
+										</div>
+									</div>
+								) : (
+									<label
+										htmlFor="banner-upload"
+										className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
+									>
+										<Upload className="h-8 w-8 text-muted-foreground mb-2" />
+										<span className="text-xs font-medium">Click to upload banner image</span>
+										<span className="text-xs text-muted-foreground mt-0.5">PNG, JPG up to 5MB</span>
+									</label>
+								)}
 							</div>
 						</div>
 
+						{/* Distance Charges - For pick_by_me only */}
+						{needsDistanceCharges && (
+							<div className="space-y-3 w-full">
+								<div>
+									<h3 className="font-semibold text-base border-b pb-2">Distance-Based Charges</h3>
+									<p className="text-xs text-muted-foreground mt-1.5">
+										Set additional charges for picking up and delivering the car based on distance (max 3km)
+									</p>
+								</div>
+								<div className="grid gap-3 grid-cols-3 w-full">
+									<div className="space-y-1.5">
+										<Label className="text-sm">0-1 km (£)</Label>
+										<Input
+											type="number"
+											min={0}
+											step={0.5}
+											value={formData.distanceCharges?.["0-1km"] ?? 3}
+											onChange={(e) =>
+												setFormData((prev) => ({
+													...prev,
+													distanceCharges: {
+														...getInitialDistanceCharges(),
+														...prev.distanceCharges,
+														"0-1km": parseFloat(e.target.value) || 0,
+													},
+												}))
+											}
+										/>
+									</div>
+									<div className="space-y-1.5">
+										<Label className="text-sm">1-2 km (£)</Label>
+										<Input
+											type="number"
+											min={0}
+											step={0.5}
+											value={formData.distanceCharges?.["1-2km"] ?? 5}
+											onChange={(e) =>
+												setFormData((prev) => ({
+													...prev,
+													distanceCharges: {
+														...getInitialDistanceCharges(),
+														...prev.distanceCharges,
+														"1-2km": parseFloat(e.target.value) || 0,
+													},
+												}))
+											}
+										/>
+									</div>
+									<div className="space-y-1.5">
+										<Label className="text-sm">2-3 km (£)</Label>
+										<Input
+											type="number"
+											min={0}
+											step={0.5}
+											value={formData.distanceCharges?.["2-3km"] ?? 8}
+											onChange={(e) =>
+												setFormData((prev) => ({
+													...prev,
+													distanceCharges: {
+														...getInitialDistanceCharges(),
+														...prev.distanceCharges,
+														"2-3km": parseFloat(e.target.value) || 0,
+													},
+												}))
+											}
+										/>
+									</div>
+								</div>
+							</div>
+						)}
+
+						{/* Car Pricing */}
+						<div className="space-y-3 w-full">
+							<div className="flex items-center justify-between border-b pb-2">
+								<div>
+									<h3 className="font-semibold text-base">Car Pricing *</h3>
+									<p className="text-xs text-muted-foreground">Set base prices for different car makes and models</p>
+								</div>
+								<Button variant="outline" size="sm" onClick={() => setCarPricingDialogOpen(true)} className="gap-2">
+									<Plus className="h-4 w-4" />
+									Add Car Price
+								</Button>
+							</div>
+							{formData.carPricing.length > 0 ? (
+								<div className="border rounded-lg overflow-x-auto w-full">
+									<Table>
+										<TableHeader>
+											<TableRow>
+												<TableHead className="text-xs">Make</TableHead>
+												<TableHead className="text-xs">Model</TableHead>
+												<TableHead className="text-xs">Body Type</TableHead>
+												<TableHead className="text-xs">Price (£)</TableHead>
+												<TableHead className="text-right text-xs">Actions</TableHead>
+											</TableRow>
+										</TableHeader>
+										<TableBody>
+											{formData.carPricing.map((cp) => (
+												<TableRow key={cp.carId}>
+													<TableCell className="font-medium text-xs">{cp.make}</TableCell>
+													<TableCell className="text-xs">{cp.model}</TableCell>
+													<TableCell>
+														<Badge variant="outline" className="text-xs">
+															{cp.bodyType}
+														</Badge>
+													</TableCell>
+													<TableCell>
+														<Input
+															type="number"
+															min={0}
+															step={0.5}
+															value={cp.price}
+															onChange={(e) => handleUpdateCarPrice(cp.carId, parseFloat(e.target.value) || 0)}
+															className="w-20 h-8 text-xs"
+														/>
+													</TableCell>
+													<TableCell className="text-right">
+														<Button
+															variant="ghost"
+															size="icon"
+															className="h-8 w-8"
+															onClick={() => handleRemoveCarPricing(cp.carId)}
+														>
+															<Trash2 className="h-3.5 w-3.5 text-destructive" />
+														</Button>
+													</TableCell>
+												</TableRow>
+											))}
+										</TableBody>
+									</Table>
+								</div>
+							) : (
+								<div className="border-2 border-dashed rounded-lg p-6 text-center text-muted-foreground">
+									<Car className="h-8 w-8 mx-auto mb-2 opacity-50" />
+									<p className="text-sm font-medium">No car pricing added yet</p>
+									<p className="text-xs mt-1">Click "Add Car Price" to set prices for different cars</p>
+								</div>
+							)}
+						</div>
+
 						{/* Service Features */}
-						<div className="space-y-4">
-							<h3 className="font-semibold">Service Features</h3>
-							<div className="grid gap-3 md:grid-cols-2">
-								<div className="flex items-center gap-2">
-									<Checkbox
-										id="pickAndClean"
-										checked={formData.features.pickAndClean}
-										onCheckedChange={(checked) =>
-											setFormData((prev) => ({
-												...prev,
-												features: { ...prev.features, pickAndClean: checked as boolean },
-											}))
-										}
-									/>
-									<Label htmlFor="pickAndClean" className="cursor-pointer">
-										Pick & Clean (pick up from customer location)
-									</Label>
-								</div>
-								<div className="flex items-center gap-2">
-									<Checkbox
-										id="atYourPlace"
-										checked={formData.features.atYourPlace}
-										onCheckedChange={(checked) =>
-											setFormData((prev) => ({
-												...prev,
-												features: { ...prev.features, atYourPlace: checked as boolean },
-											}))
-										}
-									/>
-									<Label htmlFor="atYourPlace" className="cursor-pointer">
-										At Your Place (wash at customer location)
-									</Label>
-								</div>
-								<div className="flex items-center gap-2">
-									<Checkbox
-										id="atShopOnly"
-										checked={formData.features.atShopOnly}
-										onCheckedChange={(checked) =>
-											setFormData((prev) => ({
-												...prev,
-												features: { ...prev.features, atShopOnly: checked as boolean },
-											}))
-										}
-									/>
-									<Label htmlFor="atShopOnly" className="cursor-pointer">
-										At Shop Only (customer brings car)
-									</Label>
-								</div>
-								<div className="flex items-center gap-2">
+						<div className="space-y-3 w-full">
+							<h3 className="font-semibold text-base border-b pb-2">Service Features</h3>
+							<div className="grid gap-3 grid-cols-1 md:grid-cols-2 w-full">
+								<label className="flex items-center gap-2.5 p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
 									<Checkbox
 										id="expressService"
 										checked={formData.features.expressService}
@@ -636,11 +962,12 @@ export default function PartnerServicesPage() {
 											}))
 										}
 									/>
-									<Label htmlFor="expressService" className="cursor-pointer">
-										Express Service (available for quick wash)
-									</Label>
-								</div>
-								<div className="flex items-center gap-2">
+									<div>
+										<p className="font-medium text-sm">Express Service</p>
+										<p className="text-xs text-muted-foreground">Available for quick wash requests</p>
+									</div>
+								</label>
+								<label className="flex items-center gap-2.5 p-3 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
 									<Checkbox
 										id="parkingAvailable"
 										checked={formData.features.parkingAvailable}
@@ -651,18 +978,19 @@ export default function PartnerServicesPage() {
 											}))
 										}
 									/>
-									<Label htmlFor="parkingAvailable" className="cursor-pointer">
-										Parking Service Available
-									</Label>
-								</div>
+									<div>
+										<p className="font-medium text-sm">Parking Available</p>
+										<p className="text-xs text-muted-foreground">Parking service is available at your location</p>
+									</div>
+								</label>
 							</div>
 						</div>
 
 						{/* Availability */}
-						<div className="space-y-4">
-							<h3 className="font-semibold">Availability</h3>
-							<div className="flex gap-6">
-								<div className="flex items-center gap-2">
+						<div className="space-y-3 w-full">
+							<h3 className="font-semibold text-base border-b pb-2">Availability</h3>
+							<div className="flex flex-wrap gap-4">
+								<label className="flex items-center gap-2 cursor-pointer">
 									<Checkbox
 										id="weekdays"
 										checked={formData.availability.weekdays}
@@ -673,11 +1001,9 @@ export default function PartnerServicesPage() {
 											}))
 										}
 									/>
-									<Label htmlFor="weekdays" className="cursor-pointer">
-										Available on weekdays
-									</Label>
-								</div>
-								<div className="flex items-center gap-2">
+									<span className="text-sm font-medium">Available on weekdays</span>
+								</label>
+								<label className="flex items-center gap-2 cursor-pointer">
 									<Checkbox
 										id="weekends"
 										checked={formData.availability.weekends}
@@ -688,13 +1014,11 @@ export default function PartnerServicesPage() {
 											}))
 										}
 									/>
-									<Label htmlFor="weekends" className="cursor-pointer">
-										Available on weekends
-									</Label>
-								</div>
+									<span className="text-sm font-medium">Available on weekends</span>
+								</label>
 							</div>
-							<div className="space-y-2">
-								<Label>Specific Days</Label>
+							<div className="space-y-1.5">
+								<Label className="text-sm">Specific Days</Label>
 								<div className="flex flex-wrap gap-2">
 									{DAYS_OF_WEEK.map((day) => (
 										<Button
@@ -711,12 +1035,75 @@ export default function PartnerServicesPage() {
 							</div>
 						</div>
 					</div>
-
-					<DialogFooter>
+					<DialogFooter className="gap-3">
 						<Button variant="outline" onClick={() => setFormDialogOpen(false)}>
 							Cancel
 						</Button>
 						<Button onClick={handleSave}>{isEditing ? "Update Service" : "Create Service"}</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+
+			{/* Add Car Pricing Dialog */}
+			<Dialog open={carPricingDialogOpen} onOpenChange={setCarPricingDialogOpen}>
+				<DialogContent className="max-w-md">
+					<DialogHeader>
+						<DialogTitle>Add Car Pricing</DialogTitle>
+						<DialogDescription>Select a car and set the base price for this service</DialogDescription>
+					</DialogHeader>
+					<div className="space-y-4 py-4">
+						<div className="space-y-2">
+							<Label>Make / Company *</Label>
+							<Select
+								value={selectedMake}
+								onValueChange={(value) => {
+									setSelectedMake(value);
+									setSelectedModel("");
+								}}
+							>
+								<SelectTrigger>
+									<SelectValue placeholder="Select make" />
+								</SelectTrigger>
+								<SelectContent>
+									{uniqueMakes.map((make) => (
+										<SelectItem key={make} value={make}>
+											{make}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
+						<div className="space-y-2">
+							<Label>Model *</Label>
+							<Select value={selectedModel} onValueChange={setSelectedModel} disabled={!selectedMake}>
+								<SelectTrigger>
+									<SelectValue placeholder="Select model" />
+								</SelectTrigger>
+								<SelectContent>
+									{modelsForMake.map((car) => (
+										<SelectItem key={car.id} value={car.model}>
+											{car.model} ({car.bodyType})
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
+						<div className="space-y-2">
+							<Label>Base Price (£) *</Label>
+							<Input
+								type="number"
+								min={0}
+								step={0.5}
+								value={carPrice}
+								onChange={(e) => setCarPrice(parseFloat(e.target.value) || 0)}
+							/>
+						</div>
+					</div>
+					<DialogFooter>
+						<Button variant="outline" onClick={() => setCarPricingDialogOpen(false)}>
+							Cancel
+						</Button>
+						<Button onClick={handleAddCarPricing}>Add Price</Button>
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
