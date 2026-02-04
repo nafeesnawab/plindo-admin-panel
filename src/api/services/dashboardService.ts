@@ -14,10 +14,10 @@ export interface DashboardStats {
 	activeUsers: number;
 	bookingsToday: {
 		total: number;
-		pending: number;
-		confirmed: number;
+		booked: number;
 		inProgress: number;
 		completed: number;
+		delivered: number;
 		cancelled: number;
 	};
 	revenueToday: number;
@@ -35,7 +35,15 @@ export interface RecentBooking {
 	partnerName: string;
 	service: string;
 	amount: number;
-	status: "pending" | "confirmed" | "in_progress" | "completed" | "cancelled";
+	status:
+		| "booked"
+		| "in_progress"
+		| "completed"
+		| "picked"
+		| "out_for_delivery"
+		| "delivered"
+		| "cancelled"
+		| "rescheduled";
 	createdAt: string;
 }
 

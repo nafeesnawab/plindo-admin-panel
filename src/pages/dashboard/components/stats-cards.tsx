@@ -1,7 +1,7 @@
+import { Calendar, Euro, UserPlus, Users } from "lucide-react";
 import type { DashboardStats } from "@/api/services/dashboardService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 import { Skeleton } from "@/ui/skeleton";
-import { Users, Calendar, Euro, UserPlus } from "lucide-react";
 
 interface StatsCardsProps {
 	stats: DashboardStats | undefined;
@@ -40,7 +40,7 @@ export default function StatsCards({ stats, isLoading }: StatsCardsProps) {
 		{
 			title: "Bookings Today",
 			value: stats?.bookingsToday?.total?.toString() ?? "0",
-			description: `${stats?.bookingsToday?.completed ?? 0} completed, ${stats?.bookingsToday?.pending ?? 0} pending`,
+			description: `${stats?.bookingsToday?.completed ?? 0} completed, ${stats?.bookingsToday?.booked ?? 0} booked`,
 			icon: Calendar,
 			color: "text-green-500",
 			bgColor: "bg-green-500/10",

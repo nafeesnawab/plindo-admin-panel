@@ -1,10 +1,10 @@
-import { GLOBAL_CONFIG } from "@/global-config";
-import { t } from "@/locales/i18n";
-import userStore from "@/store/userStore";
-import axios, { type AxiosRequestConfig, type AxiosError, type AxiosResponse } from "axios";
+import axios, { type AxiosError, type AxiosRequestConfig, type AxiosResponse } from "axios";
 import { toast } from "sonner";
 import type { Result } from "#/api";
 import { ResultStatus } from "#/enum";
+import { GLOBAL_CONFIG } from "@/global-config";
+import { t } from "@/locales/i18n";
+import userStore from "@/store/userStore";
 
 const axiosInstance = axios.create({
 	baseURL: GLOBAL_CONFIG.apiBaseUrl,
@@ -49,6 +49,9 @@ class APIClient {
 	}
 	put<T = unknown>(config: AxiosRequestConfig): Promise<T> {
 		return this.request<T>({ ...config, method: "PUT" });
+	}
+	patch<T = unknown>(config: AxiosRequestConfig): Promise<T> {
+		return this.request<T>({ ...config, method: "PATCH" });
 	}
 	delete<T = unknown>(config: AxiosRequestConfig): Promise<T> {
 		return this.request<T>({ ...config, method: "DELETE" });

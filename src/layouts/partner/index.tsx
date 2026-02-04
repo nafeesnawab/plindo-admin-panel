@@ -112,7 +112,7 @@ function PcVerticalLayout() {
 			</nav>
 
 			<div
-				className="relative w-full min-h-screen flex flex-col transition-[padding] duration-300 ease-in-out"
+				className="relative w-full min-h-screen transition-[padding] duration-300 ease-in-out"
 				style={{ paddingLeft: mainPaddingLeft }}
 			>
 				<PartnerHeader />

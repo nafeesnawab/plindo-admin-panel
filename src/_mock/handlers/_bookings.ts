@@ -1,6 +1,6 @@
-import { ResultStatus } from "@/types/enum";
 import { faker } from "@faker-js/faker";
-import { http, HttpResponse } from "msw";
+import { HttpResponse, http } from "msw";
+import { ResultStatus } from "@/types/enum";
 
 export enum BookingApi {
 	List = "/bookings",
@@ -20,7 +20,16 @@ const carWashServices = [
 	{ name: "Wax & Polish", price: 35 },
 ] as const;
 
-const bookingStatuses = ["pending", "confirmed", "in_progress", "completed", "cancelled"] as const;
+const bookingStatuses = [
+	"booked",
+	"in_progress",
+	"completed",
+	"picked",
+	"out_for_delivery",
+	"delivered",
+	"cancelled",
+	"rescheduled",
+] as const;
 const cyprusCities = ["Nicosia", "Limassol", "Larnaca", "Paphos", "Famagusta", "Kyrenia"];
 const vehicleMakes = ["Toyota", "Mercedes-Benz", "BMW", "Volkswagen", "Audi", "Honda", "Nissan"];
 
@@ -40,18 +49,13 @@ const generatePartnerName = () => {
 
 const generateStatusTimeline = (status: string, createdAt: Date) => {
 	const timeline: Array<{ status: string; timestamp: string; note?: string }> = [
-		{ status: "created", timestamp: createdAt.toISOString(), note: "Booking created" },
+		{ status: "booked", timestamp: createdAt.toISOString(), note: "Customer booked slot" },
 	];
 
-	if (status === "pending") return timeline;
-
-	const confirmedAt = new Date(createdAt.getTime() + faker.number.int({ min: 5, max: 30 }) * 60000);
-	timeline.push({ status: "confirmed", timestamp: confirmedAt.toISOString(), note: "Partner confirmed booking" });
-
-	if (status === "confirmed") return timeline;
+	if (status === "booked") return timeline;
 
 	if (status === "cancelled") {
-		const cancelledAt = new Date(confirmedAt.getTime() + faker.number.int({ min: 10, max: 60 }) * 60000);
+		const cancelledAt = new Date(createdAt.getTime() + faker.number.int({ min: 10, max: 60 }) * 60000);
 		timeline.push({
 			status: "cancelled",
 			timestamp: cancelledAt.toISOString(),
@@ -60,13 +64,35 @@ const generateStatusTimeline = (status: string, createdAt: Date) => {
 		return timeline;
 	}
 
-	const inProgressAt = new Date(confirmedAt.getTime() + faker.number.int({ min: 30, max: 120 }) * 60000);
+	if (status === "rescheduled") {
+		const rescheduledAt = new Date(createdAt.getTime() + faker.number.int({ min: 30, max: 120 }) * 60000);
+		timeline.push({ status: "rescheduled", timestamp: rescheduledAt.toISOString(), note: "Booking rescheduled" });
+		return timeline;
+	}
+
+	const inProgressAt = new Date(createdAt.getTime() + faker.number.int({ min: 30, max: 120 }) * 60000);
 	timeline.push({ status: "in_progress", timestamp: inProgressAt.toISOString(), note: "Service started" });
 
 	if (status === "in_progress") return timeline;
 
 	const completedAt = new Date(inProgressAt.getTime() + faker.number.int({ min: 20, max: 90 }) * 60000);
 	timeline.push({ status: "completed", timestamp: completedAt.toISOString(), note: "Service completed" });
+
+	if (status === "completed") return timeline;
+
+	// For pick-by-me service type
+	if (status === "picked" || status === "out_for_delivery" || status === "delivered") {
+		const pickedAt = new Date(completedAt.getTime() + faker.number.int({ min: 5, max: 15 }) * 60000);
+		timeline.push({ status: "picked", timestamp: pickedAt.toISOString(), note: "Vehicle picked up" });
+		if (status === "picked") return timeline;
+
+		const outForDeliveryAt = new Date(pickedAt.getTime() + faker.number.int({ min: 10, max: 30 }) * 60000);
+		timeline.push({ status: "out_for_delivery", timestamp: outForDeliveryAt.toISOString(), note: "Out for delivery" });
+		if (status === "out_for_delivery") return timeline;
+
+		const deliveredAt = new Date(outForDeliveryAt.getTime() + faker.number.int({ min: 15, max: 45 }) * 60000);
+		timeline.push({ status: "delivered", timestamp: deliveredAt.toISOString(), note: "Vehicle delivered to customer" });
+	}
 
 	return timeline;
 };
@@ -120,40 +146,51 @@ const generateBooking = (forceStatus?: string, isDisputed?: boolean) => {
 			status: status === "completed" ? "paid" : status === "cancelled" ? "refunded" : "pending",
 			transactionId: faker.string.alphanumeric(16).toUpperCase(),
 		},
-		rating: status === "completed" ? faker.helpers.maybe(() => ({
-			score: faker.number.int({ min: 1, max: 5 }),
-			comment: faker.helpers.maybe(() => faker.lorem.sentence(), { probability: 0.6 }),
-			createdAt: faker.date.recent({ days: 7 }).toISOString(),
-		}), { probability: 0.7 }) : null,
+		rating:
+			status === "completed"
+				? faker.helpers.maybe(
+						() => ({
+							score: faker.number.int({ min: 1, max: 5 }),
+							comment: faker.helpers.maybe(() => faker.lorem.sentence(), { probability: 0.6 }),
+							createdAt: faker.date.recent({ days: 7 }).toISOString(),
+						}),
+						{ probability: 0.7 },
+					)
+				: null,
 		isDisputed: isDisputed ?? false,
-		dispute: isDisputed ? {
-			id: faker.string.uuid(),
-			reason: faker.helpers.arrayElement([
-				"Service not as described",
-				"Damage to vehicle",
-				"Partner was rude",
-				"Service not completed properly",
-				"Overcharged for service",
-				"Long wait time",
-			]),
-			description: faker.lorem.paragraph(),
-			createdAt: faker.date.recent({ days: 7 }).toISOString(),
-			status: "pending",
-			customerEvidence: Array.from({ length: faker.number.int({ min: 1, max: 3 }) }).map(() => ({
-				type: faker.helpers.arrayElement(["photo", "video"]),
-				url: faker.image.url(),
-				uploadedAt: faker.date.recent({ days: 5 }).toISOString(),
-			})),
-			partnerResponse: faker.helpers.maybe(() => ({
-				response: faker.lorem.paragraph(),
-				evidence: Array.from({ length: faker.number.int({ min: 0, max: 2 }) }).map(() => ({
-					type: faker.helpers.arrayElement(["photo", "video"]),
-					url: faker.image.url(),
-					uploadedAt: faker.date.recent({ days: 3 }).toISOString(),
-				})),
-				respondedAt: faker.date.recent({ days: 3 }).toISOString(),
-			}), { probability: 0.6 }),
-		} : null,
+		dispute: isDisputed
+			? {
+					id: faker.string.uuid(),
+					reason: faker.helpers.arrayElement([
+						"Service not as described",
+						"Damage to vehicle",
+						"Partner was rude",
+						"Service not completed properly",
+						"Overcharged for service",
+						"Long wait time",
+					]),
+					description: faker.lorem.paragraph(),
+					createdAt: faker.date.recent({ days: 7 }).toISOString(),
+					status: "pending",
+					customerEvidence: Array.from({ length: faker.number.int({ min: 1, max: 3 }) }).map(() => ({
+						type: faker.helpers.arrayElement(["photo", "video"]),
+						url: faker.image.url(),
+						uploadedAt: faker.date.recent({ days: 5 }).toISOString(),
+					})),
+					partnerResponse: faker.helpers.maybe(
+						() => ({
+							response: faker.lorem.paragraph(),
+							evidence: Array.from({ length: faker.number.int({ min: 0, max: 2 }) }).map(() => ({
+								type: faker.helpers.arrayElement(["photo", "video"]),
+								url: faker.image.url(),
+								uploadedAt: faker.date.recent({ days: 3 }).toISOString(),
+							})),
+							respondedAt: faker.date.recent({ days: 3 }).toISOString(),
+						}),
+						{ probability: 0.6 },
+					),
+				}
+			: null,
 		notes: faker.helpers.maybe(() => faker.lorem.sentence(), { probability: 0.3 }),
 	};
 };
@@ -182,7 +219,7 @@ export const getBookings = http.get(`/api${BookingApi.List}`, ({ request }) => {
 			(b) =>
 				b.bookingNumber.toLowerCase().includes(searchLower) ||
 				b.customer.name.toLowerCase().includes(searchLower) ||
-				b.partner.businessName.toLowerCase().includes(searchLower)
+				b.partner.businessName.toLowerCase().includes(searchLower),
 		);
 	}
 
@@ -232,10 +269,7 @@ export const getBookingDetails = http.get(`/api/bookings/:id`, ({ params }) => {
 	const booking = [...allBookings, ...disputedBookings].find((b) => b.id === id);
 
 	if (!booking) {
-		return HttpResponse.json(
-			{ status: ResultStatus.ERROR, message: "Booking not found" },
-			{ status: 404 }
-		);
+		return HttpResponse.json({ status: ResultStatus.ERROR, message: "Booking not found" }, { status: 404 });
 	}
 
 	return HttpResponse.json({

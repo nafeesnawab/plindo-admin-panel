@@ -1,6 +1,6 @@
-import { ResultStatus } from "@/types/enum";
 import { faker } from "@faker-js/faker";
-import { http, HttpResponse } from "msw";
+import { HttpResponse, http } from "msw";
+import { ResultStatus } from "@/types/enum";
 
 export enum AnalyticsApi {
 	UserAnalytics = "/analytics/users",
@@ -72,7 +72,7 @@ export const getUserAnalytics = http.get(`/api${AnalyticsApi.UserAnalytics}`, ()
 
 export const getBookingAnalytics = http.get(`/api${AnalyticsApi.BookingAnalytics}`, () => {
 	const totalBookings = faker.number.int({ min: 20000, max: 80000 });
-	
+
 	const peakHours = [];
 	const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 	for (let hour = 8; hour <= 20; hour++) {
@@ -80,9 +80,9 @@ export const getBookingAnalytics = http.get(`/api${AnalyticsApi.BookingAnalytics
 			peakHours.push({
 				day,
 				hour: `${hour}:00`,
-				value: faker.number.int({ 
-					min: day === "Sat" || day === "Sun" ? 15 : 5, 
-					max: day === "Sat" || day === "Sun" ? 50 : 30 
+				value: faker.number.int({
+					min: day === "Sat" || day === "Sun" ? 15 : 5,
+					max: day === "Sat" || day === "Sun" ? 50 : 30,
 				}),
 			});
 		}
@@ -96,9 +96,18 @@ export const getBookingAnalytics = http.get(`/api${AnalyticsApi.BookingAnalytics
 		{ name: "Express Wash", bookings: faker.number.int({ min: 4000, max: 12000 }), revenue: 0 },
 		{ name: "Wax & Polish", bookings: faker.number.int({ min: 1500, max: 6000 }), revenue: 0 },
 	];
-	
-	const prices = { "Basic Wash": 12, "Premium Wash": 20, "Interior Cleaning": 25, "Full Detail": 45, "Express Wash": 8, "Wax & Polish": 35 };
-	services.forEach(s => { s.revenue = s.bookings * (prices[s.name as keyof typeof prices] || 20); });
+
+	const prices = {
+		"Basic Wash": 12,
+		"Premium Wash": 20,
+		"Interior Cleaning": 25,
+		"Full Detail": 45,
+		"Express Wash": 8,
+		"Wax & Polish": 35,
+	};
+	services.forEach((s) => {
+		s.revenue = s.bookings * (prices[s.name as keyof typeof prices] || 20);
+	});
 
 	return HttpResponse.json({
 		status: ResultStatus.SUCCESS,
@@ -117,10 +126,11 @@ export const getBookingAnalytics = http.get(`/api${AnalyticsApi.BookingAnalytics
 			peakHours,
 			popularServices: services.sort((a, b) => b.bookings - a.bookings),
 			bookingsByStatus: {
-				completed: Math.floor(totalBookings * 0.85),
+				completed: Math.floor(totalBookings * 0.45),
 				cancelled: Math.floor(totalBookings * 0.08),
-				pending: Math.floor(totalBookings * 0.04),
-				inProgress: Math.floor(totalBookings * 0.03),
+				booked: Math.floor(totalBookings * 0.15),
+				inProgress: Math.floor(totalBookings * 0.07),
+				delivered: Math.floor(totalBookings * 0.25),
 			},
 		},
 	});
@@ -208,9 +218,4 @@ export const getSubscriptionAnalytics = http.get(`/api${AnalyticsApi.Subscriptio
 	});
 });
 
-export const analyticsHandlers = [
-	getUserAnalytics,
-	getBookingAnalytics,
-	getPartnerAnalytics,
-	getSubscriptionAnalytics,
-];
+export const analyticsHandlers = [getUserAnalytics, getBookingAnalytics, getPartnerAnalytics, getSubscriptionAnalytics];

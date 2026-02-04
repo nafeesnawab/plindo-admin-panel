@@ -1,26 +1,31 @@
 import { useQuery } from "@tanstack/react-query";
-
+import { formatDistanceToNow } from "date-fns";
 import dashboardService from "@/api/services/dashboardService";
 import { Avatar, AvatarFallback } from "@/ui/avatar";
 import { Badge } from "@/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 import { Skeleton } from "@/ui/skeleton";
-import { formatDistanceToNow } from "date-fns";
 
 const statusColors: Record<string, string> = {
-	pending: "bg-yellow-500/10 text-yellow-500",
-	confirmed: "bg-blue-500/10 text-blue-500",
+	booked: "bg-blue-500/10 text-blue-500",
 	in_progress: "bg-purple-500/10 text-purple-500",
 	completed: "bg-green-500/10 text-green-500",
+	picked: "bg-indigo-500/10 text-indigo-500",
+	out_for_delivery: "bg-amber-500/10 text-amber-500",
+	delivered: "bg-teal-500/10 text-teal-500",
 	cancelled: "bg-red-500/10 text-red-500",
+	rescheduled: "bg-orange-500/10 text-orange-500",
 };
 
 const statusLabels: Record<string, string> = {
-	pending: "Pending",
-	confirmed: "Confirmed",
+	booked: "Booked",
 	in_progress: "In Progress",
 	completed: "Completed",
+	picked: "Picked",
+	out_for_delivery: "Out for Delivery",
+	delivered: "Delivered",
 	cancelled: "Cancelled",
+	rescheduled: "Rescheduled",
 };
 
 export default function RecentBookings() {
@@ -61,7 +66,10 @@ export default function RecentBookings() {
 					<div key={booking.id} className="flex items-center gap-3">
 						<Avatar className="h-10 w-10">
 							<AvatarFallback className="bg-primary/10 text-primary text-xs">
-								{booking.customerName.split(" ").map((n) => n[0]).join("")}
+								{booking.customerName
+									.split(" ")
+									.map((n) => n[0])
+									.join("")}
 							</AvatarFallback>
 						</Avatar>
 						<div className="flex-1 min-w-0">

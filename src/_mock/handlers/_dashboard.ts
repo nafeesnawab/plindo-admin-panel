@@ -1,6 +1,6 @@
-import { ResultStatus } from "@/types/enum";
 import { faker } from "@faker-js/faker";
-import { http, HttpResponse } from "msw";
+import { HttpResponse, http } from "msw";
+import { ResultStatus } from "@/types/enum";
 
 export enum DashboardApi {
 	Stats = "/dashboard/stats",
@@ -27,7 +27,16 @@ const generateDailyData = (days: number, baseValue: number, variance: number) =>
 	return data;
 };
 
-const bookingStatuses = ["pending", "confirmed", "in_progress", "completed", "cancelled"] as const;
+const bookingStatuses = [
+	"booked",
+	"in_progress",
+	"completed",
+	"picked",
+	"out_for_delivery",
+	"delivered",
+	"cancelled",
+	"rescheduled",
+] as const;
 const partnerStatuses = ["pending", "approved", "rejected"] as const;
 
 // Car wash service types
@@ -58,10 +67,10 @@ export const getDashboardStats = http.get(`/api${DashboardApi.Stats}`, () => {
 			activeUsers: faker.number.int({ min: 8000, max: 15000 }),
 			bookingsToday: {
 				total: faker.number.int({ min: 150, max: 300 }),
-				pending: faker.number.int({ min: 20, max: 50 }),
-				confirmed: faker.number.int({ min: 40, max: 80 }),
+				booked: faker.number.int({ min: 40, max: 80 }),
 				inProgress: faker.number.int({ min: 30, max: 60 }),
 				completed: faker.number.int({ min: 50, max: 100 }),
+				delivered: faker.number.int({ min: 20, max: 40 }),
 				cancelled: faker.number.int({ min: 5, max: 15 }),
 			},
 			revenueToday: faker.number.float({ min: 5000, max: 15000, fractionDigits: 2 }),
@@ -74,7 +83,7 @@ export const getDashboardStats = http.get(`/api${DashboardApi.Stats}`, () => {
 export const getBookingsTrend = http.get(`/api${DashboardApi.BookingsTrend}`, ({ request }) => {
 	const url = new URL(request.url);
 	const days = Number.parseInt(url.searchParams.get("days") || "7");
-	
+
 	return HttpResponse.json({
 		status: ResultStatus.SUCCESS,
 		data: generateDailyData(days, 200, 100),
@@ -85,7 +94,7 @@ export const getBookingsTrend = http.get(`/api${DashboardApi.BookingsTrend}`, ({
 export const getRevenueTrend = http.get(`/api${DashboardApi.RevenueTrend}`, ({ request }) => {
 	const url = new URL(request.url);
 	const days = Number.parseInt(url.searchParams.get("days") || "7");
-	
+
 	return HttpResponse.json({
 		status: ResultStatus.SUCCESS,
 		data: generateDailyData(days, 10000, 5000),

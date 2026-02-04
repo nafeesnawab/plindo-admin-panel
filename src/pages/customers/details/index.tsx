@@ -1,33 +1,5 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useParams, useNavigate } from "react-router";
-
-import customerService from "@/api/services/customerService";
-import { Avatar, AvatarFallback, AvatarImage } from "@/ui/avatar";
-import { Badge } from "@/ui/badge";
-import { Button } from "@/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@/ui/dialog";
-import { Separator } from "@/ui/separator";
-import { Skeleton } from "@/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/tabs";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/ui/table";
-import { Textarea } from "@/ui/textarea";
-import { formatDistanceToNow, format } from "date-fns";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { format, formatDistanceToNow } from "date-fns";
 import {
 	ArrowLeft,
 	Bell,
@@ -44,22 +16,41 @@ import {
 	Trash2,
 	User,
 } from "lucide-react";
+import { useState } from "react";
+import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
+import customerService from "@/api/services/customerService";
+import { Avatar, AvatarFallback, AvatarImage } from "@/ui/avatar";
+import { Badge } from "@/ui/badge";
+import { Button } from "@/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/ui/dialog";
+import { Separator } from "@/ui/separator";
+import { Skeleton } from "@/ui/skeleton";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/tabs";
+import { Textarea } from "@/ui/textarea";
 
 const statusColors: Record<string, string> = {
-	pending: "bg-yellow-500/10 text-yellow-600",
-	confirmed: "bg-blue-500/10 text-blue-600",
+	booked: "bg-blue-500/10 text-blue-600",
 	in_progress: "bg-purple-500/10 text-purple-600",
 	completed: "bg-green-500/10 text-green-600",
+	picked: "bg-indigo-500/10 text-indigo-600",
+	out_for_delivery: "bg-amber-500/10 text-amber-600",
+	delivered: "bg-teal-500/10 text-teal-600",
 	cancelled: "bg-red-500/10 text-red-600",
+	rescheduled: "bg-orange-500/10 text-orange-600",
 };
 
 const statusLabels: Record<string, string> = {
-	pending: "Pending",
-	confirmed: "Confirmed",
+	booked: "Booked",
 	in_progress: "In Progress",
 	completed: "Completed",
+	picked: "Picked",
+	out_for_delivery: "Out for Delivery",
+	delivered: "Delivered",
 	cancelled: "Cancelled",
+	rescheduled: "Rescheduled",
 };
 
 export default function CustomerDetails() {
@@ -81,8 +72,7 @@ export default function CustomerDetails() {
 	});
 
 	const suspendMutation = useMutation({
-		mutationFn: ({ id, reason }: { id: string; reason: string }) =>
-			customerService.suspendCustomer(id, reason),
+		mutationFn: ({ id, reason }: { id: string; reason: string }) => customerService.suspendCustomer(id, reason),
 		onSuccess: () => {
 			toast.success("Customer suspended");
 			queryClient.invalidateQueries({ queryKey: ["customer-details", id] });
@@ -109,8 +99,7 @@ export default function CustomerDetails() {
 	});
 
 	const notifyMutation = useMutation({
-		mutationFn: ({ id, message }: { id: string; message: string }) =>
-			customerService.sendNotification(id, message),
+		mutationFn: ({ id, message }: { id: string; message: string }) => customerService.sendNotification(id, message),
 		onSuccess: () => {
 			toast.success("Notification sent");
 			setShowNotifyDialog(false);
@@ -149,7 +138,9 @@ export default function CustomerDetails() {
 						<ArrowLeft className="h-5 w-5" />
 					</Button>
 					<h1 className="text-2xl font-bold">{customer.name}</h1>
-					<Badge className={customer.status === "active" ? "bg-green-500/10 text-green-600" : "bg-red-500/10 text-red-600"}>
+					<Badge
+						className={customer.status === "active" ? "bg-green-500/10 text-green-600" : "bg-red-500/10 text-red-600"}
+					>
 						{customer.status.charAt(0).toUpperCase() + customer.status.slice(1)}
 					</Badge>
 				</div>
@@ -164,7 +155,12 @@ export default function CustomerDetails() {
 							Suspend
 						</Button>
 					) : (
-						<Button variant="outline" size="sm" className="text-green-600" onClick={() => setShowReactivateDialog(true)}>
+						<Button
+							variant="outline"
+							size="sm"
+							className="text-green-600"
+							onClick={() => setShowReactivateDialog(true)}
+						>
 							<Play className="h-4 w-4 mr-2" />
 							Reactivate
 						</Button>
@@ -186,7 +182,10 @@ export default function CustomerDetails() {
 							<Avatar className="h-16 w-16">
 								<AvatarImage src={customer.avatar} alt={customer.name} />
 								<AvatarFallback className="bg-primary/10 text-primary text-lg">
-									{customer.name.split(" ").map((n) => n[0]).join("")}
+									{customer.name
+										.split(" ")
+										.map((n) => n[0])
+										.join("")}
 								</AvatarFallback>
 							</Avatar>
 							<div>
@@ -235,7 +234,9 @@ export default function CustomerDetails() {
 										{customer.subscription.washesRemaining} washes remaining
 									</p>
 									<p className="text-xs text-muted-foreground mt-1">
-										Renews {customer.subscription.renewalDate && format(new Date(customer.subscription.renewalDate), "MMM dd, yyyy")}
+										Renews{" "}
+										{customer.subscription.renewalDate &&
+											format(new Date(customer.subscription.renewalDate), "MMM dd, yyyy")}
 									</p>
 								</div>
 							) : (
@@ -250,7 +251,8 @@ export default function CustomerDetails() {
 									<p className="text-sm font-medium text-red-600 mb-1">Suspension Reason</p>
 									<p className="text-sm text-red-600/80">{customer.suspensionReason}</p>
 									<p className="text-xs text-red-600/60 mt-1">
-										Suspended {customer.suspendedAt && formatDistanceToNow(new Date(customer.suspendedAt), { addSuffix: true })}
+										Suspended{" "}
+										{customer.suspendedAt && formatDistanceToNow(new Date(customer.suspendedAt), { addSuffix: true })}
 									</p>
 								</div>
 							</>
@@ -328,9 +330,7 @@ export default function CustomerDetails() {
 															)}
 														</TableCell>
 														<TableCell>
-															<Badge className={statusColors[booking.status]}>
-																{statusLabels[booking.status]}
-															</Badge>
+															<Badge className={statusColors[booking.status]}>{statusLabels[booking.status]}</Badge>
 														</TableCell>
 													</TableRow>
 												))}
@@ -355,7 +355,9 @@ export default function CustomerDetails() {
 															<Car className="h-5 w-5 text-primary" />
 														</div>
 														<div>
-															<p className="font-medium">{vehicle.make} {vehicle.model}</p>
+															<p className="font-medium">
+																{vehicle.make} {vehicle.model}
+															</p>
 															<p className="text-sm text-muted-foreground">
 																{vehicle.color} • {vehicle.year}
 															</p>
@@ -397,9 +399,7 @@ export default function CustomerDetails() {
 															</p>
 														</div>
 													</div>
-													{method.isDefault && (
-														<Badge variant="secondary">Default</Badge>
-													)}
+													{method.isDefault && <Badge variant="secondary">Default</Badge>}
 												</div>
 											))}
 										</div>
@@ -415,9 +415,7 @@ export default function CustomerDetails() {
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle>Suspend Customer</DialogTitle>
-						<DialogDescription>
-							Please provide a reason for suspending {customer.name}'s account.
-						</DialogDescription>
+						<DialogDescription>Please provide a reason for suspending {customer.name}'s account.</DialogDescription>
 					</DialogHeader>
 					<Textarea
 						placeholder="Enter suspension reason..."
@@ -426,7 +424,9 @@ export default function CustomerDetails() {
 						rows={4}
 					/>
 					<DialogFooter>
-						<Button variant="outline" onClick={() => setShowSuspendDialog(false)}>Cancel</Button>
+						<Button variant="outline" onClick={() => setShowSuspendDialog(false)}>
+							Cancel
+						</Button>
 						<Button
 							variant="destructive"
 							onClick={() => suspendMutation.mutate({ id: customer.id, reason: suspendReason })}
@@ -442,12 +442,12 @@ export default function CustomerDetails() {
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle>Reactivate Customer</DialogTitle>
-						<DialogDescription>
-							Are you sure you want to reactivate {customer.name}'s account?
-						</DialogDescription>
+						<DialogDescription>Are you sure you want to reactivate {customer.name}'s account?</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>
-						<Button variant="outline" onClick={() => setShowReactivateDialog(false)}>Cancel</Button>
+						<Button variant="outline" onClick={() => setShowReactivateDialog(false)}>
+							Cancel
+						</Button>
 						<Button onClick={() => reactivateMutation.mutate(customer.id)} disabled={reactivateMutation.isPending}>
 							Reactivate
 						</Button>
@@ -464,8 +464,14 @@ export default function CustomerDetails() {
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>
-						<Button variant="outline" onClick={() => setShowDeleteDialog(false)}>Cancel</Button>
-						<Button variant="destructive" onClick={() => deleteMutation.mutate(customer.id)} disabled={deleteMutation.isPending}>
+						<Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+							Cancel
+						</Button>
+						<Button
+							variant="destructive"
+							onClick={() => deleteMutation.mutate(customer.id)}
+							disabled={deleteMutation.isPending}
+						>
 							Delete
 						</Button>
 					</DialogFooter>
@@ -476,9 +482,7 @@ export default function CustomerDetails() {
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle>Send Notification</DialogTitle>
-						<DialogDescription>
-							Send a push notification to {customer.name}.
-						</DialogDescription>
+						<DialogDescription>Send a push notification to {customer.name}.</DialogDescription>
 					</DialogHeader>
 					<Textarea
 						placeholder="Enter notification message..."
@@ -487,7 +491,9 @@ export default function CustomerDetails() {
 						rows={4}
 					/>
 					<DialogFooter>
-						<Button variant="outline" onClick={() => setShowNotifyDialog(false)}>Cancel</Button>
+						<Button variant="outline" onClick={() => setShowNotifyDialog(false)}>
+							Cancel
+						</Button>
 						<Button
 							onClick={() => notifyMutation.mutate({ id: customer.id, message: notificationMessage })}
 							disabled={!notificationMessage || notifyMutation.isPending}

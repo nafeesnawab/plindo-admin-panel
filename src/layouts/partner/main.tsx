@@ -2,7 +2,7 @@ import { Outlet } from "react-router";
 
 export default function PartnerMain() {
 	return (
-		<main className="flex-1 p-6">
+		<main className="p-6 pb-12">
 			<Outlet />
 		</main>
 	);

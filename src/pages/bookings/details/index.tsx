@@ -1,25 +1,5 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useParams, useNavigate } from "react-router";
-
-import bookingService from "@/api/services/bookingService";
-import { Avatar, AvatarFallback, AvatarImage } from "@/ui/avatar";
-import { Badge } from "@/ui/badge";
-import { Button } from "@/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@/ui/dialog";
-import { Input } from "@/ui/input";
-import { Separator } from "@/ui/separator";
-import { Skeleton } from "@/ui/skeleton";
-import { Textarea } from "@/ui/textarea";
-import { formatDistanceToNow, format } from "date-fns";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { format, formatDistanceToNow } from "date-fns";
 import {
 	AlertTriangle,
 	ArrowLeft,
@@ -41,24 +21,40 @@ import {
 	User,
 	XCircle,
 } from "lucide-react";
+import { useState } from "react";
+import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
+import bookingService from "@/api/services/bookingService";
+import { Avatar, AvatarFallback, AvatarImage } from "@/ui/avatar";
+import { Badge } from "@/ui/badge";
+import { Button } from "@/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/ui/dialog";
+import { Input } from "@/ui/input";
+import { Separator } from "@/ui/separator";
+import { Skeleton } from "@/ui/skeleton";
+import { Textarea } from "@/ui/textarea";
 
 const statusColors: Record<string, string> = {
-	pending: "bg-yellow-500/10 text-yellow-600 border-yellow-200",
-	confirmed: "bg-blue-500/10 text-blue-600 border-blue-200",
+	booked: "bg-blue-500/10 text-blue-600 border-blue-200",
 	in_progress: "bg-purple-500/10 text-purple-600 border-purple-200",
 	completed: "bg-green-500/10 text-green-600 border-green-200",
+	picked: "bg-indigo-500/10 text-indigo-600 border-indigo-200",
+	out_for_delivery: "bg-amber-500/10 text-amber-600 border-amber-200",
+	delivered: "bg-teal-500/10 text-teal-600 border-teal-200",
 	cancelled: "bg-red-500/10 text-red-600 border-red-200",
-	created: "bg-gray-500/10 text-gray-600 border-gray-200",
+	rescheduled: "bg-orange-500/10 text-orange-600 border-orange-200",
 };
 
 const statusIcons: Record<string, React.ReactNode> = {
-	created: <Clock className="h-4 w-4" />,
-	pending: <Clock className="h-4 w-4" />,
-	confirmed: <Check className="h-4 w-4" />,
+	booked: <Check className="h-4 w-4" />,
 	in_progress: <Play className="h-4 w-4" />,
 	completed: <CheckCircle className="h-4 w-4" />,
+	picked: <Car className="h-4 w-4" />,
+	out_for_delivery: <RefreshCw className="h-4 w-4" />,
+	delivered: <CheckCircle className="h-4 w-4" />,
 	cancelled: <XCircle className="h-4 w-4" />,
+	rescheduled: <Calendar className="h-4 w-4" />,
 };
 
 export default function BookingDetails() {
@@ -79,8 +75,7 @@ export default function BookingDetails() {
 	});
 
 	const cancelMutation = useMutation({
-		mutationFn: ({ id, reason }: { id: string; reason: string }) =>
-			bookingService.cancelBooking(id, reason),
+		mutationFn: ({ id, reason }: { id: string; reason: string }) => bookingService.cancelBooking(id, reason),
 		onSuccess: () => {
 			toast.success("Booking cancelled");
 			queryClient.invalidateQueries({ queryKey: ["booking-details", id] });
@@ -137,9 +132,7 @@ export default function BookingDetails() {
 							Created {formatDistanceToNow(new Date(booking.createdAt), { addSuffix: true })}
 						</p>
 					</div>
-					<Badge className={statusColors[booking.status]}>
-						{booking.status.replace("_", " ").toUpperCase()}
-					</Badge>
+					<Badge className={statusColors[booking.status]}>{booking.status.replace("_", " ").toUpperCase()}</Badge>
 					{booking.isDisputed && (
 						<Badge variant="destructive" className="gap-1">
 							<AlertTriangle className="h-3 w-3" />
@@ -155,10 +148,13 @@ export default function BookingDetails() {
 						</Button>
 					)}
 					{booking.status === "completed" && booking.payment.status === "paid" && (
-						<Button variant="outline" onClick={() => {
-							setRefundAmount(booking.payment.amount.toString());
-							setShowRefundDialog(true);
-						}}>
+						<Button
+							variant="outline"
+							onClick={() => {
+								setRefundAmount(booking.payment.amount.toString());
+								setShowRefundDialog(true);
+							}}
+						>
 							<RefreshCw className="h-4 w-4 mr-2" />
 							Issue Refund
 						</Button>
@@ -207,7 +203,10 @@ export default function BookingDetails() {
 									<Avatar className="h-12 w-12">
 										<AvatarImage src={booking.customer.avatar} alt={booking.customer.name} />
 										<AvatarFallback className="bg-primary/10 text-primary">
-											{booking.customer.name.split(" ").map((n) => n[0]).join("")}
+											{booking.customer.name
+												.split(" ")
+												.map((n) => n[0])
+												.join("")}
 										</AvatarFallback>
 									</Avatar>
 									<div>
@@ -347,7 +346,9 @@ export default function BookingDetails() {
 								</div>
 								{booking.dispute.customerEvidence.length > 0 && (
 									<div>
-										<p className="text-sm font-medium mb-2">Customer Evidence ({booking.dispute.customerEvidence.length})</p>
+										<p className="text-sm font-medium mb-2">
+											Customer Evidence ({booking.dispute.customerEvidence.length})
+										</p>
 										<div className="flex gap-2">
 											{booking.dispute.customerEvidence.map((evidence, i) => (
 												<div key={i} className="p-2 bg-white rounded border text-xs">
@@ -399,11 +400,15 @@ export default function BookingDetails() {
 							</div>
 							<div className="flex justify-between items-center">
 								<span className="text-sm font-medium">Payment Status</span>
-								<Badge className={
-									booking.payment.status === "paid" ? "bg-green-500/10 text-green-600" :
-									booking.payment.status === "refunded" ? "bg-red-500/10 text-red-600" :
-									"bg-yellow-500/10 text-yellow-600"
-								}>
+								<Badge
+									className={
+										booking.payment.status === "paid"
+											? "bg-green-500/10 text-green-600"
+											: booking.payment.status === "refunded"
+												? "bg-red-500/10 text-red-600"
+												: "bg-yellow-500/10 text-yellow-600"
+									}
+								>
 									{booking.payment.status.toUpperCase()}
 								</Badge>
 							</div>
@@ -426,7 +431,9 @@ export default function BookingDetails() {
 								{booking.statusTimeline.map((item, index) => (
 									<div key={index} className="flex gap-3 pb-4 last:pb-0">
 										<div className="relative">
-											<div className={`w-8 h-8 rounded-full flex items-center justify-center ${statusColors[item.status]}`}>
+											<div
+												className={`w-8 h-8 rounded-full flex items-center justify-center ${statusColors[item.status]}`}
+											>
 												{statusIcons[item.status]}
 											</div>
 											{index < booking.statusTimeline.length - 1 && (
@@ -435,9 +442,7 @@ export default function BookingDetails() {
 										</div>
 										<div className="flex-1 pt-1">
 											<p className="text-sm font-medium capitalize">{item.status.replace("_", " ")}</p>
-											{item.note && (
-												<p className="text-xs text-muted-foreground">{item.note}</p>
-											)}
+											{item.note && <p className="text-xs text-muted-foreground">{item.note}</p>}
 											<p className="text-xs text-muted-foreground mt-1">
 												{format(new Date(item.timestamp), "MMM dd, yyyy 'at' hh:mm a")}
 											</p>
@@ -476,7 +481,9 @@ export default function BookingDetails() {
 						rows={4}
 					/>
 					<DialogFooter>
-						<Button variant="outline" onClick={() => setShowCancelDialog(false)}>Keep Booking</Button>
+						<Button variant="outline" onClick={() => setShowCancelDialog(false)}>
+							Keep Booking
+						</Button>
 						<Button
 							variant="destructive"
 							onClick={() => cancelMutation.mutate({ id: booking.id, reason: cancelReason })}
@@ -492,9 +499,7 @@ export default function BookingDetails() {
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle>Issue Refund</DialogTitle>
-						<DialogDescription>
-							Issue a refund for booking {booking.bookingNumber}.
-						</DialogDescription>
+						<DialogDescription>Issue a refund for booking {booking.bookingNumber}.</DialogDescription>
 					</DialogHeader>
 					<div className="space-y-4">
 						<div>
@@ -506,9 +511,7 @@ export default function BookingDetails() {
 								onChange={(e) => setRefundAmount(e.target.value)}
 								max={booking.payment.amount}
 							/>
-							<p className="text-xs text-muted-foreground mt-1">
-								Maximum refund: €{booking.payment.amount.toFixed(2)}
-							</p>
+							<p className="text-xs text-muted-foreground mt-1">Maximum refund: €{booking.payment.amount.toFixed(2)}</p>
 						</div>
 						<div>
 							<label className="text-sm font-medium">Reason</label>
@@ -521,13 +524,17 @@ export default function BookingDetails() {
 						</div>
 					</div>
 					<DialogFooter>
-						<Button variant="outline" onClick={() => setShowRefundDialog(false)}>Cancel</Button>
+						<Button variant="outline" onClick={() => setShowRefundDialog(false)}>
+							Cancel
+						</Button>
 						<Button
-							onClick={() => refundMutation.mutate({ 
-								id: booking.id, 
-								amount: Number.parseFloat(refundAmount), 
-								reason: refundReason 
-							})}
+							onClick={() =>
+								refundMutation.mutate({
+									id: booking.id,
+									amount: Number.parseFloat(refundAmount),
+									reason: refundReason,
+								})
+							}
 							disabled={!refundAmount || !refundReason || refundMutation.isPending}
 						>
 							<DollarSign className="h-4 w-4 mr-2" />

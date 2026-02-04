@@ -1,15 +1,4 @@
-import {
-	ArrowRight,
-	Calendar,
-	Car,
-	CheckCircle,
-	Clock,
-	CreditCard,
-	DollarSign,
-	Plus,
-	Star,
-	XCircle,
-} from "lucide-react";
+import { ArrowRight, Calendar, Car, CheckCircle, Clock, CreditCard, DollarSign, Plus, Star } from "lucide-react";
 import { Link } from "react-router";
 import { Chart } from "@/components/chart";
 import { Badge } from "@/ui/badge";
@@ -49,7 +38,7 @@ const todaySchedule = [
 		time: "09:00",
 		customer: "John Smith",
 		service: "Full Detail Wash",
-		status: "confirmed",
+		status: "booked",
 		vehicle: "BMW X5",
 	},
 	{
@@ -57,7 +46,7 @@ const todaySchedule = [
 		time: "10:30",
 		customer: "Sarah Johnson",
 		service: "Premium Wash",
-		status: "pending",
+		status: "booked",
 		vehicle: "Tesla Model 3",
 	},
 	{
@@ -65,7 +54,7 @@ const todaySchedule = [
 		time: "12:00",
 		customer: "Mike Brown",
 		service: "Interior Clean",
-		status: "confirmed",
+		status: "in_progress",
 		vehicle: "Audi A4",
 	},
 	{
@@ -73,7 +62,7 @@ const todaySchedule = [
 		time: "14:00",
 		customer: "Emily Davis",
 		service: "Basic Wash",
-		status: "in_progress",
+		status: "completed",
 		vehicle: "Honda Civic",
 	},
 	{
@@ -81,7 +70,7 @@ const todaySchedule = [
 		time: "15:30",
 		customer: "James Wilson",
 		service: "Full Detail Wash",
-		status: "confirmed",
+		status: "booked",
 		vehicle: "Mercedes C-Class",
 	},
 ];
@@ -121,10 +110,14 @@ const recentActivity = [
 ];
 
 const statusColors: Record<string, string> = {
-	confirmed: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-	pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-	in_progress: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+	booked: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+	in_progress: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
+	completed: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+	picked: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300",
+	out_for_delivery: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300",
+	delivered: "bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-300",
 	cancelled: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+	rescheduled: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
 };
 
 const activityIcons: Record<string, React.ReactNode> = {
@@ -183,12 +176,12 @@ export default function PartnerDashboard() {
 
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between pb-2">
-						<CardTitle className="text-sm font-medium">Pending Orders</CardTitle>
+						<CardTitle className="text-sm font-medium">Upcoming Bookings</CardTitle>
 						<Clock className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">3</div>
-						<p className="text-xs text-destructive">Needs your attention</p>
+						<div className="text-2xl font-bold">5</div>
+						<p className="text-xs text-muted-foreground">Scheduled for today</p>
 					</CardContent>
 				</Card>
 			</div>
@@ -319,23 +312,23 @@ export default function PartnerDashboard() {
 				</Card>
 			</div>
 
-			{/* Pending Actions */}
+			{/* In Progress Bookings */}
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
-						<Clock className="h-5 w-5 text-yellow-500" />
-						Pending Actions
+						<Clock className="h-5 w-5 text-purple-500" />
+						In Progress
 					</CardTitle>
-					<CardDescription>Bookings that need your attention</CardDescription>
+					<CardDescription>Bookings currently being serviced</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<div className="space-y-3">
 						{todaySchedule
-							.filter((b) => b.status === "pending")
+							.filter((b) => b.status === "in_progress")
 							.map((booking) => (
 								<div
 									key={booking.id}
-									className="flex items-center justify-between rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-900 dark:bg-yellow-950"
+									className="flex items-center justify-between rounded-lg border border-purple-200 bg-purple-50 p-4 dark:border-purple-900 dark:bg-purple-950"
 								>
 									<div>
 										<p className="font-medium">{booking.customer}</p>
@@ -344,19 +337,15 @@ export default function PartnerDashboard() {
 										</p>
 									</div>
 									<div className="flex gap-2">
-										<Button size="sm" variant="outline" className="gap-1 text-destructive">
-											<XCircle className="h-4 w-4" />
-											Decline
-										</Button>
 										<Button size="sm" className="gap-1">
 											<CheckCircle className="h-4 w-4" />
-											Accept
+											Mark Complete
 										</Button>
 									</div>
 								</div>
 							))}
-						{todaySchedule.filter((b) => b.status === "pending").length === 0 && (
-							<p className="text-center text-muted-foreground py-4">No pending actions</p>
+						{todaySchedule.filter((b) => b.status === "in_progress").length === 0 && (
+							<p className="text-center text-muted-foreground py-4">No bookings in progress</p>
 						)}
 					</div>
 				</CardContent>

@@ -1,68 +1,46 @@
+import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { AlertTriangle, Eye, Search } from "lucide-react";
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
-
-import bookingService, { type Booking } from "@/api/services/bookingService";
+import bookingService from "@/api/services/bookingService";
 import { Avatar, AvatarFallback, AvatarImage } from "@/ui/avatar";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@/ui/dialog";
 import { Input } from "@/ui/input";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { Skeleton } from "@/ui/skeleton";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/ui/table";
-import { Textarea } from "@/ui/textarea";
-import { format } from "date-fns";
-import { AlertTriangle, Ban, Eye, Search } from "lucide-react";
-import { toast } from "sonner";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 
 const statusColors: Record<string, string> = {
-	pending: "bg-yellow-500/10 text-yellow-600",
-	confirmed: "bg-blue-500/10 text-blue-600",
+	booked: "bg-blue-500/10 text-blue-600",
 	in_progress: "bg-purple-500/10 text-purple-600",
 	completed: "bg-green-500/10 text-green-600",
+	picked: "bg-indigo-500/10 text-indigo-600",
+	out_for_delivery: "bg-amber-500/10 text-amber-600",
+	delivered: "bg-teal-500/10 text-teal-600",
 	cancelled: "bg-red-500/10 text-red-600",
+	rescheduled: "bg-orange-500/10 text-orange-600",
 };
 
 const statusLabels: Record<string, string> = {
-	pending: "Pending",
-	confirmed: "Confirmed",
+	booked: "Booked",
 	in_progress: "In Progress",
 	completed: "Completed",
+	picked: "Picked",
+	out_for_delivery: "Out for Delivery",
+	delivered: "Delivered",
 	cancelled: "Cancelled",
+	rescheduled: "Rescheduled",
 };
 
 export default function BookingsPage() {
 	const navigate = useNavigate();
-	const queryClient = useQueryClient();
 	const [page, setPage] = useState(1);
 	const [search, setSearch] = useState("");
 	const [searchInput, setSearchInput] = useState("");
 	const [statusFilter, setStatusFilter] = useState<string>("");
-	const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
-	const [cancelReason, setCancelReason] = useState("");
-	const [showCancelDialog, setShowCancelDialog] = useState(false);
 
 	const { data, isLoading } = useQuery({
 		queryKey: ["bookings", page, search, statusFilter],
@@ -75,35 +53,9 @@ export default function BookingsPage() {
 			}),
 	});
 
-	const cancelMutation = useMutation({
-		mutationFn: ({ id, reason }: { id: string; reason: string }) =>
-			bookingService.cancelBooking(id, reason),
-		onSuccess: () => {
-			toast.success("Booking cancelled");
-			queryClient.invalidateQueries({ queryKey: ["bookings"] });
-			setShowCancelDialog(false);
-			setSelectedBooking(null);
-			setCancelReason("");
-		},
-		onError: () => {
-			toast.error("Failed to cancel booking");
-		},
-	});
-
 	const handleSearch = () => {
 		setSearch(searchInput);
 		setPage(1);
-	};
-
-	const handleCancel = () => {
-		if (selectedBooking && cancelReason) {
-			cancelMutation.mutate({ id: selectedBooking.id, reason: cancelReason });
-		}
-	};
-
-	const openCancelDialog = (booking: Booking) => {
-		setSelectedBooking(booking);
-		setShowCancelDialog(true);
 	};
 
 	if (isLoading) {
@@ -148,25 +100,32 @@ export default function BookingsPage() {
 								<Search className="h-4 w-4" />
 							</Button>
 						</div>
-						<Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); }}>
+						<Select
+							value={statusFilter}
+							onValueChange={(v) => {
+								setStatusFilter(v);
+								setPage(1);
+							}}
+						>
 							<SelectTrigger className="w-[150px]">
 								<SelectValue placeholder="Status" />
 							</SelectTrigger>
 							<SelectContent>
 								<SelectItem value="all">All Status</SelectItem>
-								<SelectItem value="pending">Pending</SelectItem>
-								<SelectItem value="confirmed">Confirmed</SelectItem>
+								<SelectItem value="booked">Booked</SelectItem>
 								<SelectItem value="in_progress">In Progress</SelectItem>
 								<SelectItem value="completed">Completed</SelectItem>
+								<SelectItem value="picked">Picked</SelectItem>
+								<SelectItem value="out_for_delivery">Out for Delivery</SelectItem>
+								<SelectItem value="delivered">Delivered</SelectItem>
 								<SelectItem value="cancelled">Cancelled</SelectItem>
+								<SelectItem value="rescheduled">Rescheduled</SelectItem>
 							</SelectContent>
 						</Select>
 					</div>
 
 					{data?.items.length === 0 ? (
-						<div className="text-center py-8 text-muted-foreground">
-							No bookings found
-						</div>
+						<div className="text-center py-8 text-muted-foreground">No bookings found</div>
 					) : (
 						<Table>
 							<TableHeader>
@@ -187,9 +146,7 @@ export default function BookingsPage() {
 										<TableCell>
 											<div className="flex items-center gap-2">
 												<span className="font-mono text-sm">{booking.bookingNumber}</span>
-												{booking.isDisputed && (
-													<AlertTriangle className="h-4 w-4 text-orange-500" />
-												)}
+												{booking.isDisputed && <AlertTriangle className="h-4 w-4 text-orange-500" />}
 											</div>
 										</TableCell>
 										<TableCell>
@@ -197,7 +154,10 @@ export default function BookingsPage() {
 												<Avatar className="h-8 w-8">
 													<AvatarImage src={booking.customer.avatar} alt={booking.customer.name} />
 													<AvatarFallback className="bg-primary/10 text-primary text-xs">
-														{booking.customer.name.split(" ").map((n) => n[0]).join("")}
+														{booking.customer.name
+															.split(" ")
+															.map((n) => n[0])
+															.join("")}
 													</AvatarFallback>
 												</Avatar>
 												<span className="text-sm">{booking.customer.name}</span>
@@ -220,30 +180,12 @@ export default function BookingsPage() {
 										</TableCell>
 										<TableCell>€{booking.payment.amount.toFixed(2)}</TableCell>
 										<TableCell>
-											<Badge className={statusColors[booking.status]}>
-												{statusLabels[booking.status]}
-											</Badge>
+											<Badge className={statusColors[booking.status]}>{statusLabels[booking.status]}</Badge>
 										</TableCell>
 										<TableCell className="text-right">
-											<div className="flex items-center justify-end gap-2">
-												<Button
-													variant="ghost"
-													size="icon"
-													onClick={() => navigate(`/bookings/${booking.id}`)}
-												>
-													<Eye className="h-4 w-4" />
-												</Button>
-												{(booking.status === "pending" || booking.status === "confirmed") && (
-													<Button
-														variant="ghost"
-														size="icon"
-														className="text-red-600 hover:text-red-700 hover:bg-red-50"
-														onClick={() => openCancelDialog(booking)}
-													>
-														<Ban className="h-4 w-4" />
-													</Button>
-												)}
-											</div>
+											<Button variant="ghost" size="icon" onClick={() => navigate(`/bookings/${booking.id}`)}>
+												<Eye className="h-4 w-4" />
+											</Button>
 										</TableCell>
 									</TableRow>
 								))}
@@ -276,35 +218,6 @@ export default function BookingsPage() {
 					)}
 				</CardContent>
 			</Card>
-
-			<Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>Cancel Booking</DialogTitle>
-						<DialogDescription>
-							Are you sure you want to cancel booking {selectedBooking?.bookingNumber}? This action will trigger a refund.
-						</DialogDescription>
-					</DialogHeader>
-					<Textarea
-						placeholder="Enter cancellation reason..."
-						value={cancelReason}
-						onChange={(e) => setCancelReason(e.target.value)}
-						rows={4}
-					/>
-					<DialogFooter>
-						<Button variant="outline" onClick={() => setShowCancelDialog(false)}>
-							Keep Booking
-						</Button>
-						<Button
-							variant="destructive"
-							onClick={handleCancel}
-							disabled={!cancelReason || cancelMutation.isPending}
-						>
-							Cancel Booking
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
 		</>
 	);
 }

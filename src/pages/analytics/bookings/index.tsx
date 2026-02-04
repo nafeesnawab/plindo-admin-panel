@@ -1,27 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-
+import { Calendar, CheckCircle, Clock, DollarSign, TrendingUp, XCircle } from "lucide-react";
 import analyticsService from "@/api/services/analyticsService";
 import { Chart } from "@/components/chart";
 import { Badge } from "@/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 import { Progress } from "@/ui/progress";
 import { Skeleton } from "@/ui/skeleton";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/ui/table";
-import {
-	Calendar,
-	CheckCircle,
-	Clock,
-	DollarSign,
-	TrendingUp,
-	XCircle,
-} from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 
 export default function BookingAnalyticsPage() {
 	const { data, isLoading } = useQuery({
@@ -75,7 +60,7 @@ export default function BookingAnalyticsPage() {
 
 	const generateHeatmapSeries = () => {
 		if (!data?.peakHours) return [];
-		
+
 		const hours = [...new Set(data.peakHours.map((p) => p.hour))];
 		return hours.map((hour) => ({
 			name: hour,
@@ -88,8 +73,8 @@ export default function BookingAnalyticsPage() {
 
 	const statusChartOptions: ApexCharts.ApexOptions = {
 		chart: { type: "donut" },
-		labels: ["Completed", "Cancelled", "Pending", "In Progress"],
-		colors: ["#10b981", "#ef4444", "#f59e0b", "#3b82f6"],
+		labels: ["Completed", "Cancelled", "Booked", "In Progress", "Delivered"],
+		colors: ["#10b981", "#ef4444", "#3b82f6", "#8b5cf6", "#14b8a6"],
 		legend: { position: "bottom" },
 		plotOptions: {
 			pie: {
@@ -184,9 +169,9 @@ export default function BookingAnalyticsPage() {
 							<span className="text-sm text-muted-foreground">Completed</span>
 						</div>
 						<p className="text-xl font-bold">{data?.overview.completedBookings.toLocaleString()}</p>
-						<Progress 
-							value={(data?.overview.completedBookings || 0) / (data?.overview.totalBookings || 1) * 100} 
-							className="h-1 mt-2" 
+						<Progress
+							value={((data?.overview.completedBookings || 0) / (data?.overview.totalBookings || 1)) * 100}
+							className="h-1 mt-2"
 						/>
 					</CardContent>
 				</Card>
@@ -197,9 +182,9 @@ export default function BookingAnalyticsPage() {
 							<span className="text-sm text-muted-foreground">Cancelled</span>
 						</div>
 						<p className="text-xl font-bold">{data?.overview.cancelledBookings.toLocaleString()}</p>
-						<Progress 
-							value={(data?.overview.cancelledBookings || 0) / (data?.overview.totalBookings || 1) * 100} 
-							className="h-1 mt-2" 
+						<Progress
+							value={((data?.overview.cancelledBookings || 0) / (data?.overview.totalBookings || 1)) * 100}
+							className="h-1 mt-2"
 						/>
 					</CardContent>
 				</Card>
@@ -239,8 +224,9 @@ export default function BookingAnalyticsPage() {
 							series={[
 								data?.bookingsByStatus.completed || 0,
 								data?.bookingsByStatus.cancelled || 0,
-								data?.bookingsByStatus.pending || 0,
+								data?.bookingsByStatus.booked || 0,
 								data?.bookingsByStatus.inProgress || 0,
+								data?.bookingsByStatus.delivered || 0,
 							]}
 							options={statusChartOptions}
 							height={280}
@@ -255,12 +241,7 @@ export default function BookingAnalyticsPage() {
 						<CardTitle>Peak Booking Hours</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<Chart
-							type="heatmap"
-							series={generateHeatmapSeries()}
-							options={heatmapOptions}
-							height={350}
-						/>
+						<Chart type="heatmap" series={generateHeatmapSeries()} options={heatmapOptions} height={350} />
 					</CardContent>
 				</Card>
 

@@ -68,8 +68,9 @@ export interface BookingAnalytics {
 	bookingsByStatus: {
 		completed: number;
 		cancelled: number;
-		pending: number;
+		booked: number;
 		inProgress: number;
+		delivered: number;
 	};
 }
 
@@ -126,17 +127,13 @@ export interface SubscriptionAnalytics {
 	};
 }
 
-const getUserAnalytics = () =>
-	apiClient.get<UserAnalytics>({ url: AnalyticsApi.Users });
+const getUserAnalytics = () => apiClient.get<UserAnalytics>({ url: AnalyticsApi.Users });
 
-const getBookingAnalytics = () =>
-	apiClient.get<BookingAnalytics>({ url: AnalyticsApi.Bookings });
+const getBookingAnalytics = () => apiClient.get<BookingAnalytics>({ url: AnalyticsApi.Bookings });
 
-const getPartnerAnalytics = () =>
-	apiClient.get<PartnerAnalytics>({ url: AnalyticsApi.Partners });
+const getPartnerAnalytics = () => apiClient.get<PartnerAnalytics>({ url: AnalyticsApi.Partners });
 
-const getSubscriptionAnalytics = () =>
-	apiClient.get<SubscriptionAnalytics>({ url: AnalyticsApi.Subscriptions });
+const getSubscriptionAnalytics = () => apiClient.get<SubscriptionAnalytics>({ url: AnalyticsApi.Subscriptions });
 
 export default {
 	getUserAnalytics,
