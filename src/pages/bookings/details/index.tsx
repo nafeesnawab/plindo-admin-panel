@@ -8,7 +8,6 @@ import {
 	Car,
 	Check,
 	CheckCircle,
-	Clock,
 	CreditCard,
 	DollarSign,
 	Mail,

@@ -453,7 +453,7 @@ export const getAvailableSlots = http.get("/api/bookings/slots", async ({ reques
 	const partnerId = url.searchParams.get("partnerId") || "demo-partner-1";
 	const date = url.searchParams.get("date");
 	// serviceId can be used for duration-based slot filtering in the future
-	const _serviceId = url.searchParams.get("serviceId");
+	// const serviceId = url.searchParams.get("serviceId");
 
 	if (!date) {
 		return HttpResponse.json({ status: ResultStatus.ERROR, message: "Date is required" }, { status: 400 });
