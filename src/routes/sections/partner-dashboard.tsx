@@ -14,6 +14,8 @@ const PartnerMessages = lazy(() => import("@/pages/partner/messages"));
 const PartnerDrivers = lazy(() => import("@/pages/partner/drivers"));
 const PartnerProfile = lazy(() => import("@/pages/partner/profile"));
 const PartnerSettings = lazy(() => import("@/pages/partner/settings"));
+const PartnerProducts = lazy(() => import("@/pages/partner/products"));
+const PartnerCustomers = lazy(() => import("@/pages/partner/customers"));
 
 export const partnerDashboardRoutes: RouteObject[] = [
 	{
@@ -66,7 +68,14 @@ export const partnerDashboardRoutes: RouteObject[] = [
 					</Suspense>
 				),
 			},
-			{ path: "customers", element: <div className="p-6">Customers - Coming Soon</div> },
+			{
+				path: "customers",
+				element: (
+					<Suspense>
+						<PartnerCustomers />
+					</Suspense>
+				),
+			},
 			{
 				path: "messages",
 				element: (
@@ -112,6 +121,14 @@ export const partnerDashboardRoutes: RouteObject[] = [
 				element: (
 					<Suspense>
 						<PartnerSettings />
+					</Suspense>
+				),
+			},
+			{
+				path: "products",
+				element: (
+					<Suspense>
+						<PartnerProducts />
 					</Suspense>
 				),
 			},

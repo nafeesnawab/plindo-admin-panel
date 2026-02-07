@@ -41,6 +41,11 @@ export const partnerNavData: NavProps["data"] = [
 				icon: <Icon icon="solar:widget-5-bold-duotone" size="24" />,
 			},
 			{
+				title: "Products",
+				path: "/partner/products",
+				icon: <Icon icon="solar:bag-4-bold-duotone" size="24" />,
+			},
+			{
 				title: "Drivers",
 				path: "/partner/drivers",
 				icon: <Icon icon="solar:user-id-bold-duotone" size="24" />,

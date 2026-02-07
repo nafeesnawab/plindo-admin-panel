@@ -633,10 +633,12 @@ export default function PartnerMessagesPage() {
 							</div>
 
 							<div className="pt-4 border-t space-y-2">
-								<Button variant="outline" className="w-full" asChild>
-									<a href={`/partner/bookings/${selectedConversation.bookingId.replace("BK-", "")}`}>
-										View Full Booking
-									</a>
+								<Button
+									variant="outline"
+									className="w-full"
+									onClick={() => toast.info("Booking details will be available when linked to real bookings")}
+								>
+									View Full Booking
 								</Button>
 							</div>
 						</CardContent>

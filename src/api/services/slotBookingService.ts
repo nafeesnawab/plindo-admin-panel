@@ -138,6 +138,11 @@ const updateBookingStatus = (id: string, status: string) =>
 		data: { status },
 	});
 
+const advanceServiceStep = (bookingId: string) =>
+	apiClient.patch<SlotBooking>({
+		url: `${SlotBookingApi.UpdateStatus}/${bookingId}/step/advance`,
+	});
+
 // ============ Services & Pricing ============
 
 const getServices = () => apiClient.get<ServiceOption[]>({ url: SlotBookingApi.Services });
@@ -170,6 +175,7 @@ export default {
 	cancelBooking,
 	rescheduleBooking,
 	updateBookingStatus,
+	advanceServiceStep,
 	// Services & Pricing
 	getServices,
 	calculatePrice,

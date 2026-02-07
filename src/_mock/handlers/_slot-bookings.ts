@@ -2,6 +2,7 @@ import { faker } from "@faker-js/faker";
 import { delay, HttpResponse, http } from "msw";
 import type {
 	BookingPricing,
+	BookingProductOrder,
 	BookingSlot,
 	BookingStatus,
 	CarType,
@@ -11,12 +12,20 @@ import type {
 	DayBookings,
 	PartnerInfo,
 	ServiceInfo,
+	ServiceStep,
+	ServiceType,
 	SlotBooking,
 	SubscriptionPlan,
 	TimeSlot,
 	VehicleInfo,
 	WeekBookings,
 	WeeklyAvailability,
+} from "@/types/booking";
+import {
+	PICK_BY_ME_PREFIX_STEPS,
+	PICK_BY_ME_SUFFIX_STEPS,
+	SERVICE_STEPS_TEMPLATE,
+	WASHING_VAN_PREFIX_STEPS,
 } from "@/types/booking";
 import { ResultStatus } from "@/types/enum";
 
@@ -76,6 +85,74 @@ const SERVICES = [
 	{ id: "svc_express", name: "Express Wash", basePrice: 8, duration: 20 },
 	{ id: "svc_wax", name: "Wax & Polish", basePrice: 35, duration: 60 },
 ];
+
+const SERVICE_TYPES: ServiceType[] = ["book_me", "pick_by_me", "washing_van"];
+
+// Car-related products that can be added to a booking
+const ADDON_PRODUCTS = [
+	{ name: "Premium Engine Oil 5W-30", price: 42.99 },
+	{ name: "Car Wash Shampoo 1L", price: 8.99 },
+	{ name: "Air Freshener", price: 4.99 },
+	{ name: "Microfiber Cleaning Cloth Set", price: 14.99 },
+	{ name: "Tire Shine Gel", price: 9.99 },
+	{ name: "Leather Conditioner", price: 13.99 },
+	{ name: "Glass Cleaner Spray", price: 6.5 },
+	{ name: "Wiper Blade Set", price: 24.99 },
+];
+
+// Build service steps for a booking based on service ID and service type
+const buildServiceSteps = (
+	serviceId: string,
+	serviceType: ServiceType,
+	bookingStatus: BookingStatus,
+): ServiceStep[] => {
+	const baseStepNames = SERVICE_STEPS_TEMPLATE[serviceId] || ["Wash", "Dry"];
+	let allStepNames = [...baseStepNames];
+
+	if (serviceType === "pick_by_me") {
+		allStepNames = [...PICK_BY_ME_PREFIX_STEPS, ...allStepNames, ...PICK_BY_ME_SUFFIX_STEPS];
+	} else if (serviceType === "washing_van") {
+		allStepNames = [...WASHING_VAN_PREFIX_STEPS, ...allStepNames];
+	}
+
+	return allStepNames.map((name, index) => {
+		let status: ServiceStep["status"] = "pending";
+
+		if (bookingStatus === "completed" || bookingStatus === "delivered") {
+			status = "completed";
+		} else if (bookingStatus === "in_progress") {
+			// Simulate partial progress: first few steps done, one in progress
+			const progressPoint = Math.floor(allStepNames.length * 0.4);
+			if (index < progressPoint) status = "completed";
+			else if (index === progressPoint) status = "in_progress";
+		}
+
+		return {
+			id: faker.string.uuid(),
+			name,
+			status,
+			startedAt: status !== "pending" ? faker.date.recent({ days: 1 }).toISOString() : undefined,
+			completedAt: status === "completed" ? faker.date.recent({ days: 1 }).toISOString() : undefined,
+			order: index,
+		};
+	});
+};
+
+// Maybe generate a product order attached to the booking
+const maybeGenerateProductOrder = (): BookingProductOrder | undefined => {
+	// ~30% of bookings have product orders
+	if (!faker.datatype.boolean(0.3)) return undefined;
+
+	const count = faker.number.int({ min: 1, max: 3 });
+	const selectedProducts = faker.helpers.arrayElements(ADDON_PRODUCTS, count);
+	const total = selectedProducts.reduce((sum, p) => sum + p.price, 0);
+
+	return {
+		orderNumber: `PO-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, "0")}-${faker.string.alphanumeric({ length: 6, casing: "upper" })}`,
+		productCount: count,
+		totalAmount: Math.round(total * 100) / 100,
+	};
+};
 
 const CAR_TYPES: CarType[] = ["compact", "sedan", "suv", "van", "luxury"];
 
@@ -264,15 +341,20 @@ const generateMockBookings = () => {
 			endTime: slot.end,
 		};
 
+		const serviceType = faker.helpers.arrayElement(SERVICE_TYPES);
+
 		const serviceInfo: ServiceInfo = {
 			id: service.id,
 			name: service.name,
+			serviceType,
 			basePrice: service.basePrice,
 			duration: service.duration,
 		};
 
 		const pricing = calculatePricing(serviceInfo, carType, customer.subscription);
 		const createdAt = addDays(date, -faker.number.int({ min: 1, max: 7 }));
+		const serviceSteps = buildServiceSteps(service.id, serviceType, status);
+		const productOrder = maybeGenerateProductOrder();
 
 		const booking: SlotBooking = {
 			id: faker.string.uuid(),
@@ -284,6 +366,8 @@ const generateMockBookings = () => {
 			slot: bookingSlot,
 			pricing,
 			status,
+			serviceSteps,
+			productOrder,
 			createdAt: createdAt.toISOString(),
 			updatedAt: new Date().toISOString(),
 		};
@@ -507,6 +591,7 @@ export const createSlotBooking = http.post("/api/bookings/slot", async ({ reques
 		serviceId: string;
 		slot: BookingSlot;
 		carType: CarType;
+		serviceType?: ServiceType;
 	};
 
 	// Validate 2-week advance limit
@@ -551,14 +636,19 @@ export const createSlotBooking = http.post("/api/bookings/slot", async ({ reques
 		type: body.carType,
 	};
 
+	const serviceType: ServiceType = body.serviceType || faker.helpers.arrayElement(SERVICE_TYPES);
+
 	const serviceInfo: ServiceInfo = {
 		id: service.id,
 		name: service.name,
+		serviceType,
 		basePrice: service.basePrice,
 		duration: service.duration,
 	};
 
 	const pricing = calculatePricing(serviceInfo, body.carType);
+	const serviceSteps = buildServiceSteps(service.id, serviceType, "booked");
+	const productOrder = maybeGenerateProductOrder();
 
 	const booking: SlotBooking = {
 		id: faker.string.uuid(),
@@ -570,6 +660,8 @@ export const createSlotBooking = http.post("/api/bookings/slot", async ({ reques
 		slot: body.slot,
 		pricing,
 		status: "booked", // Auto-booked when customer selects a slot
+		serviceSteps,
+		productOrder,
 		createdAt: new Date().toISOString(),
 		updatedAt: new Date().toISOString(),
 	};
@@ -803,6 +895,55 @@ export const updateBookingStatus = http.patch("/api/bookings/:id/status", async 
 	});
 });
 
+// Advance a service step (mark current step complete, start next)
+export const advanceServiceStep = http.patch("/api/bookings/:id/step/advance", async ({ params }) => {
+	await delay(200);
+	const { id } = params;
+
+	const booking = bookingsStore.get(id as string);
+	if (!booking) {
+		return HttpResponse.json({ status: ResultStatus.ERROR, message: "Booking not found" }, { status: 404 });
+	}
+
+	const steps = [...booking.serviceSteps];
+	const inProgressIdx = steps.findIndex((s) => s.status === "in_progress");
+	const now = new Date().toISOString();
+
+	if (inProgressIdx >= 0) {
+		// Complete current step
+		steps[inProgressIdx] = { ...steps[inProgressIdx], status: "completed", completedAt: now };
+		// Start next pending step
+		if (inProgressIdx + 1 < steps.length) {
+			steps[inProgressIdx + 1] = { ...steps[inProgressIdx + 1], status: "in_progress", startedAt: now };
+		}
+	} else {
+		// No step in progress — start the first pending one
+		const firstPending = steps.findIndex((s) => s.status === "pending");
+		if (firstPending >= 0) {
+			steps[firstPending] = { ...steps[firstPending], status: "in_progress", startedAt: now };
+		}
+	}
+
+	// Check if all steps are completed
+	const allDone = steps.every((s) => s.status === "completed" || s.status === "skipped");
+	const updatedBooking: SlotBooking = {
+		...booking,
+		serviceSteps: steps,
+		status: allDone ? "completed" : booking.status === "booked" ? "in_progress" : booking.status,
+		...(allDone && { completedAt: now }),
+		...(booking.status === "booked" && { startedAt: now }),
+		updatedAt: now,
+	};
+
+	bookingsStore.set(id as string, updatedBooking);
+
+	return HttpResponse.json({
+		status: ResultStatus.SUCCESS,
+		message: allDone ? "Service completed" : "Step advanced",
+		data: updatedBooking,
+	});
+});
+
 // Get booking details
 export const getSlotBookingDetails = http.get("/api/bookings/slot/:id", async ({ params }) => {
 	await delay(200);
@@ -930,6 +1071,7 @@ export const calculatePrice = http.post("/api/bookings/calculate-price", async (
 	const serviceInfo: ServiceInfo = {
 		id: service.id,
 		name: service.name,
+		serviceType: "book_me",
 		basePrice: service.basePrice,
 		duration: service.duration,
 	};
@@ -959,6 +1101,7 @@ export const slotBookingHandlers = [
 	cancelSlotBooking,
 	rescheduleSlotBooking,
 	updateBookingStatus,
+	advanceServiceStep,
 	getSlotBookingDetails,
 	getAllSlotBookings,
 	// Subscriptions

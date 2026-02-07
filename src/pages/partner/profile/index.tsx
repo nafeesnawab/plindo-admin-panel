@@ -1,7 +1,5 @@
 import {
 	AlertTriangle,
-	Calendar,
-	Clock,
 	Facebook,
 	FileText,
 	GripVertical,
@@ -16,36 +14,19 @@ import {
 	ShieldCheck,
 	Trash2,
 	Upload,
-	X,
 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/ui/dialog";
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { Slider } from "@/ui/slider";
-import { Switch } from "@/ui/switch";
 import { Textarea } from "@/ui/textarea";
 import { cn } from "@/utils";
 
 // Types
-interface BusinessHours {
-	day: string;
-	isOpen: boolean;
-	openTime: string;
-	closeTime: string;
-}
-
-interface Holiday {
-	id: string;
-	name: string;
-	date: string;
-}
-
 interface Document {
 	id: string;
 	type: "business_registration" | "business_insurance" | "motor_trade_insurance";
@@ -74,8 +55,6 @@ interface BusinessProfile {
 	latitude: number;
 	longitude: number;
 	serviceRadius: number;
-	businessHours: BusinessHours[];
-	holidays: Holiday[];
 	documents: Document[];
 	socialMedia: {
 		facebook: string;
@@ -101,19 +80,6 @@ const mockProfile: BusinessProfile = {
 	latitude: 53.3498,
 	longitude: -6.2603,
 	serviceRadius: 25,
-	businessHours: [
-		{ day: "Monday", isOpen: true, openTime: "08:00", closeTime: "18:00" },
-		{ day: "Tuesday", isOpen: true, openTime: "08:00", closeTime: "18:00" },
-		{ day: "Wednesday", isOpen: true, openTime: "08:00", closeTime: "18:00" },
-		{ day: "Thursday", isOpen: true, openTime: "08:00", closeTime: "18:00" },
-		{ day: "Friday", isOpen: true, openTime: "08:00", closeTime: "18:00" },
-		{ day: "Saturday", isOpen: true, openTime: "09:00", closeTime: "16:00" },
-		{ day: "Sunday", isOpen: false, openTime: "09:00", closeTime: "16:00" },
-	],
-	holidays: [
-		{ id: "h1", name: "Christmas Day", date: "2025-12-25" },
-		{ id: "h2", name: "New Year's Day", date: "2026-01-01" },
-	],
 	documents: [
 		{
 			id: "doc1",
@@ -213,9 +179,49 @@ export default function PartnerBusinessProfile() {
 	const [profile, setProfile] = useState<BusinessProfile>(mockProfile);
 	const [isEditing, setIsEditing] = useState(false);
 	const [editForm, setEditForm] = useState<BusinessProfile>(mockProfile);
-	const [holidayDialogOpen, setHolidayDialogOpen] = useState(false);
-	const [newHoliday, setNewHoliday] = useState({ name: "", date: "" });
 	const [isSaving, setIsSaving] = useState(false);
+	const coverInputRef = useRef<HTMLInputElement>(null);
+	const logoInputRef = useRef<HTMLInputElement>(null);
+	const galleryInputRef = useRef<HTMLInputElement>(null);
+	const docInputRef = useRef<HTMLInputElement>(null);
+	const handleCoverUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0];
+		if (file) {
+			const url = URL.createObjectURL(file);
+			setEditForm({ ...editForm, coverPhotoUrl: url });
+			toast.success("Cover photo updated");
+			e.target.value = "";
+		}
+	};
+
+	const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0];
+		if (file) {
+			const url = URL.createObjectURL(file);
+			setEditForm({ ...editForm, logoUrl: url });
+			toast.success("Logo updated");
+			e.target.value = "";
+		}
+	};
+
+	const handleGalleryUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0];
+		if (file) {
+			const url = URL.createObjectURL(file);
+			const newImage = { id: `g-${Date.now()}`, url, order: editForm.gallery.length + 1 };
+			setEditForm({ ...editForm, gallery: [...editForm.gallery, newImage] });
+			toast.success("Photo added to gallery");
+			e.target.value = "";
+		}
+	};
+
+	const handleDocUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0];
+		if (file) {
+			toast.success(`Document "${file.name}" uploaded`);
+			e.target.value = "";
+		}
+	};
 
 	// Handle save profile
 	const handleSaveProfile = async () => {
@@ -231,39 +237,6 @@ export default function PartnerBusinessProfile() {
 	const handleCancelEdit = () => {
 		setEditForm(profile);
 		setIsEditing(false);
-	};
-
-	// Handle business hours change
-	const handleHoursChange = (index: number, field: keyof BusinessHours, value: string | boolean) => {
-		const updatedHours = [...editForm.businessHours];
-		updatedHours[index] = { ...updatedHours[index], [field]: value };
-		setEditForm({ ...editForm, businessHours: updatedHours });
-	};
-
-	// Handle add holiday
-	const handleAddHoliday = () => {
-		if (!newHoliday.name || !newHoliday.date) {
-			toast.error("Please fill in all fields");
-			return;
-		}
-		const holiday: Holiday = {
-			id: `h-${Date.now()}`,
-			name: newHoliday.name,
-			date: newHoliday.date,
-		};
-		setEditForm({ ...editForm, holidays: [...editForm.holidays, holiday] });
-		setNewHoliday({ name: "", date: "" });
-		setHolidayDialogOpen(false);
-		toast.success("Holiday added");
-	};
-
-	// Handle remove holiday
-	const handleRemoveHoliday = (id: string) => {
-		setEditForm({
-			...editForm,
-			holidays: editForm.holidays.filter((h) => h.id !== id),
-		});
-		toast.success("Holiday removed");
 	};
 
 	// Handle remove gallery image
@@ -330,10 +303,25 @@ export default function PartnerBusinessProfile() {
 							</div>
 						)}
 						{isEditing && (
-							<Button variant="secondary" size="sm" className="absolute bottom-4 right-4" type="button">
-								<Upload className="mr-2 h-4 w-4" />
-								Change Cover
-							</Button>
+							<>
+								<input
+									ref={coverInputRef}
+									type="file"
+									accept="image/*"
+									className="hidden"
+									onChange={handleCoverUpload}
+								/>
+								<Button
+									variant="secondary"
+									size="sm"
+									className="absolute bottom-4 right-4"
+									type="button"
+									onClick={() => coverInputRef.current?.click()}
+								>
+									<Upload className="mr-2 h-4 w-4" />
+									Change Cover
+								</Button>
+							</>
 						)}
 					</div>
 
@@ -352,14 +340,24 @@ export default function PartnerBusinessProfile() {
 									)}
 								</div>
 								{isEditing && (
-									<Button
-										variant="secondary"
-										size="icon"
-										className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full"
-										type="button"
-									>
-										<Upload className="h-4 w-4" />
-									</Button>
+									<>
+										<input
+											ref={logoInputRef}
+											type="file"
+											accept="image/*"
+											className="hidden"
+											onChange={handleLogoUpload}
+										/>
+										<Button
+											variant="secondary"
+											size="icon"
+											className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full"
+											type="button"
+											onClick={() => logoInputRef.current?.click()}
+										>
+											<Upload className="h-4 w-4" />
+										</Button>
+									</>
 								)}
 							</div>
 
@@ -493,10 +491,19 @@ export default function PartnerBusinessProfile() {
 								<CardDescription>{currentForm.gallery.length}/10 photos</CardDescription>
 							</div>
 							{isEditing && currentForm.gallery.length < 10 && (
-								<Button variant="outline" size="sm" type="button">
-									<Plus className="mr-2 h-4 w-4" />
-									Add Photo
-								</Button>
+								<>
+									<input
+										ref={galleryInputRef}
+										type="file"
+										accept="image/*"
+										className="hidden"
+										onChange={handleGalleryUpload}
+									/>
+									<Button variant="outline" size="sm" type="button" onClick={() => galleryInputRef.current?.click()}>
+										<Plus className="mr-2 h-4 w-4" />
+										Add Photo
+									</Button>
+								</>
 							)}
 						</div>
 					</CardHeader>
@@ -506,7 +513,12 @@ export default function PartnerBusinessProfile() {
 								<Image className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
 								<p className="text-muted-foreground">No photos added yet</p>
 								{isEditing && (
-									<Button variant="outline" className="mt-4" type="button">
+									<Button
+										variant="outline"
+										className="mt-4"
+										type="button"
+										onClick={() => galleryInputRef.current?.click()}
+									>
 										<Upload className="mr-2 h-4 w-4" />
 										Upload Photos
 									</Button>
@@ -574,139 +586,29 @@ export default function PartnerBusinessProfile() {
 										{getDocumentStatusBadge(doc)}
 									</div>
 									{(isExpired(doc.expiryDate) || doc.status === "rejected") && (
-										<Button variant="outline" size="sm" className="mt-3" type="button">
-											<Upload className="mr-2 h-4 w-4" />
-											Upload New Document
-										</Button>
+										<>
+											<input
+												ref={docInputRef}
+												type="file"
+												accept=".pdf,.jpg,.jpeg,.png"
+												className="hidden"
+												onChange={handleDocUpload}
+											/>
+											<Button
+												variant="outline"
+												size="sm"
+												className="mt-3"
+												type="button"
+												onClick={() => docInputRef.current?.click()}
+											>
+												<Upload className="mr-2 h-4 w-4" />
+												Upload New Document
+											</Button>
+										</>
 									)}
 								</div>
 							</div>
 						))}
-					</CardContent>
-				</Card>
-
-				{/* Business Hours */}
-				<Card>
-					<CardHeader>
-						<CardTitle className="text-base">Business Hours</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-3">
-						{currentForm.businessHours.map((hours, index) => (
-							<div key={hours.day} className="flex items-center gap-4">
-								<div className="w-24 text-sm font-medium">{hours.day}</div>
-								{isEditing ? (
-									<>
-										<Switch
-											checked={editForm.businessHours[index].isOpen}
-											onCheckedChange={(checked) => handleHoursChange(index, "isOpen", checked)}
-										/>
-										{editForm.businessHours[index].isOpen ? (
-											<div className="flex items-center gap-2 flex-1">
-												<Select
-													value={editForm.businessHours[index].openTime}
-													onValueChange={(v) => handleHoursChange(index, "openTime", v)}
-												>
-													<SelectTrigger className="w-24">
-														<SelectValue />
-													</SelectTrigger>
-													<SelectContent>
-														{Array.from({ length: 24 }, (_, i) => {
-															const time = `${i.toString().padStart(2, "0")}:00`;
-															return (
-																<SelectItem key={time} value={time}>
-																	{time}
-																</SelectItem>
-															);
-														})}
-													</SelectContent>
-												</Select>
-												<span className="text-muted-foreground">to</span>
-												<Select
-													value={editForm.businessHours[index].closeTime}
-													onValueChange={(v) => handleHoursChange(index, "closeTime", v)}
-												>
-													<SelectTrigger className="w-24">
-														<SelectValue />
-													</SelectTrigger>
-													<SelectContent>
-														{Array.from({ length: 24 }, (_, i) => {
-															const time = `${i.toString().padStart(2, "0")}:00`;
-															return (
-																<SelectItem key={time} value={time}>
-																	{time}
-																</SelectItem>
-															);
-														})}
-													</SelectContent>
-												</Select>
-											</div>
-										) : (
-											<span className="text-sm text-muted-foreground">Closed</span>
-										)}
-									</>
-								) : (
-									<div className="flex items-center gap-2 text-sm">
-										{hours.isOpen ? (
-											<>
-												<Clock className="h-4 w-4 text-muted-foreground" />
-												<span>
-													{hours.openTime} - {hours.closeTime}
-												</span>
-											</>
-										) : (
-											<span className="text-muted-foreground">Closed</span>
-										)}
-									</div>
-								)}
-							</div>
-						))}
-					</CardContent>
-				</Card>
-
-				{/* Holidays */}
-				<Card>
-					<CardHeader>
-						<div className="flex items-center justify-between">
-							<div>
-								<CardTitle className="text-base">Holidays & Closed Days</CardTitle>
-								<CardDescription>Days when you won't accept bookings</CardDescription>
-							</div>
-							{isEditing && (
-								<Button variant="outline" size="sm" onClick={() => setHolidayDialogOpen(true)}>
-									<Plus className="mr-2 h-4 w-4" />
-									Add Holiday
-								</Button>
-							)}
-						</div>
-					</CardHeader>
-					<CardContent>
-						{currentForm.holidays.length === 0 ? (
-							<p className="text-sm text-muted-foreground text-center py-4">No holidays added</p>
-						) : (
-							<div className="space-y-2">
-								{currentForm.holidays.map((holiday) => (
-									<div key={holiday.id} className="flex items-center justify-between p-3 rounded-lg bg-muted">
-										<div className="flex items-center gap-3">
-											<Calendar className="h-4 w-4 text-muted-foreground" />
-											<div>
-												<p className="font-medium text-sm">{holiday.name}</p>
-												<p className="text-xs text-muted-foreground">{formatDate(holiday.date)}</p>
-											</div>
-										</div>
-										{isEditing && (
-											<Button
-												variant="ghost"
-												size="icon"
-												className="h-8 w-8 text-muted-foreground hover:text-destructive"
-												onClick={() => handleRemoveHoliday(holiday.id)}
-											>
-												<X className="h-4 w-4" />
-											</Button>
-										)}
-									</div>
-								))}
-							</div>
-						)}
 					</CardContent>
 				</Card>
 
@@ -779,40 +681,6 @@ export default function PartnerBusinessProfile() {
 					</CardContent>
 				</Card>
 			</div>
-
-			{/* Add Holiday Dialog */}
-			<Dialog open={holidayDialogOpen} onOpenChange={setHolidayDialogOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>Add Holiday</DialogTitle>
-						<DialogDescription>Add a day when you won't be accepting bookings</DialogDescription>
-					</DialogHeader>
-					<div className="space-y-4 py-4">
-						<div className="space-y-2">
-							<Label>Holiday Name</Label>
-							<Input
-								value={newHoliday.name}
-								onChange={(e) => setNewHoliday({ ...newHoliday, name: e.target.value })}
-								placeholder="e.g., Christmas Day"
-							/>
-						</div>
-						<div className="space-y-2">
-							<Label>Date</Label>
-							<Input
-								type="date"
-								value={newHoliday.date}
-								onChange={(e) => setNewHoliday({ ...newHoliday, date: e.target.value })}
-							/>
-						</div>
-					</div>
-					<DialogFooter>
-						<Button variant="outline" onClick={() => setHolidayDialogOpen(false)}>
-							Cancel
-						</Button>
-						<Button onClick={handleAddHoliday}>Add Holiday</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
 		</div>
 	);
 }

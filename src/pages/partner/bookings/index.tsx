@@ -1,7 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { addDays, format, isSameDay, startOfWeek } from "date-fns";
-import { Calendar, Car, CheckCircle2, Clock, MapPin, Phone, User, XCircle } from "lucide-react";
+import { Calendar, Car, CheckCircle2, Clock, MapPin, Package, Phone, Truck, User, XCircle } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
+import { Link } from "react-router";
 import { toast } from "sonner";
 import slotBookingService from "@/api/services/slotBookingService";
 import {
@@ -16,6 +17,7 @@ import {
 	timeToPixels,
 } from "@/components/calendar/CalendarGrid";
 import type { BookingStatus, SlotBooking } from "@/types/booking";
+import { SERVICE_TYPE_LABELS } from "@/types/booking";
 import { Avatar, AvatarFallback } from "@/ui/avatar";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
@@ -102,10 +104,18 @@ function BookingBlock({
 			>
 				<div className="flex flex-col h-full overflow-hidden">
 					<p className={cn("text-xs font-semibold truncate", config.color)}>
-						{formatTimeDisplay(booking.slot.startTime)}
+						{formatTimeDisplay(booking.slot.startTime)} • {booking.customer.name}
 					</p>
-					<p className="text-xs font-medium truncate">{booking.customer.name}</p>
-					{height > 50 && <p className="text-xs text-muted-foreground truncate">{booking.service.name}</p>}
+					<p className="text-xs font-medium truncate">
+						{booking.service.name}
+						<span className="text-muted-foreground"> · {SERVICE_TYPE_LABELS[booking.service.serviceType]}</span>
+					</p>
+					{height > 50 && booking.productOrder && (
+						<p className="text-xs text-amber-600 truncate">
+							<Package className="inline h-3 w-3 mr-0.5" />+{booking.productOrder.productCount} product
+							{booking.productOrder.productCount > 1 ? "s" : ""}
+						</p>
+					)}
 					{height > 70 && (
 						<Badge variant="outline" className={cn("mt-auto text-[10px] h-5 w-fit", config.color)}>
 							{config.label}
@@ -178,9 +188,9 @@ function BookingDetailsDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-w-lg">
+			<DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
 				<DialogHeader>
-					<div className="flex items-center justify-between">
+					<div className="flex items-center gap-3 pr-6">
 						<DialogTitle>Booking Details</DialogTitle>
 						<Badge className={cn(config.bgColor, config.color, "border", config.borderColor)}>{config.label}</Badge>
 					</div>
@@ -250,15 +260,68 @@ function BookingDetailsDialog({
 								Service
 							</CardTitle>
 						</CardHeader>
-						<CardContent>
-							<p className="font-medium">{booking.service.name}</p>
-							<p className="text-sm text-muted-foreground">{booking.service.description}</p>
-							<div className="flex items-center justify-between mt-2">
-								<span className="text-sm text-muted-foreground">Duration: {booking.service.duration} min</span>
-								<span className="font-semibold">${booking.pricing.finalPrice.toFixed(2)}</span>
+						<CardContent className="space-y-2">
+							<div className="flex items-center justify-between">
+								<p className="font-medium">{booking.service.name}</p>
+								<Badge variant="outline" className="text-xs">
+									{booking.service.serviceType === "pick_by_me" && <Truck className="h-3 w-3 mr-1" />}
+									{SERVICE_TYPE_LABELS[booking.service.serviceType]}
+								</Badge>
 							</div>
+							{booking.service.description && (
+								<p className="text-sm text-muted-foreground">{booking.service.description}</p>
+							)}
+							<div className="flex items-center justify-between">
+								<span className="text-sm text-muted-foreground">Duration: {booking.service.duration} min</span>
+								<span className="font-semibold">€{booking.pricing.finalPrice.toFixed(2)}</span>
+							</div>
+							{(canStart || canComplete || (canModify && booking.status === "booked")) && (
+								<div className="flex gap-2 pt-2 border-t mt-2">
+									{canStart && (
+										<Button size="sm" onClick={onStartService} className="flex-1 bg-purple-600 hover:bg-purple-700">
+											<Clock className="mr-2 h-4 w-4" />
+											Start Service
+										</Button>
+									)}
+									{canComplete && (
+										<Button size="sm" onClick={onComplete} className="flex-1 bg-green-600 hover:bg-green-700">
+											<CheckCircle2 className="mr-2 h-4 w-4" />
+											Complete Service
+										</Button>
+									)}
+									{canModify && (
+										<Button size="sm" variant="destructive" onClick={onCancel}>
+											<XCircle className="mr-2 h-4 w-4" />
+											Cancel
+										</Button>
+									)}
+								</div>
+							)}
 						</CardContent>
 					</Card>
+
+					{/* Product Order */}
+					{booking.productOrder && (
+						<Card>
+							<CardHeader className="pb-2">
+								<CardTitle className="text-sm flex items-center gap-2">
+									<Package className="h-4 w-4" />
+									Product Order
+								</CardTitle>
+							</CardHeader>
+							<CardContent>
+								<div className="flex items-center justify-between">
+									<div>
+										<p className="text-sm font-mono text-muted-foreground">{booking.productOrder.orderNumber}</p>
+										<p className="text-sm">
+											{booking.productOrder.productCount} product{booking.productOrder.productCount > 1 ? "s" : ""}
+										</p>
+									</div>
+									<span className="font-semibold">€{booking.productOrder.totalAmount.toFixed(2)}</span>
+								</div>
+							</CardContent>
+						</Card>
+					)}
 
 					{/* Location */}
 					{booking.partner.address && (
@@ -270,35 +333,15 @@ function BookingDetailsDialog({
 				</div>
 
 				<DialogFooter className="flex-col sm:flex-row gap-2">
-					{canStart && (
-						<Button onClick={onStartService} className="bg-purple-600 hover:bg-purple-700">
-							<Clock className="mr-2 h-4 w-4" />
-							Start Service
-						</Button>
-					)}
-					{canComplete && (
-						<Button onClick={onComplete} className="bg-green-600 hover:bg-green-700">
-							<CheckCircle2 className="mr-2 h-4 w-4" />
-							Complete Service
-						</Button>
-					)}
 					{canModify && (
-						<>
-							<Button variant="outline" onClick={onReschedule}>
-								<Calendar className="mr-2 h-4 w-4" />
-								Reschedule
-							</Button>
-							<Button variant="destructive" onClick={onCancel}>
-								<XCircle className="mr-2 h-4 w-4" />
-								Cancel
-							</Button>
-						</>
-					)}
-					{!canStart && !canComplete && !canModify && (
-						<Button variant="outline" onClick={() => onOpenChange(false)}>
-							Close
+						<Button variant="outline" onClick={onReschedule}>
+							<Calendar className="mr-2 h-4 w-4" />
+							Reschedule
 						</Button>
 					)}
+					<Link to={`/partner/bookings/${booking.id}`}>
+						<Button variant="outline">View Full Details</Button>
+					</Link>
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>

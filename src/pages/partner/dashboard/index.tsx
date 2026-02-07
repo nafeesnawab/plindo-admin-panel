@@ -1,4 +1,4 @@
-import { ArrowRight, Calendar, Car, CheckCircle, Clock, CreditCard, DollarSign, Plus, Star } from "lucide-react";
+import { ArrowRight, Calendar, Car, Clock, CreditCard, DollarSign, Plus, Star } from "lucide-react";
 import { Link } from "react-router";
 import { Chart } from "@/components/chart";
 import { Badge } from "@/ui/badge";
@@ -218,7 +218,7 @@ export default function PartnerDashboard() {
 				</CardHeader>
 				<CardContent>
 					<div className="flex flex-wrap gap-3">
-						<Link to="/partner/schedule">
+						<Link to="/partner/bookings">
 							<Button variant="outline" className="gap-2">
 								<Calendar className="h-4 w-4" />
 								View Today's Schedule
@@ -230,7 +230,7 @@ export default function PartnerDashboard() {
 								Create New Service
 							</Button>
 						</Link>
-						<Link to="/partner/settings">
+						<Link to="/partner/schedule">
 							<Button variant="outline" className="gap-2">
 								<Clock className="h-4 w-4" />
 								Update Availability
@@ -255,7 +255,7 @@ export default function PartnerDashboard() {
 							<CardTitle>Today's Schedule</CardTitle>
 							<CardDescription>Your upcoming appointments</CardDescription>
 						</div>
-						<Link to="/partner/schedule">
+						<Link to="/partner/bookings">
 							<Button variant="ghost" size="sm" className="gap-1">
 								View All <ArrowRight className="h-4 w-4" />
 							</Button>
@@ -311,45 +311,6 @@ export default function PartnerDashboard() {
 					</CardContent>
 				</Card>
 			</div>
-
-			{/* In Progress Bookings */}
-			<Card>
-				<CardHeader>
-					<CardTitle className="flex items-center gap-2">
-						<Clock className="h-5 w-5 text-purple-500" />
-						In Progress
-					</CardTitle>
-					<CardDescription>Bookings currently being serviced</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<div className="space-y-3">
-						{todaySchedule
-							.filter((b) => b.status === "in_progress")
-							.map((booking) => (
-								<div
-									key={booking.id}
-									className="flex items-center justify-between rounded-lg border border-purple-200 bg-purple-50 p-4 dark:border-purple-900 dark:bg-purple-950"
-								>
-									<div>
-										<p className="font-medium">{booking.customer}</p>
-										<p className="text-sm text-muted-foreground">
-											{booking.time} • {booking.service}
-										</p>
-									</div>
-									<div className="flex gap-2">
-										<Button size="sm" className="gap-1">
-											<CheckCircle className="h-4 w-4" />
-											Mark Complete
-										</Button>
-									</div>
-								</div>
-							))}
-						{todaySchedule.filter((b) => b.status === "in_progress").length === 0 && (
-							<p className="text-center text-muted-foreground py-4">No bookings in progress</p>
-						)}
-					</div>
-				</CardContent>
-			</Card>
 		</div>
 	);
 }

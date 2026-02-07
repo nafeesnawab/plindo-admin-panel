@@ -28,6 +28,8 @@ import { partnerScheduleHandlers } from "./handlers/_partner-schedule";
 import { partnerServicesHandlers } from "./handlers/_partner-services";
 import { partnerSettingsHandlers } from "./handlers/_partner-settings";
 import { partnerHandlers } from "./handlers/_partners";
+import { productOrderHandlers } from "./handlers/_product-orders";
+import { productHandlers } from "./handlers/_products";
 import { settingsHandlers } from "./handlers/_settings";
 import { slotBookingHandlers } from "./handlers/_slot-bookings";
 import { supportHandlers } from "./handlers/_support";
@@ -66,6 +68,8 @@ const handlers = [
 	...partnerProfileHandlers,
 	...partnerSettingsHandlers,
 	...carsHandlers,
+	...productHandlers,
+	...productOrderHandlers,
 ];
 const worker = setupWorker(...handlers);
 

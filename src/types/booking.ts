@@ -26,6 +26,52 @@ export interface WeeklyAvailability {
 	updatedAt: string;
 }
 
+// ============ SERVICE TYPE ============
+
+export type ServiceType = "book_me" | "pick_by_me" | "washing_van";
+
+export const SERVICE_TYPE_LABELS: Record<ServiceType, string> = {
+	book_me: "Book Me",
+	pick_by_me: "Pick by Me",
+	washing_van: "Washing Van",
+};
+
+// ============ SERVICE STEPS ============
+
+export type ServiceStepStatus = "pending" | "in_progress" | "completed" | "skipped";
+
+export interface ServiceStep {
+	id: string;
+	name: string;
+	status: ServiceStepStatus;
+	startedAt?: string;
+	completedAt?: string;
+	order: number;
+}
+
+// Predefined steps per service — partner updates these as work progresses
+export const SERVICE_STEPS_TEMPLATE: Record<string, string[]> = {
+	svc_basic: ["Inspection", "Rinse", "Wash", "Dry"],
+	svc_premium: ["Inspection", "Pre-Wash", "Wash", "Rinse", "Dry", "Finish"],
+	svc_interior: ["Vacuum", "Dashboard Wipe", "Seat Shampoo", "Dry", "Condition"],
+	svc_full: ["Inspection", "Pre-Wash", "Wash", "Clay Bar", "Polish", "Wax", "Interior Clean", "Final Check"],
+	svc_express: ["Rinse", "Wash", "Dry"],
+	svc_wax: ["Wash", "Clay", "Polish", "Wax", "Buff"],
+};
+
+// Extra steps prepended/appended based on service type
+export const PICK_BY_ME_PREFIX_STEPS = ["Pick Up Vehicle"];
+export const PICK_BY_ME_SUFFIX_STEPS = ["Deliver Vehicle"];
+export const WASHING_VAN_PREFIX_STEPS = ["Travel to Customer"];
+
+// ============ BOOKING PRODUCT INFO ============
+
+export interface BookingProductOrder {
+	orderNumber: string;
+	productCount: number;
+	totalAmount: number;
+}
+
 // ============ BOOKING TYPES ============
 
 export type BookingStatus =
@@ -69,6 +115,7 @@ export interface VehicleInfo {
 export interface ServiceInfo {
 	id: string;
 	name: string;
+	serviceType: ServiceType;
 	basePrice: number;
 	duration: number; // in minutes
 	description?: string;
@@ -105,6 +152,8 @@ export interface SlotBooking {
 	slot: BookingSlot;
 	pricing: BookingPricing;
 	status: BookingStatus;
+	serviceSteps: ServiceStep[];
+	productOrder?: BookingProductOrder;
 	createdAt: string;
 	updatedAt: string;
 	// Cancellation info

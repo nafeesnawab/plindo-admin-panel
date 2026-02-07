@@ -11,7 +11,7 @@ import {
 	User,
 	X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
@@ -157,6 +157,36 @@ export default function PartnerDrivers() {
 	const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
 	const [formData, setFormData] = useState<Omit<Driver, "id" | "createdAt">>(emptyDriver);
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const licenseInputRef = useRef<HTMLInputElement>(null);
+	const insuranceInputRef = useRef<HTMLInputElement>(null);
+	const photoInputRef = useRef<HTMLInputElement>(null);
+
+	const handleLicenseUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0];
+		if (file) {
+			setFormData((prev) => ({ ...prev, licenseUrl: file.name }));
+			toast.success(`License document "${file.name}" selected`);
+			e.target.value = "";
+		}
+	};
+
+	const handleInsuranceUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0];
+		if (file) {
+			setFormData((prev) => ({ ...prev, insuranceUrl: file.name }));
+			toast.success(`Insurance document "${file.name}" selected`);
+			e.target.value = "";
+		}
+	};
+
+	const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0];
+		if (file) {
+			const url = URL.createObjectURL(file);
+			setFormData((prev) => ({ ...prev, photoUrl: url }));
+			e.target.value = "";
+		}
+	};
 
 	// Check for expiring documents on load
 	useEffect(() => {
@@ -542,7 +572,19 @@ export default function PartnerDrivers() {
 								<div className="space-y-2 sm:col-span-2">
 									<Label>License Document</Label>
 									<div className="flex items-center gap-4">
-										<Button variant="outline" className="w-full" type="button">
+										<input
+											ref={licenseInputRef}
+											type="file"
+											accept="image/*,.pdf"
+											className="hidden"
+											onChange={handleLicenseUpload}
+										/>
+										<Button
+											variant="outline"
+											className="w-full"
+											type="button"
+											onClick={() => licenseInputRef.current?.click()}
+										>
 											<Upload className="mr-2 h-4 w-4" />
 											Upload License (Image/PDF)
 										</Button>
@@ -574,10 +616,28 @@ export default function PartnerDrivers() {
 								</div>
 								<div className="space-y-2">
 									<Label>Insurance Document</Label>
-									<Button variant="outline" className="w-full" type="button">
+									<input
+										ref={insuranceInputRef}
+										type="file"
+										accept="image/*,.pdf"
+										className="hidden"
+										onChange={handleInsuranceUpload}
+									/>
+									<Button
+										variant="outline"
+										className="w-full"
+										type="button"
+										onClick={() => insuranceInputRef.current?.click()}
+									>
 										<Upload className="mr-2 h-4 w-4" />
 										Upload Insurance Paper
 									</Button>
+									{formData.insuranceUrl && (
+										<div className="flex items-center gap-2 text-sm text-muted-foreground">
+											<FileText className="h-4 w-4" />
+											Document uploaded
+										</div>
+									)}
 								</div>
 							</div>
 						</div>
@@ -588,10 +648,29 @@ export default function PartnerDrivers() {
 							<div className="grid gap-4 sm:grid-cols-2">
 								<div className="space-y-2">
 									<Label>Photo (Optional)</Label>
-									<Button variant="outline" className="w-full" type="button">
-										<Upload className="mr-2 h-4 w-4" />
-										Upload Photo
-									</Button>
+									<div className="flex items-center gap-4">
+										{formData.photoUrl && (
+											<img src={formData.photoUrl} alt="Driver" className="h-16 w-16 rounded-full object-cover" />
+										)}
+										<div className="flex-1">
+											<input
+												ref={photoInputRef}
+												type="file"
+												accept="image/*"
+												className="hidden"
+												onChange={handlePhotoUpload}
+											/>
+											<Button
+												variant="outline"
+												className="w-full"
+												type="button"
+												onClick={() => photoInputRef.current?.click()}
+											>
+												<Upload className="mr-2 h-4 w-4" />
+												{formData.photoUrl ? "Change Photo" : "Upload Photo"}
+											</Button>
+										</div>
+									</div>
 								</div>
 								<div className="space-y-2">
 									<Label htmlFor="status">Status</Label>
