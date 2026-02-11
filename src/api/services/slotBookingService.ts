@@ -1,9 +1,11 @@
 import type {
+	AvailableWindow,
 	BookingPricing,
 	BookingSlot,
 	CarType,
+	PartnerCapacity,
+	ServiceCategory,
 	SlotBooking,
-	TimeSlot,
 	WeekBookings,
 	WeeklyAvailability,
 } from "@/types/booking";
@@ -13,6 +15,8 @@ export enum SlotBookingApi {
 	// Partner availability
 	WeeklyAvailability = "/partner/availability/weekly",
 	AvailableSlots = "/bookings/slots",
+	// Capacity
+	PartnerCapacity = "/partner/capacity",
 	// Bookings
 	PartnerBookings = "/partner/bookings",
 	BookingsTimeline = "/partner/bookings/timeline",
@@ -42,6 +46,7 @@ export interface PartnerBookingsFilter {
 	startDate?: string;
 	endDate?: string;
 	status?: string;
+	serviceCategory?: ServiceCategory;
 	page?: number;
 	limit?: number;
 }
@@ -55,6 +60,7 @@ export interface AdminBookingsFilter {
 	customerId?: string;
 	dateFrom?: string;
 	dateTo?: string;
+	serviceCategory?: ServiceCategory;
 }
 
 export interface ServiceOption {
@@ -62,6 +68,7 @@ export interface ServiceOption {
 	name: string;
 	basePrice: number;
 	duration: number;
+	category: ServiceCategory;
 }
 
 // ============ Partner Availability ============
@@ -79,10 +86,27 @@ const updateWeeklyAvailability = (data: Partial<WeeklyAvailability>, partnerId?:
 		data,
 	});
 
-const getAvailableSlots = (partnerId: string, date: string, serviceId?: string) =>
-	apiClient.get<{ date: string; slots: TimeSlot[]; partnerId: string }>({
+// ============ Capacity ============
+
+const getPartnerCapacity = (partnerId?: string) =>
+	apiClient.get<PartnerCapacity>({
+		url: SlotBookingApi.PartnerCapacity,
+		params: { partnerId },
+	});
+
+const updatePartnerCapacity = (data: Partial<PartnerCapacity>, partnerId?: string) =>
+	apiClient.put<PartnerCapacity>({
+		url: SlotBookingApi.PartnerCapacity,
+		params: { partnerId },
+		data,
+	});
+
+// ============ Available Windows ============
+
+const getAvailableSlots = (partnerId: string, date: string, serviceCategory?: ServiceCategory, duration?: number) =>
+	apiClient.get<{ date: string; windows: AvailableWindow[]; capacity: Record<ServiceCategory, number> }>({
 		url: SlotBookingApi.AvailableSlots,
-		params: { partnerId, date, serviceId },
+		params: { partnerId, date, serviceCategory, duration },
 	});
 
 // ============ Bookings ============
@@ -108,6 +132,8 @@ const createBooking = (data: {
 	serviceId: string;
 	slot: BookingSlot;
 	carType: CarType;
+	serviceCategory?: ServiceCategory;
+	serviceType?: string;
 }) => apiClient.post<SlotBooking>({ url: SlotBookingApi.SlotBooking, data });
 
 // ============ Admin Bookings ============
@@ -164,6 +190,10 @@ export default {
 	// Availability
 	getWeeklyAvailability,
 	updateWeeklyAvailability,
+	// Capacity
+	getPartnerCapacity,
+	updatePartnerCapacity,
+	// Available Windows
 	getAvailableSlots,
 	// Bookings
 	getPartnerBookings,

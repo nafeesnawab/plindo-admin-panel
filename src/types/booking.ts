@@ -1,4 +1,42 @@
-// New Preply-style Booking System Types
+// Capacity-Based Dynamic Scheduling System Types
+
+// ============ SERVICE CATEGORY ============
+
+export type ServiceCategory = "wash" | "detailing" | "other";
+
+export const SERVICE_CATEGORY_LABELS: Record<ServiceCategory, string> = {
+	wash: "Car Wash",
+	detailing: "Detailing",
+	other: "Other",
+};
+
+export const SERVICE_CATEGORY_COLORS: Record<ServiceCategory, { bg: string; text: string; border: string }> = {
+	wash: { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-300" },
+	detailing: { bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-300" },
+	other: { bg: "bg-gray-50", text: "text-gray-700", border: "border-gray-300" },
+};
+
+// ============ BAY / CAPACITY ============
+
+export interface Bay {
+	id: string;
+	name: string;
+	serviceCategory: ServiceCategory;
+	isActive: boolean;
+}
+
+export interface CategoryCapacity {
+	category: ServiceCategory;
+	totalBays: number;
+	activeBays: number;
+}
+
+export interface PartnerCapacity {
+	partnerId: string;
+	bays: Bay[];
+	capacityByCategory: Record<ServiceCategory, number>; // e.g. { wash: 5, detailing: 2, other: 0 }
+	bufferTimeMinutes: number; // time between bookings per bay
+}
 
 // ============ AVAILABILITY TYPES ============
 
@@ -7,22 +45,34 @@ export interface TimeSlot {
 	startTime: string; // "09:00"
 	endTime: string; // "09:30"
 	isAvailable: boolean;
+	// Capacity tracking per category
+	capacityUsed: Record<ServiceCategory, number>; // e.g. { wash: 3, detailing: 1 }
+	capacityTotal: Record<ServiceCategory, number>; // e.g. { wash: 5, detailing: 2 }
+}
+
+export interface AvailableWindow {
+	startTime: string; // "09:00"
+	endTime: string; // "10:30" (based on service duration)
+	availableBays: number; // how many bays are free for this category
+	totalBays: number;
+	bayId?: string; // suggested bay assignment
 }
 
 export interface DayAvailability {
 	dayOfWeek: number; // 0 = Sunday, 1 = Monday, etc.
 	dayName: string;
 	isEnabled: boolean;
-	slots: TimeSlot[];
+	workStart: string; // "08:00"
+	workEnd: string; // "18:00"
 }
 
 export interface WeeklyAvailability {
 	id: string;
 	partnerId: string;
 	schedule: DayAvailability[];
-	slotDurationMinutes: number; // 30, 45, 60
 	bufferTimeMinutes: number; // time between bookings
 	maxAdvanceBookingDays: number; // max 14 days
+	capacity: PartnerCapacity;
 	updatedAt: string;
 }
 
@@ -75,9 +125,9 @@ export interface BookingProductOrder {
 // ============ BOOKING TYPES ============
 
 export type BookingStatus =
-	| "booked" // initial status when customer books a slot
+	| "booked" // initial status when customer books
 	| "in_progress" // service has started
-	| "completed" // service finished at partner location
+	| "completed" // service finished
 	// Extra statuses for "pick by me" service type:
 	| "picked" // car is picked from customer's location
 	| "out_for_delivery" // vehicle being delivered back
@@ -90,7 +140,7 @@ export type CancelledBy = "customer" | "partner";
 export interface BookingSlot {
 	date: string; // "2024-01-15"
 	startTime: string; // "09:00"
-	endTime: string; // "09:30"
+	endTime: string; // "10:30" (dynamic based on service duration)
 }
 
 export interface CustomerInfo {
@@ -116,6 +166,7 @@ export interface ServiceInfo {
 	id: string;
 	name: string;
 	serviceType: ServiceType;
+	serviceCategory: ServiceCategory;
 	basePrice: number;
 	duration: number; // in minutes
 	description?: string;
@@ -153,6 +204,10 @@ export interface SlotBooking {
 	pricing: BookingPricing;
 	status: BookingStatus;
 	serviceSteps: ServiceStep[];
+	// Bay assignment
+	bayId: string;
+	bayName: string;
+	// Product order
 	productOrder?: BookingProductOrder;
 	createdAt: string;
 	updatedAt: string;
@@ -234,12 +289,15 @@ export interface GetAvailableSlotsRequest {
 	partnerId: string;
 	serviceId: string;
 	date: string; // specific date
+	serviceCategory: ServiceCategory;
+	durationMinutes: number;
 }
 
 export interface GetAvailableSlotsResponse {
 	date: string;
-	slots: TimeSlot[];
+	windows: AvailableWindow[];
 	partnerInfo: PartnerInfo;
+	capacity: Record<ServiceCategory, number>;
 }
 
 export interface CreateBookingRequest {
@@ -248,6 +306,7 @@ export interface CreateBookingRequest {
 	vehicleId: string;
 	serviceId: string;
 	slot: BookingSlot;
+	serviceCategory: ServiceCategory;
 }
 
 export interface RescheduleBookingRequest {
@@ -267,6 +326,7 @@ export interface PartnerBookingsFilter {
 	startDate?: string;
 	endDate?: string;
 	status?: BookingStatus;
+	serviceCategory?: ServiceCategory;
 	page?: number;
 	limit?: number;
 }
@@ -280,6 +340,7 @@ export interface DayBookings {
 	totalBookings: number;
 	completedCount: number;
 	cancelledCount: number;
+	capacityUsage: Record<ServiceCategory, { used: number; total: number }>;
 }
 
 export interface WeekBookings {
