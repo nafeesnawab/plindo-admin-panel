@@ -7,14 +7,11 @@ export function getFrontendDashboardRoutes(): RouteObject[] {
 		// Dashboard
 		{ path: "dashboard", element: Component("/pages/dashboard") },
 
-		// Partner Management
+		// Partner Management (single merged page)
 		{
 			path: "partners",
 			children: [
-				{ index: true, element: <Navigate to="pending" replace /> },
-				{ path: "pending", element: Component("/pages/partners/pending") },
-				{ path: "active", element: Component("/pages/partners/active") },
-				{ path: "suspended", element: Component("/pages/partners/suspended") },
+				{ index: true, element: Component("/pages/partners") },
 				{ path: ":id", element: Component("/pages/partners/details") },
 			],
 		},
@@ -28,61 +25,20 @@ export function getFrontendDashboardRoutes(): RouteObject[] {
 			],
 		},
 
-		// Booking Management
+		// Booking Management (single merged page)
 		{
 			path: "bookings",
 			children: [
 				{ index: true, element: Component("/pages/bookings") },
-				{ path: "disputes", element: Component("/pages/bookings/disputes") },
 				{ path: ":id", element: Component("/pages/bookings/details") },
 			],
 		},
 
-		// Financial Reports
-		{
-			path: "finance",
-			children: [
-				{ index: true, element: Component("/pages/finance") },
-				{ path: "commissions", element: Component("/pages/finance/commissions") },
-				{ path: "payouts", element: Component("/pages/finance/payouts") },
-				{ path: "subscriptions", element: Component("/pages/finance/subscriptions") },
-			],
-		},
+		// Financial Reports (single merged page)
+		{ path: "finance", element: Component("/pages/finance") },
 
-		// Notifications
-		{
-			path: "notifications",
-			children: [
-				{ index: true, element: <Navigate to="send" replace /> },
-				{ path: "send", element: Component("/pages/notifications/send") },
-				{ path: "history", element: Component("/pages/notifications/history") },
-			],
-		},
-
-		// Analytics
-		{
-			path: "analytics",
-			children: [
-				{ index: true, element: <Navigate to="users" replace /> },
-				{ path: "users", element: Component("/pages/analytics/users") },
-				{ path: "bookings", element: Component("/pages/analytics/bookings") },
-				{ path: "partners", element: Component("/pages/analytics/partners") },
-				{ path: "subscriptions", element: Component("/pages/analytics/subscriptions") },
-			],
-		},
-
-		// Platform Settings
-		{
-			path: "settings",
-			children: [
-				{ index: true, element: <Navigate to="commission" replace /> },
-				{ path: "commission", element: Component("/pages/settings/commission") },
-				{ path: "booking-rules", element: Component("/pages/settings/booking-rules") },
-				{ path: "subscription-plans", element: Component("/pages/settings/subscription-plans") },
-				{ path: "payment", element: Component("/pages/settings/payment") },
-				{ path: "notifications", element: Component("/pages/settings/notifications") },
-			],
-		},
+		// Platform Settings (single merged page)
+		{ path: "settings", element: Component("/pages/settings") },
 
 		// Legal Pages
 		{
@@ -94,15 +50,6 @@ export function getFrontendDashboardRoutes(): RouteObject[] {
 				{ path: "refund", element: Component("/pages/legal/refund") },
 				{ path: "about", element: Component("/pages/legal/about") },
 				{ path: "faqs", element: Component("/pages/legal/faqs") },
-			],
-		},
-
-		// Support
-		{
-			path: "support",
-			children: [
-				{ index: true, element: <Navigate to="tickets" replace /> },
-				{ path: "tickets", element: Component("/pages/support/tickets") },
 			],
 		},
 

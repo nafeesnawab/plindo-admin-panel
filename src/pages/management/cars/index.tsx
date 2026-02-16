@@ -1,9 +1,10 @@
-import { Car, Edit, Filter, MoreHorizontal, Plus, Search, Trash2 } from "lucide-react";
+import { Pagination } from "antd";
+import { Edit, Filter, MoreHorizontal, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card";
+import { Card, CardContent } from "@/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/ui/dialog";
 import {
 	DropdownMenu,
@@ -82,6 +83,8 @@ export default function CarsManagementPage() {
 	const [isEditing, setIsEditing] = useState(false);
 	const [showFilters, setShowFilters] = useState(false);
 	const [customMake, setCustomMake] = useState("");
+	const [currentPage, setCurrentPage] = useState(1);
+	const pageSize = 10;
 
 	// Fetch cars
 	useEffect(() => {
@@ -236,63 +239,11 @@ export default function CarsManagementPage() {
 		return colors[bodyType] || "bg-gray-100 text-gray-800";
 	};
 
-	// Stats
-	const totalCars = cars.length;
-	const totalMakes = uniqueMakes.length;
-	const totalBodyTypes = [...new Set(cars.map((car) => car.bodyType))].length;
-
 	return (
-		<div className="space-y-6">
-			{/* Header */}
-			<div className="flex items-center justify-between">
-				<div>
-					<h1 className="text-2xl font-bold">Cars Management</h1>
-					<p className="text-muted-foreground">Manage car makes, models, and body types for service pricing</p>
-				</div>
-				<Button onClick={handleCreateNew} className="gap-2">
-					<Plus className="h-4 w-4" />
-					Add Car
-				</Button>
-			</div>
-
-			{/* Stats */}
-			<div className="grid gap-4 md:grid-cols-3">
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Total Cars</CardTitle>
-						<Car className="h-4 w-4 text-muted-foreground" />
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">{totalCars}</div>
-						<p className="text-xs text-muted-foreground">Car models in database</p>
-					</CardContent>
-				</Card>
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Car Makes</CardTitle>
-						<Car className="h-4 w-4 text-muted-foreground" />
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">{totalMakes}</div>
-						<p className="text-xs text-muted-foreground">Unique manufacturers</p>
-					</CardContent>
-				</Card>
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Body Types</CardTitle>
-						<Car className="h-4 w-4 text-muted-foreground" />
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">{totalBodyTypes}</div>
-						<p className="text-xs text-muted-foreground">Different body types</p>
-					</CardContent>
-				</Card>
-			</div>
-
-			{/* Search and Filters */}
-			<Card>
-				<CardContent className="pt-6">
-					<div className="flex flex-col gap-4">
+		<div className="h-full flex flex-col overflow-hidden">
+			<Card className="flex-1 min-h-0 flex flex-col">
+				<CardContent className="pt-6 flex-1 min-h-0 flex flex-col">
+					<div className="shrink-0 flex flex-col gap-4 mb-4">
 						<div className="flex gap-4">
 							<div className="relative flex-1">
 								<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -315,6 +266,10 @@ export default function CarsManagementPage() {
 										{[filterMake !== "all", filterBodyType !== "all"].filter(Boolean).length}
 									</Badge>
 								)}
+							</Button>
+							<Button onClick={handleCreateNew} className="gap-2">
+								<Plus className="h-4 w-4" />
+								Add Car
 							</Button>
 						</div>
 
@@ -360,76 +315,79 @@ export default function CarsManagementPage() {
 							</div>
 						)}
 					</div>
-				</CardContent>
-			</Card>
-
-			{/* Cars Table */}
-			<Card>
-				<CardHeader>
-					<CardTitle>All Cars</CardTitle>
-					<CardDescription>
-						{filteredCars.length} of {cars.length} cars
-						{(filterMake !== "all" || filterBodyType !== "all" || searchQuery) && " (filtered)"}
-					</CardDescription>
-				</CardHeader>
-				<CardContent>
 					{loading ? (
 						<div className="flex items-center justify-center py-8">
 							<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
 						</div>
 					) : (
-						<Table>
-							<TableHeader>
-								<TableRow>
-									<TableHead>Make</TableHead>
-									<TableHead>Model</TableHead>
-									<TableHead>Body Type</TableHead>
-									<TableHead>Created</TableHead>
-									<TableHead className="text-right">Actions</TableHead>
-								</TableRow>
-							</TableHeader>
-							<TableBody>
-								{filteredCars.map((car) => (
-									<TableRow key={car.id}>
-										<TableCell className="font-medium">{car.make}</TableCell>
-										<TableCell>{car.model}</TableCell>
-										<TableCell>
-											<Badge className={getBodyTypeColor(car.bodyType)}>{car.bodyType}</Badge>
-										</TableCell>
-										<TableCell className="text-muted-foreground">
-											{new Date(car.createdAt).toLocaleDateString()}
-										</TableCell>
-										<TableCell className="text-right">
-											<DropdownMenu>
-												<DropdownMenuTrigger asChild>
-													<Button variant="ghost" size="icon">
-														<MoreHorizontal className="h-4 w-4" />
-													</Button>
-												</DropdownMenuTrigger>
-												<DropdownMenuContent align="end">
-													<DropdownMenuItem onClick={() => handleEdit(car)}>
-														<Edit className="mr-2 h-4 w-4" />
-														Edit
-													</DropdownMenuItem>
-													<DropdownMenuSeparator />
-													<DropdownMenuItem onClick={() => handleDeleteClick(car)} className="text-destructive">
-														<Trash2 className="mr-2 h-4 w-4" />
-														Delete
-													</DropdownMenuItem>
-												</DropdownMenuContent>
-											</DropdownMenu>
-										</TableCell>
-									</TableRow>
-								))}
-								{filteredCars.length === 0 && (
-									<TableRow>
-										<TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-											{cars.length === 0 ? "No cars added yet" : "No cars match your filters"}
-										</TableCell>
-									</TableRow>
-								)}
-							</TableBody>
-						</Table>
+						<>
+							<div className="flex-1 min-h-0 overflow-auto">
+								<Table>
+									<TableHeader className="sticky top-0 bg-card z-10">
+										<TableRow>
+											<TableHead>Make</TableHead>
+											<TableHead>Model</TableHead>
+											<TableHead>Body Type</TableHead>
+											<TableHead>Created</TableHead>
+											<TableHead className="text-right">Actions</TableHead>
+										</TableRow>
+									</TableHeader>
+									<TableBody>
+										{filteredCars.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((car) => (
+											<TableRow key={car.id}>
+												<TableCell className="font-medium">{car.make}</TableCell>
+												<TableCell>{car.model}</TableCell>
+												<TableCell>
+													<Badge className={getBodyTypeColor(car.bodyType)}>{car.bodyType}</Badge>
+												</TableCell>
+												<TableCell className="text-muted-foreground">
+													{new Date(car.createdAt).toLocaleDateString()}
+												</TableCell>
+												<TableCell className="text-right">
+													<DropdownMenu>
+														<DropdownMenuTrigger asChild>
+															<Button variant="ghost" size="icon">
+																<MoreHorizontal className="h-4 w-4" />
+															</Button>
+														</DropdownMenuTrigger>
+														<DropdownMenuContent align="end">
+															<DropdownMenuItem onClick={() => handleEdit(car)}>
+																<Edit className="mr-2 h-4 w-4" />
+																Edit
+															</DropdownMenuItem>
+															<DropdownMenuSeparator />
+															<DropdownMenuItem onClick={() => handleDeleteClick(car)} className="text-destructive">
+																<Trash2 className="mr-2 h-4 w-4" />
+																Delete
+															</DropdownMenuItem>
+														</DropdownMenuContent>
+													</DropdownMenu>
+												</TableCell>
+											</TableRow>
+										))}
+										{filteredCars.length === 0 && (
+											<TableRow>
+												<TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+													{cars.length === 0 ? "No cars added yet" : "No cars match your filters"}
+												</TableCell>
+											</TableRow>
+										)}
+									</TableBody>
+								</Table>
+							</div>
+							{filteredCars.length > pageSize && (
+								<div className="shrink-0 flex justify-center py-3 border-t">
+									<Pagination
+										current={currentPage}
+										total={filteredCars.length}
+										pageSize={pageSize}
+										onChange={(p) => setCurrentPage(p)}
+										showSizeChanger={false}
+										showTotal={(total) => `Total ${total} cars`}
+									/>
+								</div>
+							)}
+						</>
 					)}
 				</CardContent>
 			</Card>

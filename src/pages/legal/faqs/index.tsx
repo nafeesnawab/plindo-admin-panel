@@ -1,12 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Edit, HelpCircle, Plus, Trash2 } from "lucide-react";
+import { Edit, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import legalService, { type FAQ } from "@/api/services/legalService";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/ui/dialog";
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
@@ -103,21 +102,18 @@ export default function FAQManagementPage() {
 	}
 
 	return (
-		<div className="space-y-6">
-			<div className="flex items-center justify-between">
-				<div>
-					<h1 className="text-2xl font-bold">FAQ Management</h1>
-					<p className="text-muted-foreground">
-						{data?.faqs.length || 0} FAQs across {data?.categories.length || 0} categories
-					</p>
-				</div>
+		<div className="h-full flex flex-col overflow-hidden">
+			<div className="shrink-0 flex items-center justify-between mb-4">
+				<p className="text-sm text-muted-foreground">
+					{data?.faqs.length || 0} FAQs across {data?.categories.length || 0} categories
+				</p>
 				<Button onClick={() => openEditor()}>
 					<Plus className="h-4 w-4 mr-2" />
 					Add FAQ
 				</Button>
 			</div>
 
-			<div className="flex items-center gap-4">
+			<div className="shrink-0 flex items-center gap-4 mb-4">
 				<Label>Filter by Category:</Label>
 				<Select value={selectedCategory} onValueChange={setSelectedCategory}>
 					<SelectTrigger className="w-48">
@@ -134,72 +130,64 @@ export default function FAQManagementPage() {
 				</Select>
 			</div>
 
-			<Card>
-				<CardHeader>
-					<CardTitle className="flex items-center gap-2">
-						<HelpCircle className="h-5 w-5" />
-						Frequently Asked Questions
-					</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead className="w-12">#</TableHead>
-								<TableHead>Question</TableHead>
-								<TableHead className="w-32">Category</TableHead>
-								<TableHead className="w-24">Status</TableHead>
-								<TableHead className="w-32 text-right">Actions</TableHead>
+			<div className="flex-1 min-h-0 overflow-auto">
+				<Table>
+					<TableHeader className="sticky top-0 bg-background z-10">
+						<TableRow>
+							<TableHead className="w-12">#</TableHead>
+							<TableHead>Question</TableHead>
+							<TableHead className="w-32">Category</TableHead>
+							<TableHead className="w-24">Status</TableHead>
+							<TableHead className="w-32 text-right">Actions</TableHead>
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{data?.faqs.map((faq, index) => (
+							<TableRow key={faq.id}>
+								<TableCell className="font-medium">{index + 1}</TableCell>
+								<TableCell>
+									<p className="font-medium">{faq.question}</p>
+									<p
+										className="text-sm text-muted-foreground line-clamp-1"
+										dangerouslySetInnerHTML={{ __html: faq.answer.replace(/<[^>]*>/g, " ").slice(0, 100) }}
+									/>
+								</TableCell>
+								<TableCell>
+									<Badge variant="outline">{faq.category}</Badge>
+								</TableCell>
+								<TableCell>
+									<Switch
+										checked={faq.isActive}
+										onCheckedChange={(checked) => toggleMutation.mutate({ id: faq.id, isActive: checked })}
+									/>
+								</TableCell>
+								<TableCell className="text-right">
+									<div className="flex justify-end gap-1">
+										<Button variant="ghost" size="icon" onClick={() => openEditor(faq)}>
+											<Edit className="h-4 w-4" />
+										</Button>
+										<Button
+											variant="ghost"
+											size="icon"
+											className="text-destructive"
+											onClick={() => deleteMutation.mutate(faq.id)}
+										>
+											<Trash2 className="h-4 w-4" />
+										</Button>
+									</div>
+								</TableCell>
 							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{data?.faqs.map((faq, index) => (
-								<TableRow key={faq.id}>
-									<TableCell className="font-medium">{index + 1}</TableCell>
-									<TableCell>
-										<p className="font-medium">{faq.question}</p>
-										<p
-											className="text-sm text-muted-foreground line-clamp-1"
-											dangerouslySetInnerHTML={{ __html: faq.answer.replace(/<[^>]*>/g, " ").slice(0, 100) }}
-										/>
-									</TableCell>
-									<TableCell>
-										<Badge variant="outline">{faq.category}</Badge>
-									</TableCell>
-									<TableCell>
-										<Switch
-											checked={faq.isActive}
-											onCheckedChange={(checked) => toggleMutation.mutate({ id: faq.id, isActive: checked })}
-										/>
-									</TableCell>
-									<TableCell className="text-right">
-										<div className="flex justify-end gap-1">
-											<Button variant="ghost" size="icon" onClick={() => openEditor(faq)}>
-												<Edit className="h-4 w-4" />
-											</Button>
-											<Button
-												variant="ghost"
-												size="icon"
-												className="text-destructive"
-												onClick={() => deleteMutation.mutate(faq.id)}
-											>
-												<Trash2 className="h-4 w-4" />
-											</Button>
-										</div>
-									</TableCell>
-								</TableRow>
-							))}
-							{data?.faqs.length === 0 && (
-								<TableRow>
-									<TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-										No FAQs found. Click "Add FAQ" to create one.
-									</TableCell>
-								</TableRow>
-							)}
-						</TableBody>
-					</Table>
-				</CardContent>
-			</Card>
+						))}
+						{data?.faqs.length === 0 && (
+							<TableRow>
+								<TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+									No FAQs found. Click "Add FAQ" to create one.
+								</TableCell>
+							</TableRow>
+						)}
+					</TableBody>
+				</Table>
+			</div>
 
 			<Dialog open={isCreating || !!editingFaq} onOpenChange={closeEditor}>
 				<DialogContent className="max-w-2xl">

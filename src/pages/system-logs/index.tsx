@@ -1,15 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
+import { Pagination, Tabs } from "antd";
 import { format } from "date-fns";
-import { Activity, AlertTriangle, CreditCard, Server } from "lucide-react";
 import { useState } from "react";
 import logsService from "@/api/services/logsService";
 import { Badge } from "@/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card";
-import { Label } from "@/ui/label";
+import { Card, CardContent } from "@/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { Skeleton } from "@/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/tabs";
 
 const levelColors: Record<string, string> = {
 	error: "bg-red-500/10 text-red-600",
@@ -17,257 +15,291 @@ const levelColors: Record<string, string> = {
 	critical: "bg-red-600/20 text-red-700",
 };
 
-export default function SystemLogsPage() {
+function ActivityTab() {
 	const [adminFilter, setAdminFilter] = useState("all");
-	const [errorLevelFilter, setErrorLevelFilter] = useState("all");
+	const [page, setPage] = useState(1);
+	const pageSize = 10;
 
-	const { data: activityData, isLoading: activityLoading } = useQuery({
-		queryKey: ["logs-activity", adminFilter],
-		queryFn: () => logsService.getActivityLogs({ admin: adminFilter, limit: 20 }),
+	const { data, isLoading } = useQuery({
+		queryKey: ["logs-activity", adminFilter, page],
+		queryFn: () => logsService.getActivityLogs({ admin: adminFilter, page, limit: pageSize }),
 	});
 
-	const { data: errorsData, isLoading: errorsLoading } = useQuery({
-		queryKey: ["logs-errors", errorLevelFilter],
-		queryFn: () => logsService.getSystemErrors({ level: errorLevelFilter, limit: 20 }),
-	});
-
-	const { data: paymentsData, isLoading: paymentsLoading } = useQuery({
-		queryKey: ["logs-payments"],
-		queryFn: () => logsService.getPaymentFailures({ limit: 20 }),
-	});
-
-	const { data: apiData, isLoading: apiLoading } = useQuery({
-		queryKey: ["logs-api"],
-		queryFn: () => logsService.getApiErrors({ limit: 20 }),
-	});
+	if (isLoading) return <Skeleton className="h-[300px]" />;
 
 	return (
-		<div className="space-y-6">
-			<div>
-				<h1 className="text-2xl font-bold">System Logs</h1>
-				<p className="text-muted-foreground">Monitor admin actions and system events</p>
+		<div className="flex-1 min-h-0 flex flex-col">
+			<div className="shrink-0 flex justify-end mb-4">
+				<Select
+					value={adminFilter}
+					onValueChange={(v) => {
+						setAdminFilter(v);
+						setPage(1);
+					}}
+				>
+					<SelectTrigger className="w-40">
+						<SelectValue placeholder="All Admins" />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value="all">All Admins</SelectItem>
+						{data?.admins.map((admin) => (
+							<SelectItem key={admin} value={admin}>
+								{admin}
+							</SelectItem>
+						))}
+					</SelectContent>
+				</Select>
 			</div>
+			<div className="flex-1 min-h-0 overflow-auto">
+				<Table>
+					<TableHeader className="sticky top-0 bg-card z-10">
+						<TableRow>
+							<TableHead>Admin</TableHead>
+							<TableHead>Action</TableHead>
+							<TableHead>Target</TableHead>
+							<TableHead>IP Address</TableHead>
+							<TableHead>Timestamp</TableHead>
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{data?.logs.map((log) => (
+							<TableRow key={log.id}>
+								<TableCell className="font-medium">{log.adminName}</TableCell>
+								<TableCell>{log.action}</TableCell>
+								<TableCell>
+									<Badge variant="outline">{log.targetType}</Badge>
+								</TableCell>
+								<TableCell className="font-mono text-xs">{log.ipAddress}</TableCell>
+								<TableCell>{format(new Date(log.timestamp), "PPp")}</TableCell>
+							</TableRow>
+						))}
+					</TableBody>
+				</Table>
+			</div>
+			{data?.pagination && data.pagination.total > pageSize && (
+				<div className="shrink-0 flex justify-center py-3 border-t">
+					<Pagination
+						current={page}
+						total={data.pagination.total}
+						pageSize={pageSize}
+						onChange={setPage}
+						showSizeChanger={false}
+						showTotal={(total) => `Total ${total} logs`}
+					/>
+				</div>
+			)}
+		</div>
+	);
+}
 
-			<Tabs defaultValue="activity">
-				<TabsList>
-					<TabsTrigger value="activity" className="gap-2">
-						<Activity className="h-4 w-4" />
-						Activity
-					</TabsTrigger>
-					<TabsTrigger value="errors" className="gap-2">
-						<AlertTriangle className="h-4 w-4" />
-						System Errors
-					</TabsTrigger>
-					<TabsTrigger value="payments" className="gap-2">
-						<CreditCard className="h-4 w-4" />
-						Payment Failures
-					</TabsTrigger>
-					<TabsTrigger value="api" className="gap-2">
-						<Server className="h-4 w-4" />
-						API Errors
-					</TabsTrigger>
-				</TabsList>
+function ErrorsTab() {
+	const [levelFilter, setLevelFilter] = useState("all");
+	const [page, setPage] = useState(1);
+	const pageSize = 10;
 
-				<TabsContent value="activity" className="mt-4">
-					<Card>
-						<CardHeader>
-							<div className="flex items-center justify-between">
-								<div>
-									<CardTitle>Admin Activity Log</CardTitle>
-									<CardDescription>Track all admin actions</CardDescription>
-								</div>
-								<div className="flex items-center gap-2">
-									<Label>Admin:</Label>
-									<Select value={adminFilter} onValueChange={setAdminFilter}>
-										<SelectTrigger className="w-40">
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="all">All Admins</SelectItem>
-											{activityData?.admins.map((admin) => (
-												<SelectItem key={admin} value={admin}>
-													{admin}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-								</div>
-							</div>
-						</CardHeader>
-						<CardContent>
-							{activityLoading ? (
-								<Skeleton className="h-[300px]" />
-							) : (
-								<Table>
-									<TableHeader>
-										<TableRow>
-											<TableHead>Admin</TableHead>
-											<TableHead>Action</TableHead>
-											<TableHead>Target</TableHead>
-											<TableHead>IP Address</TableHead>
-											<TableHead>Timestamp</TableHead>
-										</TableRow>
-									</TableHeader>
-									<TableBody>
-										{activityData?.logs.map((log) => (
-											<TableRow key={log.id}>
-												<TableCell className="font-medium">{log.adminName}</TableCell>
-												<TableCell>{log.action}</TableCell>
-												<TableCell>
-													<Badge variant="outline">{log.targetType}</Badge>
-												</TableCell>
-												<TableCell className="font-mono text-xs">{log.ipAddress}</TableCell>
-												<TableCell>{format(new Date(log.timestamp), "PPp")}</TableCell>
-											</TableRow>
-										))}
-									</TableBody>
-								</Table>
-							)}
-						</CardContent>
-					</Card>
-				</TabsContent>
+	const { data, isLoading } = useQuery({
+		queryKey: ["logs-errors", levelFilter, page],
+		queryFn: () => logsService.getSystemErrors({ level: levelFilter, page, limit: pageSize }),
+	});
 
-				<TabsContent value="errors" className="mt-4">
-					<Card>
-						<CardHeader>
-							<div className="flex items-center justify-between">
-								<div>
-									<CardTitle>System Errors</CardTitle>
-									<CardDescription>Application and server errors</CardDescription>
-								</div>
-								<div className="flex items-center gap-2">
-									<Label>Level:</Label>
-									<Select value={errorLevelFilter} onValueChange={setErrorLevelFilter}>
-										<SelectTrigger className="w-32">
-											<SelectValue />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value="all">All Levels</SelectItem>
-											<SelectItem value="warning">Warning</SelectItem>
-											<SelectItem value="error">Error</SelectItem>
-											<SelectItem value="critical">Critical</SelectItem>
-										</SelectContent>
-									</Select>
-								</div>
-							</div>
-						</CardHeader>
-						<CardContent>
-							{errorsLoading ? (
-								<Skeleton className="h-[300px]" />
-							) : (
-								<Table>
-									<TableHeader>
-										<TableRow>
-											<TableHead>Level</TableHead>
-											<TableHead>Message</TableHead>
-											<TableHead>Source</TableHead>
-											<TableHead>Status</TableHead>
-											<TableHead>Timestamp</TableHead>
-										</TableRow>
-									</TableHeader>
-									<TableBody>
-										{errorsData?.errors.map((error) => (
-											<TableRow key={error.id}>
-												<TableCell>
-													<Badge className={levelColors[error.level]}>{error.level}</Badge>
-												</TableCell>
-												<TableCell className="max-w-[300px] truncate">{error.message}</TableCell>
-												<TableCell>{error.source}</TableCell>
-												<TableCell>
-													<Badge variant={error.resolved ? "default" : "destructive"}>
-														{error.resolved ? "Resolved" : "Open"}
-													</Badge>
-												</TableCell>
-												<TableCell>{format(new Date(error.timestamp), "PPp")}</TableCell>
-											</TableRow>
-										))}
-									</TableBody>
-								</Table>
-							)}
-						</CardContent>
-					</Card>
-				</TabsContent>
+	if (isLoading) return <Skeleton className="h-[300px]" />;
 
-				<TabsContent value="payments" className="mt-4">
-					<Card>
-						<CardHeader>
-							<CardTitle>Payment Failures</CardTitle>
-							<CardDescription>Failed payment transactions</CardDescription>
-						</CardHeader>
-						<CardContent>
-							{paymentsLoading ? (
-								<Skeleton className="h-[300px]" />
-							) : (
-								<Table>
-									<TableHeader>
-										<TableRow>
-											<TableHead>Transaction ID</TableHead>
-											<TableHead>User</TableHead>
-											<TableHead>Amount</TableHead>
-											<TableHead>Error</TableHead>
-											<TableHead>Retries</TableHead>
-											<TableHead>Timestamp</TableHead>
-										</TableRow>
-									</TableHeader>
-									<TableBody>
-										{paymentsData?.failures.map((failure) => (
-											<TableRow key={failure.id}>
-												<TableCell className="font-mono text-xs">{failure.transactionId.slice(0, 16)}...</TableCell>
-												<TableCell>{failure.userName}</TableCell>
-												<TableCell>€{failure.amount.toFixed(2)}</TableCell>
-												<TableCell>
-													<Badge variant="destructive">{failure.errorCode}</Badge>
-												</TableCell>
-												<TableCell>{failure.retryCount}</TableCell>
-												<TableCell>{format(new Date(failure.timestamp), "PPp")}</TableCell>
-											</TableRow>
-										))}
-									</TableBody>
-								</Table>
-							)}
-						</CardContent>
-					</Card>
-				</TabsContent>
+	return (
+		<div className="flex-1 min-h-0 flex flex-col">
+			<div className="shrink-0 flex justify-end mb-4">
+				<Select
+					value={levelFilter}
+					onValueChange={(v) => {
+						setLevelFilter(v);
+						setPage(1);
+					}}
+				>
+					<SelectTrigger className="w-32">
+						<SelectValue placeholder="All Levels" />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value="all">All Levels</SelectItem>
+						<SelectItem value="warning">Warning</SelectItem>
+						<SelectItem value="error">Error</SelectItem>
+						<SelectItem value="critical">Critical</SelectItem>
+					</SelectContent>
+				</Select>
+			</div>
+			<div className="flex-1 min-h-0 overflow-auto">
+				<Table>
+					<TableHeader className="sticky top-0 bg-card z-10">
+						<TableRow>
+							<TableHead>Level</TableHead>
+							<TableHead>Message</TableHead>
+							<TableHead>Source</TableHead>
+							<TableHead>Status</TableHead>
+							<TableHead>Timestamp</TableHead>
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{data?.errors.map((error) => (
+							<TableRow key={error.id}>
+								<TableCell>
+									<Badge className={levelColors[error.level]}>{error.level}</Badge>
+								</TableCell>
+								<TableCell className="max-w-[300px] truncate">{error.message}</TableCell>
+								<TableCell>{error.source}</TableCell>
+								<TableCell>
+									<Badge variant={error.resolved ? "default" : "destructive"}>
+										{error.resolved ? "Resolved" : "Open"}
+									</Badge>
+								</TableCell>
+								<TableCell>{format(new Date(error.timestamp), "PPp")}</TableCell>
+							</TableRow>
+						))}
+					</TableBody>
+				</Table>
+			</div>
+			{data?.pagination && data.pagination.total > pageSize && (
+				<div className="shrink-0 flex justify-center py-3 border-t">
+					<Pagination
+						current={page}
+						total={data.pagination.total}
+						pageSize={pageSize}
+						onChange={setPage}
+						showSizeChanger={false}
+						showTotal={(total) => `Total ${total} errors`}
+					/>
+				</div>
+			)}
+		</div>
+	);
+}
 
-				<TabsContent value="api" className="mt-4">
-					<Card>
-						<CardHeader>
-							<CardTitle>API Errors</CardTitle>
-							<CardDescription>Failed API requests</CardDescription>
-						</CardHeader>
-						<CardContent>
-							{apiLoading ? (
-								<Skeleton className="h-[300px]" />
-							) : (
-								<Table>
-									<TableHeader>
-										<TableRow>
-											<TableHead>Endpoint</TableHead>
-											<TableHead>Status</TableHead>
-											<TableHead>Error</TableHead>
-											<TableHead>Response Time</TableHead>
-											<TableHead>Timestamp</TableHead>
-										</TableRow>
-									</TableHeader>
-									<TableBody>
-										{apiData?.errors.map((error) => (
-											<TableRow key={error.id}>
-												<TableCell className="font-mono text-xs">{error.endpoint}</TableCell>
-												<TableCell>
-													<Badge variant="destructive">{error.statusCode}</Badge>
-												</TableCell>
-												<TableCell className="max-w-[200px] truncate">{error.errorMessage}</TableCell>
-												<TableCell>{error.responseTime}ms</TableCell>
-												<TableCell>{format(new Date(error.timestamp), "PPp")}</TableCell>
-											</TableRow>
-										))}
-									</TableBody>
-								</Table>
-							)}
-						</CardContent>
-					</Card>
-				</TabsContent>
-			</Tabs>
+function PaymentFailuresTab() {
+	const [page, setPage] = useState(1);
+	const pageSize = 10;
+
+	const { data, isLoading } = useQuery({
+		queryKey: ["logs-payments", page],
+		queryFn: () => logsService.getPaymentFailures({ page, limit: pageSize }),
+	});
+
+	if (isLoading) return <Skeleton className="h-[300px]" />;
+
+	return (
+		<div className="flex-1 min-h-0 flex flex-col">
+			<div className="flex-1 min-h-0 overflow-auto">
+				<Table>
+					<TableHeader className="sticky top-0 bg-card z-10">
+						<TableRow>
+							<TableHead>Transaction ID</TableHead>
+							<TableHead>User</TableHead>
+							<TableHead>Amount</TableHead>
+							<TableHead>Error</TableHead>
+							<TableHead>Retries</TableHead>
+							<TableHead>Timestamp</TableHead>
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{data?.failures.map((failure) => (
+							<TableRow key={failure.id}>
+								<TableCell className="font-mono text-xs">{failure.transactionId.slice(0, 16)}...</TableCell>
+								<TableCell>{failure.userName}</TableCell>
+								<TableCell>EUR{failure.amount.toFixed(2)}</TableCell>
+								<TableCell>
+									<Badge variant="destructive">{failure.errorCode}</Badge>
+								</TableCell>
+								<TableCell>{failure.retryCount}</TableCell>
+								<TableCell>{format(new Date(failure.timestamp), "PPp")}</TableCell>
+							</TableRow>
+						))}
+					</TableBody>
+				</Table>
+			</div>
+			{data?.pagination && data.pagination.total > pageSize && (
+				<div className="shrink-0 flex justify-center py-3 border-t">
+					<Pagination
+						current={page}
+						total={data.pagination.total}
+						pageSize={pageSize}
+						onChange={setPage}
+						showSizeChanger={false}
+						showTotal={(total) => `Total ${total} failures`}
+					/>
+				</div>
+			)}
+		</div>
+	);
+}
+
+function ApiErrorsTab() {
+	const [page, setPage] = useState(1);
+	const pageSize = 10;
+
+	const { data, isLoading } = useQuery({
+		queryKey: ["logs-api", page],
+		queryFn: () => logsService.getApiErrors({ page, limit: pageSize }),
+	});
+
+	if (isLoading) return <Skeleton className="h-[300px]" />;
+
+	return (
+		<div className="flex-1 min-h-0 flex flex-col">
+			<div className="flex-1 min-h-0 overflow-auto">
+				<Table>
+					<TableHeader className="sticky top-0 bg-card z-10">
+						<TableRow>
+							<TableHead>Endpoint</TableHead>
+							<TableHead>Status</TableHead>
+							<TableHead>Error</TableHead>
+							<TableHead>Response Time</TableHead>
+							<TableHead>Timestamp</TableHead>
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{data?.errors.map((error) => (
+							<TableRow key={error.id}>
+								<TableCell className="font-mono text-xs">{error.endpoint}</TableCell>
+								<TableCell>
+									<Badge variant="destructive">{error.statusCode}</Badge>
+								</TableCell>
+								<TableCell className="max-w-[200px] truncate">{error.errorMessage}</TableCell>
+								<TableCell>{error.responseTime}ms</TableCell>
+								<TableCell>{format(new Date(error.timestamp), "PPp")}</TableCell>
+							</TableRow>
+						))}
+					</TableBody>
+				</Table>
+			</div>
+			{data?.pagination && data.pagination.total > pageSize && (
+				<div className="shrink-0 flex justify-center py-3 border-t">
+					<Pagination
+						current={page}
+						total={data.pagination.total}
+						pageSize={pageSize}
+						onChange={setPage}
+						showSizeChanger={false}
+						showTotal={(total) => `Total ${total} errors`}
+					/>
+				</div>
+			)}
+		</div>
+	);
+}
+
+export default function SystemLogsPage() {
+	const [activeTab, setActiveTab] = useState("activity");
+
+	const tabItems = [
+		{ key: "activity", label: "Activity Log", children: <ActivityTab /> },
+		{ key: "errors", label: "System Errors", children: <ErrorsTab /> },
+		{ key: "payments", label: "Payment Failures", children: <PaymentFailuresTab /> },
+		{ key: "api", label: "API Errors", children: <ApiErrorsTab /> },
+	];
+
+	return (
+		<div className="h-full flex flex-col overflow-hidden">
+			<Card className="flex-1 min-h-0 flex flex-col">
+				<CardContent className="pt-6 flex-1 min-h-0 flex flex-col">
+					<Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} className="ant-tabs-flex-fill" />
+				</CardContent>
+			</Card>
 		</div>
 	);
 }

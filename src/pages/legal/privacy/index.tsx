@@ -56,15 +56,12 @@ export default function PrivacyPolicyPage() {
 	}
 
 	return (
-		<div className="space-y-6">
-			<div className="flex items-center justify-between">
-				<div>
-					<h1 className="text-2xl font-bold">Privacy Policy</h1>
-					<p className="text-muted-foreground">
-						Current version: {currentVersion?.version} • Last published:{" "}
-						{currentVersion?.publishedAt ? format(new Date(currentVersion.publishedAt), "PPp") : "Never"}
-					</p>
-				</div>
+		<div className="h-full flex flex-col overflow-auto space-y-6">
+			<div className="shrink-0 flex items-center justify-between">
+				<p className="text-sm text-muted-foreground">
+					Version: {currentVersion?.version} • Last published:{" "}
+					{currentVersion?.publishedAt ? format(new Date(currentVersion.publishedAt), "PPp") : "Never"}
+				</p>
 				<div className="flex gap-2">
 					<Button
 						variant="outline"

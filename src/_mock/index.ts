@@ -1,5 +1,4 @@
 import { setupWorker } from "msw/browser";
-import { analyticsHandlers } from "./handlers/_analytics";
 import { bookingHandlers } from "./handlers/_bookings";
 import { carsHandlers } from "./handlers/_cars";
 import { customerHandlers } from "./handlers/_customers";
@@ -17,7 +16,6 @@ import { financeHandlers } from "./handlers/_finance";
 import { legalHandlers } from "./handlers/_legal";
 import { logsHandlers } from "./handlers/_logs";
 import { menuList } from "./handlers/_menu";
-import { notificationHandlers } from "./handlers/_notifications";
 import { partnerAuthHandlers } from "./handlers/_partner-auth";
 import { partnerDriversHandlers } from "./handlers/_partner-drivers";
 import { partnerEarningsHandlers } from "./handlers/_partner-earnings";
@@ -32,7 +30,6 @@ import { productOrderHandlers } from "./handlers/_product-orders";
 import { productHandlers } from "./handlers/_products";
 import { settingsHandlers } from "./handlers/_settings";
 import { slotBookingHandlers } from "./handlers/_slot-bookings";
-import { supportHandlers } from "./handlers/_support";
 import { signIn, userList } from "./handlers/_user";
 
 const handlers = [
@@ -52,11 +49,8 @@ const handlers = [
 	...slotBookingHandlers, // Must be before bookingHandlers to match /api/bookings/slots before /api/bookings/:id
 	...bookingHandlers,
 	...financeHandlers,
-	...notificationHandlers,
-	...analyticsHandlers,
 	...settingsHandlers,
 	...legalHandlers,
-	...supportHandlers,
 	...logsHandlers,
 	...partnerAuthHandlers,
 	...partnerServicesHandlers,

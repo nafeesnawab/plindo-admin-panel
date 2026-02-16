@@ -61,14 +61,11 @@ export default function AboutUsPage() {
 	}
 
 	return (
-		<div className="space-y-6">
-			<div className="flex items-center justify-between">
-				<div>
-					<h1 className="text-2xl font-bold">About Us</h1>
-					<p className="text-muted-foreground">
-						Last updated: {data?.updatedAt ? format(new Date(data.updatedAt), "PPp") : "Never"}
-					</p>
-				</div>
+		<div className="h-full flex flex-col overflow-auto space-y-6">
+			<div className="shrink-0 flex items-center justify-between">
+				<p className="text-sm text-muted-foreground">
+					Last updated: {data?.updatedAt ? format(new Date(data.updatedAt), "PPp") : "Never"}
+				</p>
 				<Button onClick={() => updateMutation.mutate()} disabled={!hasChanges || updateMutation.isPending}>
 					<Save className="h-4 w-4 mr-2" />
 					Save Changes
