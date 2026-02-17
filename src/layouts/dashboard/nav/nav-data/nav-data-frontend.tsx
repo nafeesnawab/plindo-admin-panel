@@ -59,28 +59,6 @@ export const frontendNavData: NavProps["data"] = [
 				title: "Legal Pages",
 				path: "/legal",
 				icon: <Icon icon="solar:document-text-bold-duotone" size="24" />,
-				children: [
-					{
-						title: "Terms & Conditions",
-						path: "/legal/terms",
-					},
-					{
-						title: "Privacy Policy",
-						path: "/legal/privacy",
-					},
-					{
-						title: "Refund Policy",
-						path: "/legal/refund",
-					},
-					{
-						title: "About Us",
-						path: "/legal/about",
-					},
-					{
-						title: "FAQ Management",
-						path: "/legal/faqs",
-					},
-				],
 			},
 			{
 				title: "System Logs",

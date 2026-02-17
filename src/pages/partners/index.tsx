@@ -22,7 +22,7 @@ const cyprusCities = ["All Locations", "Nicosia", "Limassol", "Larnaca", "Paphos
 export default function PartnerManagementPage() {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
-	const [activeTab, setActiveTab] = useState("pending");
+	const [activeTab, setActiveTab] = useState("active");
 
 	const [pendingPage, setPendingPage] = useState(1);
 	const [activePage, setActivePage] = useState(1);
@@ -144,9 +144,9 @@ export default function PartnerManagementPage() {
 				{pendingData?.items.length === 0 ? (
 					<div className="text-center py-8 text-muted-foreground">No pending applications</div>
 				) : (
-					<div className="flex-1 min-h-0 overflow-auto">
+					<>
 						<Table>
-							<TableHeader className="sticky top-0 bg-card z-10">
+							<TableHeader>
 								<TableRow>
 									<TableHead>Business</TableHead>
 									<TableHead>Owner</TableHead>
@@ -156,67 +156,71 @@ export default function PartnerManagementPage() {
 									<TableHead className="text-right">Actions</TableHead>
 								</TableRow>
 							</TableHeader>
-							<TableBody>
-								{pendingData?.items.map((partner) => (
-									<TableRow key={partner.id}>
-										<TableCell>
-											<div className="flex items-center gap-3">
-												<Avatar className="h-10 w-10">
-													<AvatarFallback className="bg-primary/10 text-primary text-xs">
-														{partner.businessName
-															.split(" ")
-															.slice(0, 2)
-															.map((n) => n[0])
-															.join("")}
-													</AvatarFallback>
-												</Avatar>
-												<div>
-													<p className="font-medium">{partner.businessName}</p>
-													<p className="text-xs text-muted-foreground">License: {partner.businessLicense}</p>
-												</div>
-											</div>
-										</TableCell>
-										<TableCell>{partner.ownerName}</TableCell>
-										<TableCell>{partner.location}</TableCell>
-										<TableCell>
-											<div className="text-sm">
-												<p>{partner.email}</p>
-												<p className="text-muted-foreground">{partner.phone}</p>
-											</div>
-										</TableCell>
-										<TableCell>{formatDistanceToNow(new Date(partner.appliedAt), { addSuffix: true })}</TableCell>
-										<TableCell className="text-right">
-											<div className="flex items-center justify-end gap-2">
-												<Button variant="ghost" size="icon" onClick={() => navigate(`/partners/${partner.id}`)}>
-													<Eye className="h-4 w-4" />
-												</Button>
-												<Button
-													variant="ghost"
-													size="icon"
-													className="text-green-600 hover:text-green-700 hover:bg-green-50"
-													onClick={() => approveMutation.mutate(partner.id)}
-													disabled={approveMutation.isPending}
-												>
-													<Check className="h-4 w-4" />
-												</Button>
-												<Button
-													variant="ghost"
-													size="icon"
-													className="text-red-600 hover:text-red-700 hover:bg-red-50"
-													onClick={() => {
-														setSelectedPartner(partner);
-														setShowRejectDialog(true);
-													}}
-												>
-													<X className="h-4 w-4" />
-												</Button>
-											</div>
-										</TableCell>
-									</TableRow>
-								))}
-							</TableBody>
 						</Table>
-					</div>
+						<div className="flex-1 min-h-0 overflow-auto">
+							<Table>
+								<TableBody>
+									{pendingData?.items.map((partner) => (
+										<TableRow key={partner.id}>
+											<TableCell>
+												<div className="flex items-center gap-3">
+													<Avatar className="h-10 w-10">
+														<AvatarFallback className="bg-primary/10 text-primary text-xs">
+															{partner.businessName
+																.split(" ")
+																.slice(0, 2)
+																.map((n) => n[0])
+																.join("")}
+														</AvatarFallback>
+													</Avatar>
+													<div>
+														<p className="font-medium">{partner.businessName}</p>
+														<p className="text-xs text-muted-foreground">License: {partner.businessLicense}</p>
+													</div>
+												</div>
+											</TableCell>
+											<TableCell>{partner.ownerName}</TableCell>
+											<TableCell>{partner.location}</TableCell>
+											<TableCell>
+												<div className="text-sm">
+													<p>{partner.email}</p>
+													<p className="text-muted-foreground">{partner.phone}</p>
+												</div>
+											</TableCell>
+											<TableCell>{formatDistanceToNow(new Date(partner.appliedAt), { addSuffix: true })}</TableCell>
+											<TableCell className="text-right">
+												<div className="flex items-center justify-end gap-2">
+													<Button variant="ghost" size="icon" onClick={() => navigate(`/partners/${partner.id}`)}>
+														<Eye className="h-4 w-4" />
+													</Button>
+													<Button
+														variant="ghost"
+														size="icon"
+														className="text-green-600 hover:text-green-700 hover:bg-green-50"
+														onClick={() => approveMutation.mutate(partner.id)}
+														disabled={approveMutation.isPending}
+													>
+														<Check className="h-4 w-4" />
+													</Button>
+													<Button
+														variant="ghost"
+														size="icon"
+														className="text-red-600 hover:text-red-700 hover:bg-red-50"
+														onClick={() => {
+															setSelectedPartner(partner);
+															setShowRejectDialog(true);
+														}}
+													>
+														<X className="h-4 w-4" />
+													</Button>
+												</div>
+											</TableCell>
+										</TableRow>
+									))}
+								</TableBody>
+							</Table>
+						</div>
+					</>
 				)}
 				{pendingData && pendingData.total > 10 && (
 					<div className="shrink-0 flex justify-center py-3 border-t">
@@ -306,9 +310,9 @@ export default function PartnerManagementPage() {
 				{activeData?.items.length === 0 ? (
 					<div className="text-center py-8 text-muted-foreground">No partners found</div>
 				) : (
-					<div className="flex-1 min-h-0 overflow-auto">
+					<>
 						<Table>
-							<TableHeader className="sticky top-0 bg-card z-10">
+							<TableHeader>
 								<TableRow>
 									<TableHead>Business</TableHead>
 									<TableHead>Location</TableHead>
@@ -318,80 +322,84 @@ export default function PartnerManagementPage() {
 									<TableHead className="text-right">Actions</TableHead>
 								</TableRow>
 							</TableHeader>
-							<TableBody>
-								{activeData?.items.map((partner) => (
-									<TableRow key={partner.id}>
-										<TableCell>
-											<div className="flex items-center gap-3">
-												<Avatar className="h-10 w-10">
-													<AvatarFallback className="bg-primary/10 text-primary text-xs">
-														{partner.businessName
-															.split(" ")
-															.slice(0, 2)
-															.map((n) => n[0])
-															.join("")}
-													</AvatarFallback>
-												</Avatar>
-												<div>
-													<p className="font-medium">{partner.businessName}</p>
-													<p className="text-xs text-muted-foreground">{partner.ownerName}</p>
-												</div>
-											</div>
-										</TableCell>
-										<TableCell>{partner.location}</TableCell>
-										<TableCell>
-											<div className="flex items-center gap-1">
-												<Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-												<span>{partner.rating?.toFixed(1) || "N/A"}</span>
-											</div>
-										</TableCell>
-										<TableCell>{partner.totalBookings.toLocaleString()}</TableCell>
-										<TableCell>
-											{partner.isVerified ? (
-												<Badge variant="secondary" className="bg-green-500/10 text-green-600">
-													<CheckCircle className="h-3 w-3 mr-1" />
-													Verified
-												</Badge>
-											) : (
-												<Badge variant="secondary" className="bg-yellow-500/10 text-yellow-600">
-													Unverified
-												</Badge>
-											)}
-										</TableCell>
-										<TableCell className="text-right">
-											<div className="flex items-center justify-end gap-2">
-												<Button variant="ghost" size="icon" onClick={() => navigate(`/partners/${partner.id}`)}>
-													<Eye className="h-4 w-4" />
-												</Button>
-												<Button
-													variant="ghost"
-													size="icon"
-													className="text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
-													onClick={() => {
-														setSelectedPartner(partner);
-														setShowSuspendDialog(true);
-													}}
-												>
-													<Pause className="h-4 w-4" />
-												</Button>
-												<Button
-													variant="ghost"
-													size="icon"
-													className="text-red-600 hover:text-red-700 hover:bg-red-50"
-													onClick={() => {
-														setSelectedPartner(partner);
-														setShowRemoveDialog(true);
-													}}
-												>
-													<Trash2 className="h-4 w-4" />
-												</Button>
-											</div>
-										</TableCell>
-									</TableRow>
-								))}
-							</TableBody>
 						</Table>
-					</div>
+						<div className="flex-1 min-h-0 overflow-auto">
+							<Table>
+								<TableBody>
+									{activeData?.items.map((partner) => (
+										<TableRow key={partner.id}>
+											<TableCell>
+												<div className="flex items-center gap-3">
+													<Avatar className="h-10 w-10">
+														<AvatarFallback className="bg-primary/10 text-primary text-xs">
+															{partner.businessName
+																.split(" ")
+																.slice(0, 2)
+																.map((n) => n[0])
+																.join("")}
+														</AvatarFallback>
+													</Avatar>
+													<div>
+														<p className="font-medium">{partner.businessName}</p>
+														<p className="text-xs text-muted-foreground">{partner.ownerName}</p>
+													</div>
+												</div>
+											</TableCell>
+											<TableCell>{partner.location}</TableCell>
+											<TableCell>
+												<div className="flex items-center gap-1">
+													<Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+													<span>{partner.rating?.toFixed(1) || "N/A"}</span>
+												</div>
+											</TableCell>
+											<TableCell>{partner.totalBookings.toLocaleString()}</TableCell>
+											<TableCell>
+												{partner.isVerified ? (
+													<Badge variant="secondary" className="bg-green-500/10 text-green-600">
+														<CheckCircle className="h-3 w-3 mr-1" />
+														Verified
+													</Badge>
+												) : (
+													<Badge variant="secondary" className="bg-yellow-500/10 text-yellow-600">
+														Unverified
+													</Badge>
+												)}
+											</TableCell>
+											<TableCell className="text-right">
+												<div className="flex items-center justify-end gap-2">
+													<Button variant="ghost" size="icon" onClick={() => navigate(`/partners/${partner.id}`)}>
+														<Eye className="h-4 w-4" />
+													</Button>
+													<Button
+														variant="ghost"
+														size="icon"
+														className="text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
+														onClick={() => {
+															setSelectedPartner(partner);
+															setShowSuspendDialog(true);
+														}}
+													>
+														<Pause className="h-4 w-4" />
+													</Button>
+													<Button
+														variant="ghost"
+														size="icon"
+														className="text-red-600 hover:text-red-700 hover:bg-red-50"
+														onClick={() => {
+															setSelectedPartner(partner);
+															setShowRemoveDialog(true);
+														}}
+													>
+														<Trash2 className="h-4 w-4" />
+													</Button>
+												</div>
+											</TableCell>
+										</TableRow>
+									))}
+								</TableBody>
+							</Table>
+						</div>
+					</>
 				)}
 				{activeData && activeData.total > 10 && (
 					<div className="shrink-0 flex justify-center py-3 border-t">
@@ -416,9 +424,9 @@ export default function PartnerManagementPage() {
 				{suspendedData?.items.length === 0 ? (
 					<div className="text-center py-8 text-muted-foreground">No suspended partners</div>
 				) : (
-					<div className="flex-1 min-h-0 overflow-auto">
+					<>
 						<Table>
-							<TableHeader className="sticky top-0 bg-card z-10">
+							<TableHeader>
 								<TableRow>
 									<TableHead>Business</TableHead>
 									<TableHead>Location</TableHead>
@@ -427,67 +435,71 @@ export default function PartnerManagementPage() {
 									<TableHead className="text-right">Actions</TableHead>
 								</TableRow>
 							</TableHeader>
-							<TableBody>
-								{suspendedData?.items.map((partner) => (
-									<TableRow key={partner.id}>
-										<TableCell>
-											<div className="flex items-center gap-3">
-												<Avatar className="h-10 w-10">
-													<AvatarFallback className="bg-red-500/10 text-red-600 text-xs">
-														{partner.businessName
-															.split(" ")
-															.slice(0, 2)
-															.map((n) => n[0])
-															.join("")}
-													</AvatarFallback>
-												</Avatar>
-												<div>
-													<p className="font-medium">{partner.businessName}</p>
-													<p className="text-xs text-muted-foreground">{partner.ownerName}</p>
-												</div>
-											</div>
-										</TableCell>
-										<TableCell>{partner.location}</TableCell>
-										<TableCell>
-											<p className="text-sm text-red-600 max-w-[200px] truncate">{partner.suspensionReason}</p>
-										</TableCell>
-										<TableCell>
-											{partner.suspendedAt && formatDistanceToNow(new Date(partner.suspendedAt), { addSuffix: true })}
-										</TableCell>
-										<TableCell className="text-right">
-											<div className="flex items-center justify-end gap-2">
-												<Button variant="ghost" size="icon" onClick={() => navigate(`/partners/${partner.id}`)}>
-													<Eye className="h-4 w-4" />
-												</Button>
-												<Button
-													variant="ghost"
-													size="icon"
-													className="text-green-600 hover:text-green-700 hover:bg-green-50"
-													onClick={() => {
-														setSelectedPartner(partner);
-														setShowReactivateDialog(true);
-													}}
-												>
-													<Play className="h-4 w-4" />
-												</Button>
-												<Button
-													variant="ghost"
-													size="icon"
-													className="text-red-600 hover:text-red-700 hover:bg-red-50"
-													onClick={() => {
-														setSelectedPartner(partner);
-														setShowRemoveDialog(true);
-													}}
-												>
-													<Trash2 className="h-4 w-4" />
-												</Button>
-											</div>
-										</TableCell>
-									</TableRow>
-								))}
-							</TableBody>
 						</Table>
-					</div>
+						<div className="flex-1 min-h-0 overflow-auto">
+							<Table>
+								<TableBody>
+									{suspendedData?.items.map((partner) => (
+										<TableRow key={partner.id}>
+											<TableCell>
+												<div className="flex items-center gap-3">
+													<Avatar className="h-10 w-10">
+														<AvatarFallback className="bg-red-500/10 text-red-600 text-xs">
+															{partner.businessName
+																.split(" ")
+																.slice(0, 2)
+																.map((n) => n[0])
+																.join("")}
+														</AvatarFallback>
+													</Avatar>
+													<div>
+														<p className="font-medium">{partner.businessName}</p>
+														<p className="text-xs text-muted-foreground">{partner.ownerName}</p>
+													</div>
+												</div>
+											</TableCell>
+											<TableCell>{partner.location}</TableCell>
+											<TableCell>
+												<p className="text-sm text-red-600 max-w-[200px] truncate">{partner.suspensionReason}</p>
+											</TableCell>
+											<TableCell>
+												{partner.suspendedAt && formatDistanceToNow(new Date(partner.suspendedAt), { addSuffix: true })}
+											</TableCell>
+											<TableCell className="text-right">
+												<div className="flex items-center justify-end gap-2">
+													<Button variant="ghost" size="icon" onClick={() => navigate(`/partners/${partner.id}`)}>
+														<Eye className="h-4 w-4" />
+													</Button>
+													<Button
+														variant="ghost"
+														size="icon"
+														className="text-green-600 hover:text-green-700 hover:bg-green-50"
+														onClick={() => {
+															setSelectedPartner(partner);
+															setShowReactivateDialog(true);
+														}}
+													>
+														<Play className="h-4 w-4" />
+													</Button>
+													<Button
+														variant="ghost"
+														size="icon"
+														className="text-red-600 hover:text-red-700 hover:bg-red-50"
+														onClick={() => {
+															setSelectedPartner(partner);
+															setShowRemoveDialog(true);
+														}}
+													>
+														<Trash2 className="h-4 w-4" />
+													</Button>
+												</div>
+											</TableCell>
+										</TableRow>
+									))}
+								</TableBody>
+							</Table>
+						</div>
+					</>
 				)}
 				{suspendedData && suspendedData.total > 10 && (
 					<div className="shrink-0 flex justify-center py-3 border-t">
@@ -526,7 +538,7 @@ export default function PartnerManagementPage() {
 	return (
 		<div className="h-full flex flex-col overflow-hidden">
 			<Card className="flex-1 min-h-0 flex flex-col">
-				<CardContent className="pt-6 flex-1 min-h-0 flex flex-col">
+				<CardContent className="pt-4 flex-1 min-h-0 flex flex-col">
 					<Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} className="ant-tabs-flex-fill" />
 				</CardContent>
 			</Card>

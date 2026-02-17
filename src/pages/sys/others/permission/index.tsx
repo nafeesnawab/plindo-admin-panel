@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import { DB_USER } from "@/_mock/assets_backup";
 import { AuthGuard } from "@/components/auth/auth-guard";
 import { useAuthCheck } from "@/components/auth/use-auth";
@@ -7,7 +8,6 @@ import { Button } from "@/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/ui/tabs";
 import { Text } from "@/ui/typography";
-import { Link } from "react-router";
 
 const Component_Auth_1 = `
 <AuthGuard
@@ -130,7 +130,10 @@ export default function PermissionPage() {
 			<Card>
 				<CardHeader>
 					<CardTitle>Page Permission Test</CardTitle>
-					<CardDescription>Click the button below. When you have the required permissions, the page displays normally, otherwise shows 403</CardDescription>
+					<CardDescription>
+						Click the button below. When you have the required permissions, the page displays normally, otherwise shows
+						403
+					</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<Link to="/permission/page-test">
@@ -179,7 +182,8 @@ export default function PermissionPage() {
 								baseOn="permission"
 								fallback={
 									<Text variant="body1" color="error">
-										No <Text variant="code">permission:update</Text> or <Text variant="code">permission:delete</Text> permission
+										No <Text variant="code">permission:update</Text> or <Text variant="code">permission:delete</Text>{" "}
+										permission
 									</Text>
 								}
 							>
@@ -200,7 +204,8 @@ export default function PermissionPage() {
 								baseOn="permission"
 								fallback={
 									<Text variant="body1" color="error">
-										No <Text variant="code">permission:read</Text> and <Text variant="code">permission:create</Text> permission
+										No <Text variant="code">permission:read</Text> and <Text variant="code">permission:create</Text>{" "}
+										permission
 									</Text>
 								}
 							>
@@ -246,7 +251,8 @@ export default function PermissionPage() {
 								<Button variant="secondary">Detail</Button>
 							) : (
 								<Text variant="body1" color="error">
-									No <Text variant="code">permission:update</Text> or <Text variant="code">permission:delete</Text> permission
+									No <Text variant="code">permission:update</Text> or <Text variant="code">permission:delete</Text>{" "}
+									permission
 								</Text>
 							)}
 						</CodeBlock>
@@ -263,7 +269,8 @@ export default function PermissionPage() {
 								<Button variant="secondary">Add</Button>
 							) : (
 								<Text variant="body1" color="error">
-									No <Text variant="code">permission:read</Text> and <Text variant="code">permission:create</Text> permission
+									No <Text variant="code">permission:read</Text> and <Text variant="code">permission:create</Text>{" "}
+									permission
 								</Text>
 							)}
 						</CodeBlock>

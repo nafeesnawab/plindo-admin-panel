@@ -1,18 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-
+import { ArrowUp, Calendar, TrendingUp, User, UserPlus, Users } from "lucide-react";
 import analyticsService from "@/api/services/analyticsService";
 import { Chart } from "@/components/chart";
 import { Badge } from "@/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 import { Skeleton } from "@/ui/skeleton";
-import {
-	ArrowUp,
-	Calendar,
-	TrendingUp,
-	User,
-	UserPlus,
-	Users,
-} from "lucide-react";
 
 export default function UserAnalyticsPage() {
 	const { data, isLoading } = useQuery({

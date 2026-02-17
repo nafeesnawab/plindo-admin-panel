@@ -1,6 +1,6 @@
-import { ResultStatus } from "@/types/enum";
 import { faker } from "@faker-js/faker";
-import { http, HttpResponse } from "msw";
+import { HttpResponse, http } from "msw";
+import { ResultStatus } from "@/types/enum";
 
 export enum PartnerApi {
 	List = "/partners",
@@ -26,7 +26,18 @@ const carWashServices = [
 ] as const;
 
 // Car wash business name prefixes/suffixes
-const businessPrefixes = ["Crystal", "Sparkle", "Diamond", "Premium", "Express", "Pro", "Elite", "Golden", "Quick", "Super"];
+const businessPrefixes = [
+	"Crystal",
+	"Sparkle",
+	"Diamond",
+	"Premium",
+	"Express",
+	"Pro",
+	"Elite",
+	"Golden",
+	"Quick",
+	"Super",
+];
 const businessSuffixes = ["Car Wash", "Auto Spa", "Detailing", "Car Care", "Auto Clean", "Wash & Go"];
 
 const generateBusinessName = () => {
@@ -58,13 +69,16 @@ const generatePartner = (status: "pending" | "active" | "suspended") => {
 		createdAt: faker.date.past({ years: 2 }).toISOString(),
 		appliedAt: faker.date.recent({ days: 30 }).toISOString(),
 		suspendedAt: status === "suspended" ? faker.date.recent({ days: 14 }).toISOString() : null,
-		suspensionReason: status === "suspended" ? faker.helpers.arrayElement([
-			"Multiple customer complaints",
-			"Violation of service standards",
-			"Fraudulent activity reported",
-			"License verification failed",
-			"Repeated cancellations",
-		]) : null,
+		suspensionReason:
+			status === "suspended"
+				? faker.helpers.arrayElement([
+						"Multiple customer complaints",
+						"Violation of service standards",
+						"Fraudulent activity reported",
+						"License verification failed",
+						"Repeated cancellations",
+					])
+				: null,
 		workingHours: {
 			monday: { open: "08:00", close: "18:00" },
 			tuesday: { open: "08:00", close: "18:00" },
@@ -75,7 +89,7 @@ const generatePartner = (status: "pending" | "active" | "suspended") => {
 			sunday: { open: "10:00", close: "14:00" },
 		},
 		photos: Array.from({ length: faker.number.int({ min: 2, max: 5 }) }).map(() =>
-			faker.image.urlLoremFlickr({ category: "car" })
+			faker.image.urlLoremFlickr({ category: "car" }),
 		),
 		documents: [
 			{ name: "Business License", url: "#", verified: faker.datatype.boolean() },
@@ -125,9 +139,7 @@ export const getActivePartners = http.get(`/api${PartnerApi.Active}`, ({ request
 	if (search) {
 		const searchLower = search.toLowerCase();
 		filtered = filtered.filter(
-			(p) =>
-				p.businessName.toLowerCase().includes(searchLower) ||
-				p.ownerName.toLowerCase().includes(searchLower)
+			(p) => p.businessName.toLowerCase().includes(searchLower) || p.ownerName.toLowerCase().includes(searchLower),
 		);
 	}
 
@@ -187,10 +199,7 @@ export const getPartnerDetails = http.get(`/api/partners/:id`, ({ params }) => {
 	const partner = allPartners.find((p) => p.id === id);
 
 	if (!partner) {
-		return HttpResponse.json(
-			{ status: ResultStatus.ERROR, message: "Partner not found" },
-			{ status: 404 }
-		);
+		return HttpResponse.json({ status: ResultStatus.ERROR, message: "Partner not found" }, { status: 404 });
 	}
 
 	// Add additional details for the partner details page
@@ -202,15 +211,17 @@ export const getPartnerDetails = http.get(`/api/partners/:id`, ({ params }) => {
 		createdAt: faker.date.recent({ days: 60 }).toISOString(),
 	}));
 
-	const earningsHistory = Array.from({ length: 6 }).map((_, i) => {
-		const date = new Date();
-		date.setMonth(date.getMonth() - i);
-		return {
-			month: date.toLocaleString("default", { month: "short", year: "numeric" }),
-			earnings: faker.number.float({ min: 2000, max: 8000, fractionDigits: 2 }),
-			bookings: faker.number.int({ min: 100, max: 400 }),
-		};
-	}).reverse();
+	const earningsHistory = Array.from({ length: 6 })
+		.map((_, i) => {
+			const date = new Date();
+			date.setMonth(date.getMonth() - i);
+			return {
+				month: date.toLocaleString("default", { month: "short", year: "numeric" }),
+				earnings: faker.number.float({ min: 2000, max: 8000, fractionDigits: 2 }),
+				bookings: faker.number.int({ min: 100, max: 400 }),
+			};
+		})
+		.reverse();
 
 	return HttpResponse.json({
 		status: ResultStatus.SUCCESS,
@@ -218,6 +229,8 @@ export const getPartnerDetails = http.get(`/api/partners/:id`, ({ params }) => {
 			...partner,
 			reviews,
 			earningsHistory,
+			carWashBays: faker.number.int({ min: 2, max: 6 }),
+			detailingBays: faker.number.int({ min: 1, max: 4 }),
 		},
 	});
 });

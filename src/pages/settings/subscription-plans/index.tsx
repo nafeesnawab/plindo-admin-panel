@@ -1,6 +1,8 @@
-import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-
+import { format } from "date-fns";
+import { Crown, Save, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import settingsService, { type SubscriptionPlan } from "@/api/services/settingsService";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
@@ -10,9 +12,6 @@ import { Label } from "@/ui/label";
 import { Skeleton } from "@/ui/skeleton";
 import { Switch } from "@/ui/switch";
 import { Textarea } from "@/ui/textarea";
-import { format } from "date-fns";
-import { Crown, Save, Sparkles } from "lucide-react";
-import { toast } from "sonner";
 
 export default function SubscriptionPlansPage() {
 	const queryClient = useQueryClient();
@@ -32,10 +31,11 @@ export default function SubscriptionPlansPage() {
 	}, [data]);
 
 	const updateMutation = useMutation({
-		mutationFn: () => settingsService.updateSubscriptionPlans({
-			basic: basicPlan!,
-			premium: premiumPlan!,
-		}),
+		mutationFn: () =>
+			settingsService.updateSubscriptionPlans({
+				basic: basicPlan!,
+				premium: premiumPlan!,
+			}),
 		onSuccess: () => {
 			toast.success("Subscription plans updated");
 			queryClient.invalidateQueries({ queryKey: ["settings-subscription-plans"] });
@@ -45,10 +45,12 @@ export default function SubscriptionPlansPage() {
 		},
 	});
 
-	const hasChanges = data && basicPlan && premiumPlan && (
-		JSON.stringify(basicPlan) !== JSON.stringify(data.basic) ||
-		JSON.stringify(premiumPlan) !== JSON.stringify(data.premium)
-	);
+	const hasChanges =
+		data &&
+		basicPlan &&
+		premiumPlan &&
+		(JSON.stringify(basicPlan) !== JSON.stringify(data.basic) ||
+			JSON.stringify(premiumPlan) !== JSON.stringify(data.premium));
 
 	if (isLoading || !basicPlan || !premiumPlan) {
 		return (
@@ -69,10 +71,7 @@ export default function SubscriptionPlansPage() {
 					<h1 className="text-2xl font-bold">Subscription Plans</h1>
 					<p className="text-muted-foreground">Manage subscription plan pricing and features</p>
 				</div>
-				<Button
-					onClick={() => updateMutation.mutate()}
-					disabled={!hasChanges || updateMutation.isPending}
-				>
+				<Button onClick={() => updateMutation.mutate()} disabled={!hasChanges || updateMutation.isPending}>
 					<Save className="h-4 w-4 mr-2" />
 					Save Changes
 				</Button>
@@ -124,15 +123,20 @@ export default function SubscriptionPlansPage() {
 							<Textarea
 								rows={4}
 								value={basicPlan.features.join("\n")}
-								onChange={(e) => setBasicPlan({ 
-									...basicPlan, 
-									features: e.target.value.split("\n").filter(Boolean) 
-								})}
+								onChange={(e) =>
+									setBasicPlan({
+										...basicPlan,
+										features: e.target.value.split("\n").filter(Boolean),
+									})
+								}
 							/>
 						</div>
 						<div className="p-4 bg-blue-500/10 rounded-lg">
 							<p className="text-sm font-medium text-blue-600">Preview</p>
-							<p className="text-2xl font-bold">€{basicPlan.price}<span className="text-sm font-normal">/month</span></p>
+							<p className="text-2xl font-bold">
+								€{basicPlan.price}
+								<span className="text-sm font-normal">/month</span>
+							</p>
 							<p className="text-sm text-muted-foreground">{basicPlan.washesIncluded} washes included</p>
 						</div>
 					</CardContent>
@@ -183,15 +187,20 @@ export default function SubscriptionPlansPage() {
 							<Textarea
 								rows={4}
 								value={premiumPlan.features.join("\n")}
-								onChange={(e) => setPremiumPlan({ 
-									...premiumPlan, 
-									features: e.target.value.split("\n").filter(Boolean) 
-								})}
+								onChange={(e) =>
+									setPremiumPlan({
+										...premiumPlan,
+										features: e.target.value.split("\n").filter(Boolean),
+									})
+								}
 							/>
 						</div>
 						<div className="p-4 bg-amber-500/10 rounded-lg">
 							<p className="text-sm font-medium text-amber-600">Preview</p>
-							<p className="text-2xl font-bold">€{premiumPlan.price}<span className="text-sm font-normal">/month</span></p>
+							<p className="text-2xl font-bold">
+								€{premiumPlan.price}
+								<span className="text-sm font-normal">/month</span>
+							</p>
 							<p className="text-sm text-muted-foreground">{premiumPlan.washesIncluded} washes included</p>
 						</div>
 					</CardContent>
@@ -199,9 +208,7 @@ export default function SubscriptionPlansPage() {
 			</div>
 
 			{data?.updatedAt && (
-				<p className="text-sm text-muted-foreground">
-					Last updated: {format(new Date(data.updatedAt), "PPpp")}
-				</p>
+				<p className="text-sm text-muted-foreground">Last updated: {format(new Date(data.updatedAt), "PPpp")}</p>
 			)}
 		</div>
 	);

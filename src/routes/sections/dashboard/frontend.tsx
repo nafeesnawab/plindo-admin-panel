@@ -40,18 +40,8 @@ export function getFrontendDashboardRoutes(): RouteObject[] {
 		// Platform Settings (single merged page)
 		{ path: "settings", element: Component("/pages/settings") },
 
-		// Legal Pages
-		{
-			path: "legal",
-			children: [
-				{ index: true, element: <Navigate to="terms" replace /> },
-				{ path: "terms", element: Component("/pages/legal/terms") },
-				{ path: "privacy", element: Component("/pages/legal/privacy") },
-				{ path: "refund", element: Component("/pages/legal/refund") },
-				{ path: "about", element: Component("/pages/legal/about") },
-				{ path: "faqs", element: Component("/pages/legal/faqs") },
-			],
-		},
+		// Legal Pages (consolidated into single page with tabs)
+		{ path: "legal", element: Component("/pages/legal") },
 
 		// Cars Management
 		{

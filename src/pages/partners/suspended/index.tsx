@@ -1,32 +1,17 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { formatDistanceToNow } from "date-fns";
+import { Eye, Play, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
-
+import { toast } from "sonner";
 import partnerService, { type Partner } from "@/api/services/partnerService";
 import { Avatar, AvatarFallback } from "@/ui/avatar";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/ui/dialog";
 import { Skeleton } from "@/ui/skeleton";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/ui/table";
-import { formatDistanceToNow } from "date-fns";
-import { Eye, Play, Trash2 } from "lucide-react";
-import { toast } from "sonner";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 
 export default function SuspendedPartners() {
 	const navigate = useNavigate();
@@ -120,9 +105,7 @@ export default function SuspendedPartners() {
 				</CardHeader>
 				<CardContent>
 					{data?.items.length === 0 ? (
-						<div className="text-center py-8 text-muted-foreground">
-							No suspended partners
-						</div>
+						<div className="text-center py-8 text-muted-foreground">No suspended partners</div>
 					) : (
 						<Table>
 							<TableHeader>
@@ -141,7 +124,11 @@ export default function SuspendedPartners() {
 											<div className="flex items-center gap-3">
 												<Avatar className="h-10 w-10">
 													<AvatarFallback className="bg-red-500/10 text-red-600 text-xs">
-														{partner.businessName.split(" ").slice(0, 2).map((n) => n[0]).join("")}
+														{partner.businessName
+															.split(" ")
+															.slice(0, 2)
+															.map((n) => n[0])
+															.join("")}
 													</AvatarFallback>
 												</Avatar>
 												<div>
@@ -152,20 +139,14 @@ export default function SuspendedPartners() {
 										</TableCell>
 										<TableCell>{partner.location}</TableCell>
 										<TableCell>
-											<p className="text-sm text-red-600 max-w-[200px] truncate">
-												{partner.suspensionReason}
-											</p>
+											<p className="text-sm text-red-600 max-w-[200px] truncate">{partner.suspensionReason}</p>
 										</TableCell>
 										<TableCell>
 											{partner.suspendedAt && formatDistanceToNow(new Date(partner.suspendedAt), { addSuffix: true })}
 										</TableCell>
 										<TableCell className="text-right">
 											<div className="flex items-center justify-end gap-2">
-												<Button
-													variant="ghost"
-													size="icon"
-													onClick={() => navigate(`/partners/${partner.id}`)}
-												>
+												<Button variant="ghost" size="icon" onClick={() => navigate(`/partners/${partner.id}`)}>
 													<Eye className="h-4 w-4" />
 												</Button>
 												<Button
@@ -223,17 +204,15 @@ export default function SuspendedPartners() {
 					<DialogHeader>
 						<DialogTitle>Reactivate Partner</DialogTitle>
 						<DialogDescription>
-							Are you sure you want to reactivate {selectedPartner?.businessName}? They will be moved back to active partners.
+							Are you sure you want to reactivate {selectedPartner?.businessName}? They will be moved back to active
+							partners.
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>
 						<Button variant="outline" onClick={() => setShowReactivateDialog(false)}>
 							Cancel
 						</Button>
-						<Button
-							onClick={handleReactivate}
-							disabled={reactivateMutation.isPending}
-						>
+						<Button onClick={handleReactivate} disabled={reactivateMutation.isPending}>
 							Reactivate
 						</Button>
 					</DialogFooter>
@@ -252,11 +231,7 @@ export default function SuspendedPartners() {
 						<Button variant="outline" onClick={() => setShowRemoveDialog(false)}>
 							Cancel
 						</Button>
-						<Button
-							variant="destructive"
-							onClick={handleRemove}
-							disabled={removeMutation.isPending}
-						>
+						<Button variant="destructive" onClick={handleRemove} disabled={removeMutation.isPending}>
 							Remove Permanently
 						</Button>
 					</DialogFooter>

@@ -1,43 +1,55 @@
-import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-
+import { format } from "date-fns";
+import { Bell, Calendar, CreditCard, Edit, Megaphone, Save, Settings, XCircle } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import settingsService, { type NotificationTemplate, type NotificationTypes } from "@/api/services/settingsService";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card";
-import {
-	Dialog,
-	DialogContent,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/ui/dialog";
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
 import { Skeleton } from "@/ui/skeleton";
 import { Switch } from "@/ui/switch";
 import { Textarea } from "@/ui/textarea";
-import { format } from "date-fns";
-import {
-	Bell,
-	Calendar,
-	CreditCard,
-	Edit,
-	Megaphone,
-	Save,
-	Settings,
-	XCircle,
-} from "lucide-react";
-import { toast } from "sonner";
 
 const notificationTypeLabels: Record<string, { label: string; icon: React.ReactNode; description: string }> = {
-	bookingConfirmation: { label: "Booking Confirmation", icon: <Calendar className="h-4 w-4" />, description: "Sent when a booking is confirmed" },
-	bookingReminder: { label: "Booking Reminder", icon: <Bell className="h-4 w-4" />, description: "Sent 24 hours before appointment" },
-	bookingCancellation: { label: "Booking Cancellation", icon: <XCircle className="h-4 w-4" />, description: "Sent when a booking is cancelled" },
-	paymentSuccess: { label: "Payment Success", icon: <CreditCard className="h-4 w-4" />, description: "Sent when payment is successful" },
-	paymentFailed: { label: "Payment Failed", icon: <CreditCard className="h-4 w-4" />, description: "Sent when payment fails" },
-	promotions: { label: "Promotions", icon: <Megaphone className="h-4 w-4" />, description: "Marketing and promotional messages" },
-	systemUpdates: { label: "System Updates", icon: <Settings className="h-4 w-4" />, description: "Platform updates and announcements" },
+	bookingConfirmation: {
+		label: "Booking Confirmation",
+		icon: <Calendar className="h-4 w-4" />,
+		description: "Sent when a booking is confirmed",
+	},
+	bookingReminder: {
+		label: "Booking Reminder",
+		icon: <Bell className="h-4 w-4" />,
+		description: "Sent 24 hours before appointment",
+	},
+	bookingCancellation: {
+		label: "Booking Cancellation",
+		icon: <XCircle className="h-4 w-4" />,
+		description: "Sent when a booking is cancelled",
+	},
+	paymentSuccess: {
+		label: "Payment Success",
+		icon: <CreditCard className="h-4 w-4" />,
+		description: "Sent when payment is successful",
+	},
+	paymentFailed: {
+		label: "Payment Failed",
+		icon: <CreditCard className="h-4 w-4" />,
+		description: "Sent when payment fails",
+	},
+	promotions: {
+		label: "Promotions",
+		icon: <Megaphone className="h-4 w-4" />,
+		description: "Marketing and promotional messages",
+	},
+	systemUpdates: {
+		label: "System Updates",
+		icon: <Settings className="h-4 w-4" />,
+		description: "Platform updates and announcements",
+	},
 };
 
 export default function NotificationSettingsPage() {
@@ -83,10 +95,11 @@ export default function NotificationSettingsPage() {
 	});
 
 	const updateTemplateMutation = useMutation({
-		mutationFn: () => settingsService.updateNotificationTemplate(editingTemplate!.id, {
-			subject: templateSubject,
-			body: templateBody,
-		}),
+		mutationFn: () =>
+			settingsService.updateNotificationTemplate(editingTemplate!.id, {
+				subject: templateSubject,
+				body: templateBody,
+			}),
 		onSuccess: () => {
 			toast.success("Template updated");
 			queryClient.invalidateQueries({ queryKey: ["settings-notification-templates"] });
@@ -137,18 +150,14 @@ export default function NotificationSettingsPage() {
 						<Bell className="h-5 w-5 text-blue-600" />
 						Notification Types
 					</CardTitle>
-					<CardDescription>
-						Enable or disable specific notification types
-					</CardDescription>
+					<CardDescription>Enable or disable specific notification types</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 						{Object.entries(notificationTypeLabels).map(([key, { label, icon, description }]) => (
 							<div key={key} className="flex items-center justify-between p-4 border rounded-lg">
 								<div className="flex items-center gap-3">
-									<div className="p-2 rounded-lg bg-muted">
-										{icon}
-									</div>
+									<div className="p-2 rounded-lg bg-muted">{icon}</div>
 									<div>
 										<p className="font-medium">{label}</p>
 										<p className="text-xs text-muted-foreground">{description}</p>
@@ -170,9 +179,7 @@ export default function NotificationSettingsPage() {
 						<Edit className="h-5 w-5 text-green-600" />
 						Notification Templates
 					</CardTitle>
-					<CardDescription>
-						Customize notification message templates
-					</CardDescription>
+					<CardDescription>Customize notification message templates</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<div className="space-y-3">
@@ -212,30 +219,30 @@ export default function NotificationSettingsPage() {
 					<div className="space-y-4">
 						<div className="space-y-2">
 							<Label>Subject</Label>
-							<Input
-								value={templateSubject}
-								onChange={(e) => setTemplateSubject(e.target.value)}
-							/>
+							<Input value={templateSubject} onChange={(e) => setTemplateSubject(e.target.value)} />
 						</div>
 						<div className="space-y-2">
 							<Label>Body</Label>
-							<Textarea
-								rows={5}
-								value={templateBody}
-								onChange={(e) => setTemplateBody(e.target.value)}
-							/>
+							<Textarea rows={5} value={templateBody} onChange={(e) => setTemplateBody(e.target.value)} />
 						</div>
 						<div>
 							<p className="text-sm text-muted-foreground mb-2">Available variables:</p>
 							<div className="flex gap-1 flex-wrap">
 								{editingTemplate?.variables.map((v) => (
-									<Badge key={v} variant="outline" className="text-xs cursor-pointer" onClick={() => setTemplateBody(templateBody + `{{${v}}}`)}>{`{{${v}}}`}</Badge>
+									<Badge
+										key={v}
+										variant="outline"
+										className="text-xs cursor-pointer"
+										onClick={() => setTemplateBody(templateBody + `{{${v}}}`)}
+									>{`{{${v}}}`}</Badge>
 								))}
 							</div>
 						</div>
 					</div>
 					<DialogFooter>
-						<Button variant="outline" onClick={() => setEditingTemplate(null)}>Cancel</Button>
+						<Button variant="outline" onClick={() => setEditingTemplate(null)}>
+							Cancel
+						</Button>
 						<Button onClick={() => updateTemplateMutation.mutate()} disabled={updateTemplateMutation.isPending}>
 							Save Template
 						</Button>

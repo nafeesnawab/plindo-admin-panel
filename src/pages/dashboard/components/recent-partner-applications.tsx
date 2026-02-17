@@ -1,11 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-
+import { formatDistanceToNow } from "date-fns";
 import dashboardService from "@/api/services/dashboardService";
 import { Avatar, AvatarFallback } from "@/ui/avatar";
 import { Badge } from "@/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 import { Skeleton } from "@/ui/skeleton";
-import { formatDistanceToNow } from "date-fns";
 
 const statusColors: Record<string, string> = {
 	pending: "bg-yellow-500/10 text-yellow-500",
@@ -57,7 +56,11 @@ export default function RecentPartnerApplications() {
 					<div key={application.id} className="flex items-center gap-3">
 						<Avatar className="h-10 w-10">
 							<AvatarFallback className="bg-purple-500/10 text-purple-500 text-xs">
-								{application.businessName.split(" ").slice(0, 2).map((n) => n[0]).join("")}
+								{application.businessName
+									.split(" ")
+									.slice(0, 2)
+									.map((n) => n[0])
+									.join("")}
 							</AvatarFallback>
 						</Avatar>
 						<div className="flex-1 min-w-0">

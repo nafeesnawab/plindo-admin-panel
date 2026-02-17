@@ -1,10 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-
+import { formatDistanceToNow } from "date-fns";
 import dashboardService from "@/api/services/dashboardService";
 import { Avatar, AvatarFallback, AvatarImage } from "@/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 import { Skeleton } from "@/ui/skeleton";
-import { formatDistanceToNow } from "date-fns";
 
 export default function RecentUsers() {
 	const { data, isLoading } = useQuery({
@@ -44,7 +43,10 @@ export default function RecentUsers() {
 						<Avatar className="h-10 w-10">
 							<AvatarImage src={user.avatar} alt={user.name} />
 							<AvatarFallback className="bg-blue-500/10 text-blue-500 text-xs">
-								{user.name.split(" ").map((n) => n[0]).join("")}
+								{user.name
+									.split(" ")
+									.map((n) => n[0])
+									.join("")}
 							</AvatarFallback>
 						</Avatar>
 						<div className="flex-1 min-w-0">

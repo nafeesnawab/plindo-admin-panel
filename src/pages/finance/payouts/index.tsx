@@ -1,43 +1,16 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { Check, Clock, DollarSign, Download, Wallet } from "lucide-react";
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-
+import { toast } from "sonner";
 import financeService, { type Payout } from "@/api/services/financeService";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@/ui/dialog";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { Skeleton } from "@/ui/skeleton";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/ui/table";
-import { format } from "date-fns";
-import {
-	Check,
-	Clock,
-	Download,
-	DollarSign,
-	Wallet,
-} from "lucide-react";
-import { toast } from "sonner";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 
 export default function PayoutsPage() {
 	const queryClient = useQueryClient();
@@ -120,7 +93,13 @@ ${payout.paidAt ? `Paid At: ${format(new Date(payout.paidAt), "MMM dd, yyyy HH:m
 		<div className="space-y-6">
 			<div className="flex items-center justify-between">
 				<h1 className="text-2xl font-bold">Partner Payouts</h1>
-				<Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); }}>
+				<Select
+					value={statusFilter}
+					onValueChange={(v) => {
+						setStatusFilter(v);
+						setPage(1);
+					}}
+				>
 					<SelectTrigger className="w-[150px]">
 						<SelectValue placeholder="All Status" />
 					</SelectTrigger>
@@ -196,9 +175,7 @@ ${payout.paidAt ? `Paid At: ${format(new Date(payout.paidAt), "MMM dd, yyyy HH:m
 				</CardHeader>
 				<CardContent>
 					{data?.items.length === 0 ? (
-						<div className="text-center py-8 text-muted-foreground">
-							No payouts found
-						</div>
+						<div className="text-center py-8 text-muted-foreground">No payouts found</div>
 					) : (
 						<Table>
 							<TableHeader>
@@ -224,7 +201,10 @@ ${payout.paidAt ? `Paid At: ${format(new Date(payout.paidAt), "MMM dd, yyyy HH:m
 										</TableCell>
 										<TableCell>
 											<div className="text-sm">
-												<p>{format(new Date(payout.period.start), "MMM dd")} - {format(new Date(payout.period.end), "MMM dd")}</p>
+												<p>
+													{format(new Date(payout.period.start), "MMM dd")} -{" "}
+													{format(new Date(payout.period.end), "MMM dd")}
+												</p>
 											</div>
 										</TableCell>
 										<TableCell className="text-right">{payout.totalBookings}</TableCell>
@@ -241,20 +221,12 @@ ${payout.paidAt ? `Paid At: ${format(new Date(payout.paidAt), "MMM dd, yyyy HH:m
 										<TableCell className="text-right">
 											<div className="flex items-center justify-end gap-2">
 												{payout.status === "pending" && (
-													<Button
-														variant="outline"
-														size="sm"
-														onClick={() => openConfirmDialog(payout)}
-													>
+													<Button variant="outline" size="sm" onClick={() => openConfirmDialog(payout)}>
 														<Check className="h-4 w-4 mr-1" />
 														Mark Paid
 													</Button>
 												)}
-												<Button
-													variant="ghost"
-													size="icon"
-													onClick={() => handleDownloadReport(payout)}
-												>
+												<Button variant="ghost" size="icon" onClick={() => handleDownloadReport(payout)}>
 													<Download className="h-4 w-4" />
 												</Button>
 											</div>
@@ -295,15 +267,19 @@ ${payout.paidAt ? `Paid At: ${format(new Date(payout.paidAt), "MMM dd, yyyy HH:m
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle>Confirm Payout</DialogTitle>
-						<DialogDescription>
-							Are you sure you want to mark this payout as paid?
-						</DialogDescription>
+						<DialogDescription>Are you sure you want to mark this payout as paid?</DialogDescription>
 					</DialogHeader>
 					{selectedPayout && (
 						<div className="space-y-2 py-4">
-							<p><strong>Partner:</strong> {selectedPayout.partner.businessName}</p>
-							<p><strong>Bank Account:</strong> {selectedPayout.partner.bankAccount}</p>
-							<p><strong>Amount:</strong> €{selectedPayout.netPayout.toFixed(2)}</p>
+							<p>
+								<strong>Partner:</strong> {selectedPayout.partner.businessName}
+							</p>
+							<p>
+								<strong>Bank Account:</strong> {selectedPayout.partner.bankAccount}
+							</p>
+							<p>
+								<strong>Amount:</strong> €{selectedPayout.netPayout.toFixed(2)}
+							</p>
 						</div>
 					)}
 					<DialogFooter>

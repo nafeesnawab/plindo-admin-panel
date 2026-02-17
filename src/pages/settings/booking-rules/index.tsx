@@ -1,15 +1,14 @@
-import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-
+import { format } from "date-fns";
+import { Calendar, Clock, Save, XCircle } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import settingsService from "@/api/services/settingsService";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card";
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
 import { Skeleton } from "@/ui/skeleton";
-import { format } from "date-fns";
-import { Clock, Calendar, XCircle, Save } from "lucide-react";
-import { toast } from "sonner";
 
 export default function BookingRulesPage() {
 	const queryClient = useQueryClient();
@@ -31,11 +30,12 @@ export default function BookingRulesPage() {
 	}, [data]);
 
 	const updateMutation = useMutation({
-		mutationFn: () => settingsService.updateBookingRules({
-			minAdvanceBookingHours: minAdvanceHours,
-			maxAdvanceBookingDays: maxAdvanceDays,
-			cancellationWindowHours: cancellationWindow,
-		}),
+		mutationFn: () =>
+			settingsService.updateBookingRules({
+				minAdvanceBookingHours: minAdvanceHours,
+				maxAdvanceBookingDays: maxAdvanceDays,
+				cancellationWindowHours: cancellationWindow,
+			}),
 		onSuccess: () => {
 			toast.success("Booking rules updated");
 			queryClient.invalidateQueries({ queryKey: ["settings-booking-rules"] });
@@ -45,11 +45,11 @@ export default function BookingRulesPage() {
 		},
 	});
 
-	const hasChanges = data && (
-		minAdvanceHours !== data.minAdvanceBookingHours ||
-		maxAdvanceDays !== data.maxAdvanceBookingDays ||
-		cancellationWindow !== data.cancellationWindowHours
-	);
+	const hasChanges =
+		data &&
+		(minAdvanceHours !== data.minAdvanceBookingHours ||
+			maxAdvanceDays !== data.maxAdvanceBookingDays ||
+			cancellationWindow !== data.cancellationWindowHours);
 
 	if (isLoading) {
 		return (
@@ -71,10 +71,7 @@ export default function BookingRulesPage() {
 					<h1 className="text-2xl font-bold">Booking Rules</h1>
 					<p className="text-muted-foreground">Configure booking time restrictions</p>
 				</div>
-				<Button
-					onClick={() => updateMutation.mutate()}
-					disabled={!hasChanges || updateMutation.isPending}
-				>
+				<Button onClick={() => updateMutation.mutate()} disabled={!hasChanges || updateMutation.isPending}>
 					<Save className="h-4 w-4 mr-2" />
 					Save Changes
 				</Button>
@@ -87,9 +84,7 @@ export default function BookingRulesPage() {
 							<Clock className="h-5 w-5 text-blue-600" />
 							Minimum Advance Time
 						</CardTitle>
-						<CardDescription>
-							How far in advance a booking must be made
-						</CardDescription>
+						<CardDescription>How far in advance a booking must be made</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<div className="space-y-2">
@@ -118,9 +113,7 @@ export default function BookingRulesPage() {
 							<Calendar className="h-5 w-5 text-green-600" />
 							Maximum Advance Time
 						</CardTitle>
-						<CardDescription>
-							How far into the future bookings can be made
-						</CardDescription>
+						<CardDescription>How far into the future bookings can be made</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<div className="space-y-2">
@@ -137,9 +130,7 @@ export default function BookingRulesPage() {
 								<span className="text-muted-foreground">days</span>
 							</div>
 						</div>
-						<p className="text-sm text-muted-foreground">
-							Customers can book up to {maxAdvanceDays} days in advance.
-						</p>
+						<p className="text-sm text-muted-foreground">Customers can book up to {maxAdvanceDays} days in advance.</p>
 					</CardContent>
 				</Card>
 
@@ -149,9 +140,7 @@ export default function BookingRulesPage() {
 							<XCircle className="h-5 w-5 text-red-600" />
 							Cancellation Window
 						</CardTitle>
-						<CardDescription>
-							Free cancellation period before appointment
-						</CardDescription>
+						<CardDescription>Free cancellation period before appointment</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<div className="space-y-2">
@@ -200,9 +189,7 @@ export default function BookingRulesPage() {
 			</Card>
 
 			{data?.updatedAt && (
-				<p className="text-sm text-muted-foreground">
-					Last updated: {format(new Date(data.updatedAt), "PPpp")}
-				</p>
+				<p className="text-sm text-muted-foreground">Last updated: {format(new Date(data.updatedAt), "PPpp")}</p>
 			)}
 		</div>
 	);

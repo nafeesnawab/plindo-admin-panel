@@ -1,33 +1,18 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { formatDistanceToNow } from "date-fns";
+import { Check, Eye, X } from "lucide-react";
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
-
+import { toast } from "sonner";
 import partnerService, { type Partner } from "@/api/services/partnerService";
 import { Avatar, AvatarFallback } from "@/ui/avatar";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/ui/dialog";
 import { Skeleton } from "@/ui/skeleton";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 import { Textarea } from "@/ui/textarea";
-import { formatDistanceToNow } from "date-fns";
-import { Check, Eye, X } from "lucide-react";
-import { toast } from "sonner";
 
 export default function PendingApplications() {
 	const navigate = useNavigate();
@@ -55,8 +40,7 @@ export default function PendingApplications() {
 	});
 
 	const rejectMutation = useMutation({
-		mutationFn: ({ id, reason }: { id: string; reason: string }) =>
-			partnerService.rejectPartner(id, reason),
+		mutationFn: ({ id, reason }: { id: string; reason: string }) => partnerService.rejectPartner(id, reason),
 		onSuccess: () => {
 			toast.success("Partner rejected");
 			queryClient.invalidateQueries({ queryKey: ["pending-partners"] });
@@ -114,9 +98,7 @@ export default function PendingApplications() {
 				</CardHeader>
 				<CardContent>
 					{data?.items.length === 0 ? (
-						<div className="text-center py-8 text-muted-foreground">
-							No pending applications
-						</div>
+						<div className="text-center py-8 text-muted-foreground">No pending applications</div>
 					) : (
 						<Table>
 							<TableHeader>
@@ -136,14 +118,16 @@ export default function PendingApplications() {
 											<div className="flex items-center gap-3">
 												<Avatar className="h-10 w-10">
 													<AvatarFallback className="bg-primary/10 text-primary text-xs">
-														{partner.businessName.split(" ").slice(0, 2).map((n) => n[0]).join("")}
+														{partner.businessName
+															.split(" ")
+															.slice(0, 2)
+															.map((n) => n[0])
+															.join("")}
 													</AvatarFallback>
 												</Avatar>
 												<div>
 													<p className="font-medium">{partner.businessName}</p>
-													<p className="text-xs text-muted-foreground">
-														License: {partner.businessLicense}
-													</p>
+													<p className="text-xs text-muted-foreground">License: {partner.businessLicense}</p>
 												</div>
 											</div>
 										</TableCell>
@@ -155,16 +139,10 @@ export default function PendingApplications() {
 												<p className="text-muted-foreground">{partner.phone}</p>
 											</div>
 										</TableCell>
-										<TableCell>
-											{formatDistanceToNow(new Date(partner.appliedAt), { addSuffix: true })}
-										</TableCell>
+										<TableCell>{formatDistanceToNow(new Date(partner.appliedAt), { addSuffix: true })}</TableCell>
 										<TableCell className="text-right">
 											<div className="flex items-center justify-end gap-2">
-												<Button
-													variant="ghost"
-													size="icon"
-													onClick={() => navigate(`/partners/${partner.id}`)}
-												>
+												<Button variant="ghost" size="icon" onClick={() => navigate(`/partners/${partner.id}`)}>
 													<Eye className="h-4 w-4" />
 												</Button>
 												<Button
@@ -236,11 +214,7 @@ export default function PendingApplications() {
 						<Button variant="outline" onClick={() => setShowRejectDialog(false)}>
 							Cancel
 						</Button>
-						<Button
-							variant="destructive"
-							onClick={handleReject}
-							disabled={!rejectReason || rejectMutation.isPending}
-						>
+						<Button variant="destructive" onClick={handleReject} disabled={!rejectReason || rejectMutation.isPending}>
 							Reject
 						</Button>
 					</DialogFooter>

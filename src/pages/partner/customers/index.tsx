@@ -1,18 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import {
-	Car,
-	CreditCard,
-	Mail,
-	MapPin,
-	Phone,
-	Search,
-	Star,
-	User,
-} from "lucide-react";
+import { Car, CreditCard, Mail, MapPin, Phone, Search, Star, User } from "lucide-react";
 import { useState } from "react";
-import customerService from "@/api/services/customerService";
 import type { Customer } from "@/api/services/customerService";
+import customerService from "@/api/services/customerService";
 import { Avatar, AvatarFallback, AvatarImage } from "@/ui/avatar";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
@@ -89,9 +80,7 @@ export default function PartnerCustomersPage() {
 							<Star className="h-5 w-5" />
 						</div>
 						<div>
-							<p className="text-2xl font-bold">
-								{customers.filter((c) => c.subscription.active).length}
-							</p>
+							<p className="text-2xl font-bold">{customers.filter((c) => c.subscription.active).length}</p>
 							<p className="text-sm text-muted-foreground">With Subscriptions</p>
 						</div>
 					</CardContent>
@@ -102,9 +91,7 @@ export default function PartnerCustomersPage() {
 							<Car className="h-5 w-5" />
 						</div>
 						<div>
-							<p className="text-2xl font-bold">
-								{customers.reduce((sum, c) => sum + c.vehicles.length, 0)}
-							</p>
+							<p className="text-2xl font-bold">{customers.reduce((sum, c) => sum + c.vehicles.length, 0)}</p>
 							<p className="text-sm text-muted-foreground">Vehicles Registered</p>
 						</div>
 					</CardContent>
@@ -214,16 +201,21 @@ export default function PartnerCustomersPage() {
 											<TableCell>
 												<Badge
 													className={cn(
-														customer.status === "active"
-															? "bg-green-100 text-green-700"
-															: "bg-red-100 text-red-700",
+														customer.status === "active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700",
 													)}
 												>
 													{customer.status === "active" ? "Active" : "Suspended"}
 												</Badge>
 											</TableCell>
 											<TableCell>
-												<Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); handleViewCustomer(customer); }}>
+												<Button
+													variant="ghost"
+													size="sm"
+													onClick={(e) => {
+														e.stopPropagation();
+														handleViewCustomer(customer);
+													}}
+												>
 													View
 												</Button>
 											</TableCell>
@@ -263,9 +255,7 @@ export default function PartnerCustomersPage() {
 									<DialogTitle>Customer Details</DialogTitle>
 									<Badge
 										className={cn(
-											selectedCustomer.status === "active"
-												? "bg-green-100 text-green-700"
-												: "bg-red-100 text-red-700",
+											selectedCustomer.status === "active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700",
 										)}
 									>
 										{selectedCustomer.status === "active" ? "Active" : "Suspended"}

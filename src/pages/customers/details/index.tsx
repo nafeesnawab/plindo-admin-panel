@@ -1,21 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Pagination } from "antd";
 import { format, formatDistanceToNow } from "date-fns";
-import {
-	ArrowLeft,
-	Bell,
-	Calendar,
-	Car,
-	CreditCard,
-	Crown,
-	Mail,
-	MapPin,
-	Pause,
-	Phone,
-	Play,
-	Star,
-	Trash2,
-	User,
-} from "lucide-react";
+import { ArrowLeft, Calendar, Car, Crown, Mail, MapPin, Pause, Phone, Play, Star, Trash2, User } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
@@ -64,6 +50,8 @@ export default function CustomerDetails() {
 	const [showReactivateDialog, setShowReactivateDialog] = useState(false);
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	const [showNotifyDialog, setShowNotifyDialog] = useState(false);
+	const [bookingPage, setBookingPage] = useState(1);
+	const bookingPageSize = 5;
 
 	const { data: customer, isLoading } = useQuery({
 		queryKey: ["customer-details", id],
@@ -131,8 +119,8 @@ export default function CustomerDetails() {
 	}
 
 	return (
-		<div className="space-y-6">
-			<div className="flex items-center justify-between">
+		<div className="h-full flex flex-col overflow-hidden">
+			<div className="shrink-0 flex items-center justify-between mb-6">
 				<div className="flex items-center gap-4">
 					<Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
 						<ArrowLeft className="h-5 w-5" />
@@ -145,10 +133,6 @@ export default function CustomerDetails() {
 					</Badge>
 				</div>
 				<div className="flex items-center gap-2">
-					<Button variant="outline" size="sm" onClick={() => setShowNotifyDialog(true)}>
-						<Bell className="h-4 w-4 mr-2" />
-						Send Notification
-					</Button>
 					{customer.status === "active" ? (
 						<Button variant="outline" size="sm" className="text-yellow-600" onClick={() => setShowSuspendDialog(true)}>
 							<Pause className="h-4 w-4 mr-2" />
@@ -172,242 +156,233 @@ export default function CustomerDetails() {
 				</div>
 			</div>
 
-			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-				<Card className="lg:col-span-1">
-					<CardHeader>
-						<CardTitle>Personal Information</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-4">
-						<div className="flex items-center gap-4">
-							<Avatar className="h-16 w-16">
-								<AvatarImage src={customer.avatar} alt={customer.name} />
-								<AvatarFallback className="bg-primary/10 text-primary text-lg">
-									{customer.name
-										.split(" ")
-										.map((n) => n[0])
-										.join("")}
-								</AvatarFallback>
-							</Avatar>
+			<div className="flex-1 min-h-0 overflow-auto">
+				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+					<Card className="lg:col-span-1">
+						<CardHeader>
+							<CardTitle>Personal Information</CardTitle>
+						</CardHeader>
+						<CardContent className="space-y-4">
+							<div className="flex items-center gap-4">
+								<Avatar className="h-16 w-16">
+									<AvatarImage src={customer.avatar} alt={customer.name} />
+									<AvatarFallback className="bg-primary/10 text-primary text-lg">
+										{customer.name
+											.split(" ")
+											.map((n) => n[0])
+											.join("")}
+									</AvatarFallback>
+								</Avatar>
+								<div>
+									<p className="font-semibold text-lg">{customer.name}</p>
+									<p className="text-sm text-muted-foreground">Customer</p>
+								</div>
+							</div>
+
+							<Separator />
+
+							<div className="space-y-3">
+								<div className="flex items-center gap-3 text-sm">
+									<Mail className="h-4 w-4 text-muted-foreground" />
+									<span>{customer.email}</span>
+								</div>
+								<div className="flex items-center gap-3 text-sm">
+									<Phone className="h-4 w-4 text-muted-foreground" />
+									<span>{customer.phone}</span>
+								</div>
+								<div className="flex items-center gap-3 text-sm">
+									<MapPin className="h-4 w-4 text-muted-foreground" />
+									<span>{customer.location}</span>
+								</div>
+								<div className="flex items-center gap-3 text-sm">
+									<Calendar className="h-4 w-4 text-muted-foreground" />
+									<span>Joined {format(new Date(customer.registeredAt), "MMM dd, yyyy")}</span>
+								</div>
+								<div className="flex items-center gap-3 text-sm">
+									<User className="h-4 w-4 text-muted-foreground" />
+									<span>Last active {formatDistanceToNow(new Date(customer.lastActiveAt), { addSuffix: true })}</span>
+								</div>
+							</div>
+
+							<Separator />
+
 							<div>
-								<p className="font-semibold text-lg">{customer.name}</p>
-								<p className="text-sm text-muted-foreground">Customer</p>
-							</div>
-						</div>
-
-						<Separator />
-
-						<div className="space-y-3">
-							<div className="flex items-center gap-3 text-sm">
-								<Mail className="h-4 w-4 text-muted-foreground" />
-								<span>{customer.email}</span>
-							</div>
-							<div className="flex items-center gap-3 text-sm">
-								<Phone className="h-4 w-4 text-muted-foreground" />
-								<span>{customer.phone}</span>
-							</div>
-							<div className="flex items-center gap-3 text-sm">
-								<MapPin className="h-4 w-4 text-muted-foreground" />
-								<span>{customer.location}</span>
-							</div>
-							<div className="flex items-center gap-3 text-sm">
-								<Calendar className="h-4 w-4 text-muted-foreground" />
-								<span>Joined {format(new Date(customer.registeredAt), "MMM dd, yyyy")}</span>
-							</div>
-							<div className="flex items-center gap-3 text-sm">
-								<User className="h-4 w-4 text-muted-foreground" />
-								<span>Last active {formatDistanceToNow(new Date(customer.lastActiveAt), { addSuffix: true })}</span>
-							</div>
-						</div>
-
-						<Separator />
-
-						<div>
-							<p className="text-sm font-medium mb-3">Subscription</p>
-							{customer.subscription.active ? (
-								<div className="p-3 border rounded-lg bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/20 dark:to-yellow-950/20">
-									<div className="flex items-center gap-2 mb-2">
-										<Crown className="h-4 w-4 text-amber-500" />
-										<span className="font-medium">{customer.subscription.plan} Plan</span>
+								<p className="text-sm font-medium mb-3">Subscription</p>
+								{customer.subscription.active ? (
+									<div className="p-3 border rounded-lg bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/20 dark:to-yellow-950/20">
+										<div className="flex items-center gap-2 mb-2">
+											<Crown className="h-4 w-4 text-amber-500" />
+											<span className="font-medium">{customer.subscription.plan} Plan</span>
+										</div>
+										<p className="text-sm text-muted-foreground">€{customer.subscription.price}/month</p>
+										<p className="text-sm text-muted-foreground">
+											{customer.subscription.washesRemaining} washes remaining
+										</p>
+										<p className="text-xs text-muted-foreground mt-1">
+											Renews{" "}
+											{customer.subscription.renewalDate &&
+												format(new Date(customer.subscription.renewalDate), "MMM dd, yyyy")}
+										</p>
 									</div>
-									<p className="text-sm text-muted-foreground">€{customer.subscription.price}/month</p>
-									<p className="text-sm text-muted-foreground">
-										{customer.subscription.washesRemaining} washes remaining
-									</p>
-									<p className="text-xs text-muted-foreground mt-1">
-										Renews{" "}
-										{customer.subscription.renewalDate &&
-											format(new Date(customer.subscription.renewalDate), "MMM dd, yyyy")}
-									</p>
-								</div>
-							) : (
-								<p className="text-sm text-muted-foreground">No active subscription</p>
+								) : (
+									<p className="text-sm text-muted-foreground">No active subscription</p>
+								)}
+							</div>
+
+							{customer.status === "suspended" && customer.suspensionReason && (
+								<>
+									<Separator />
+									<div className="p-3 border border-red-200 rounded-lg bg-red-50 dark:bg-red-950/20">
+										<p className="text-sm font-medium text-red-600 mb-1">Suspension Reason</p>
+										<p className="text-sm text-red-600/80">{customer.suspensionReason}</p>
+										<p className="text-xs text-red-600/60 mt-1">
+											Suspended{" "}
+											{customer.suspendedAt && formatDistanceToNow(new Date(customer.suspendedAt), { addSuffix: true })}
+										</p>
+									</div>
+								</>
 							)}
+						</CardContent>
+					</Card>
+
+					<div className="lg:col-span-2 space-y-6">
+						<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+							<Card>
+								<CardContent className="pt-6">
+									<span className="text-2xl font-bold">{customer.totalBookings}</span>
+									<p className="text-xs text-muted-foreground mt-1">Total Bookings</p>
+								</CardContent>
+							</Card>
+							<Card>
+								<CardContent className="pt-6">
+									<span className="text-2xl font-bold">€{customer.totalSpent.toFixed(2)}</span>
+									<p className="text-xs text-muted-foreground mt-1">Total Spent</p>
+								</CardContent>
+							</Card>
+							<Card>
+								<CardContent className="pt-6">
+									<span className="text-2xl font-bold">{customer.vehicles.length}</span>
+									<p className="text-xs text-muted-foreground mt-1">Vehicles</p>
+								</CardContent>
+							</Card>
+							<Card>
+								<CardContent className="pt-6">
+									<span className="text-2xl font-bold">{customer.paymentMethods.length}</span>
+									<p className="text-xs text-muted-foreground mt-1">Payment Methods</p>
+								</CardContent>
+							</Card>
 						</div>
 
-						{customer.status === "suspended" && customer.suspensionReason && (
-							<>
-								<Separator />
-								<div className="p-3 border border-red-200 rounded-lg bg-red-50 dark:bg-red-950/20">
-									<p className="text-sm font-medium text-red-600 mb-1">Suspension Reason</p>
-									<p className="text-sm text-red-600/80">{customer.suspensionReason}</p>
-									<p className="text-xs text-red-600/60 mt-1">
-										Suspended{" "}
-										{customer.suspendedAt && formatDistanceToNow(new Date(customer.suspendedAt), { addSuffix: true })}
-									</p>
-								</div>
-							</>
-						)}
-					</CardContent>
-				</Card>
+						<Tabs defaultValue="bookings">
+							<TabsList>
+								<TabsTrigger value="bookings">Booking History</TabsTrigger>
+								<TabsTrigger value="vehicles">Vehicles ({customer.vehicles.length})</TabsTrigger>
+							</TabsList>
 
-				<div className="lg:col-span-2 space-y-6">
-					<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-						<Card>
-							<CardContent className="pt-6">
-								<span className="text-2xl font-bold">{customer.totalBookings}</span>
-								<p className="text-xs text-muted-foreground mt-1">Total Bookings</p>
-							</CardContent>
-						</Card>
-						<Card>
-							<CardContent className="pt-6">
-								<span className="text-2xl font-bold">€{customer.totalSpent.toFixed(2)}</span>
-								<p className="text-xs text-muted-foreground mt-1">Total Spent</p>
-							</CardContent>
-						</Card>
-						<Card>
-							<CardContent className="pt-6">
-								<span className="text-2xl font-bold">{customer.vehicles.length}</span>
-								<p className="text-xs text-muted-foreground mt-1">Vehicles</p>
-							</CardContent>
-						</Card>
-						<Card>
-							<CardContent className="pt-6">
-								<span className="text-2xl font-bold">{customer.paymentMethods.length}</span>
-								<p className="text-xs text-muted-foreground mt-1">Payment Methods</p>
-							</CardContent>
-						</Card>
-					</div>
+							<TabsContent value="bookings" className="mt-4">
+								<Card className="flex flex-col max-h-[400px]">
+									<CardContent className="pt-6 flex-1 min-h-0 flex flex-col">
+										{customer.bookingHistory.length === 0 ? (
+											<p className="text-center text-muted-foreground py-4">No bookings yet</p>
+										) : (
+											<>
+												<Table>
+													<TableHeader>
+														<TableRow>
+															<TableHead>Service</TableHead>
+															<TableHead>Partner</TableHead>
+															<TableHead>Date</TableHead>
+															<TableHead>Amount</TableHead>
+															<TableHead>Rating</TableHead>
+															<TableHead>Status</TableHead>
+														</TableRow>
+													</TableHeader>
+												</Table>
+												<div className="flex-1 min-h-0 overflow-auto">
+													<Table>
+														<TableBody>
+															{customer.bookingHistory
+																.slice((bookingPage - 1) * bookingPageSize, bookingPage * bookingPageSize)
+																.map((booking) => (
+																	<TableRow key={booking.id}>
+																		<TableCell className="font-medium">{booking.service}</TableCell>
+																		<TableCell>{booking.partnerName}</TableCell>
+																		<TableCell>{format(new Date(booking.date), "MMM dd, yyyy")}</TableCell>
+																		<TableCell>€{booking.amount.toFixed(2)}</TableCell>
+																		<TableCell>
+																			{booking.rating ? (
+																				<div className="flex items-center gap-1">
+																					<Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+																					<span>{booking.rating}</span>
+																				</div>
+																			) : (
+																				<span className="text-muted-foreground">-</span>
+																			)}
+																		</TableCell>
+																		<TableCell>
+																			<Badge className={statusColors[booking.status]}>
+																				{statusLabels[booking.status]}
+																			</Badge>
+																		</TableCell>
+																	</TableRow>
+																))}
+														</TableBody>
+													</Table>
+												</div>
+												{customer.bookingHistory.length > bookingPageSize && (
+													<div className="shrink-0 flex justify-center pt-4 border-t mt-4">
+														<Pagination
+															current={bookingPage}
+															total={customer.bookingHistory.length}
+															pageSize={bookingPageSize}
+															onChange={setBookingPage}
+															showSizeChanger={false}
+														/>
+													</div>
+												)}
+											</>
+										)}
+									</CardContent>
+								</Card>
+							</TabsContent>
 
-					<Tabs defaultValue="bookings">
-						<TabsList>
-							<TabsTrigger value="bookings">Booking History</TabsTrigger>
-							<TabsTrigger value="vehicles">Vehicles ({customer.vehicles.length})</TabsTrigger>
-							<TabsTrigger value="payments">Payment Methods</TabsTrigger>
-						</TabsList>
-
-						<TabsContent value="bookings" className="mt-4">
-							<Card>
-								<CardContent className="pt-6">
-									{customer.bookingHistory.length === 0 ? (
-										<p className="text-center text-muted-foreground py-4">No bookings yet</p>
-									) : (
-										<Table>
-											<TableHeader>
-												<TableRow>
-													<TableHead>Service</TableHead>
-													<TableHead>Partner</TableHead>
-													<TableHead>Date</TableHead>
-													<TableHead>Amount</TableHead>
-													<TableHead>Rating</TableHead>
-													<TableHead>Status</TableHead>
-												</TableRow>
-											</TableHeader>
-											<TableBody>
-												{customer.bookingHistory.slice(0, 10).map((booking) => (
-													<TableRow key={booking.id}>
-														<TableCell className="font-medium">{booking.service}</TableCell>
-														<TableCell>{booking.partnerName}</TableCell>
-														<TableCell>{format(new Date(booking.date), "MMM dd, yyyy")}</TableCell>
-														<TableCell>€{booking.amount.toFixed(2)}</TableCell>
-														<TableCell>
-															{booking.rating ? (
-																<div className="flex items-center gap-1">
-																	<Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-																	<span>{booking.rating}</span>
-																</div>
-															) : (
-																<span className="text-muted-foreground">-</span>
-															)}
-														</TableCell>
-														<TableCell>
-															<Badge className={statusColors[booking.status]}>{statusLabels[booking.status]}</Badge>
-														</TableCell>
-													</TableRow>
+							<TabsContent value="vehicles" className="mt-4">
+								<Card>
+									<CardContent className="pt-6">
+										{customer.vehicles.length === 0 ? (
+											<p className="text-center text-muted-foreground py-4">No vehicles registered</p>
+										) : (
+											<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+												{customer.vehicles.map((vehicle) => (
+													<div key={vehicle.id} className="p-4 border rounded-lg">
+														<div className="flex items-center gap-3">
+															<div className="p-2 bg-primary/10 rounded-lg">
+																<Car className="h-5 w-5 text-primary" />
+															</div>
+															<div>
+																<p className="font-medium">
+																	{vehicle.make} {vehicle.model}
+																</p>
+																<p className="text-sm text-muted-foreground">
+																	{vehicle.color} • {vehicle.year}
+																</p>
+															</div>
+														</div>
+														<div className="mt-3 pt-3 border-t">
+															<p className="text-sm">
+																<span className="text-muted-foreground">Plate: </span>
+																<span className="font-mono font-medium">{vehicle.plateNumber}</span>
+															</p>
+														</div>
+													</div>
 												))}
-											</TableBody>
-										</Table>
-									)}
-								</CardContent>
-							</Card>
-						</TabsContent>
-
-						<TabsContent value="vehicles" className="mt-4">
-							<Card>
-								<CardContent className="pt-6">
-									{customer.vehicles.length === 0 ? (
-										<p className="text-center text-muted-foreground py-4">No vehicles registered</p>
-									) : (
-										<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-											{customer.vehicles.map((vehicle) => (
-												<div key={vehicle.id} className="p-4 border rounded-lg">
-													<div className="flex items-center gap-3">
-														<div className="p-2 bg-primary/10 rounded-lg">
-															<Car className="h-5 w-5 text-primary" />
-														</div>
-														<div>
-															<p className="font-medium">
-																{vehicle.make} {vehicle.model}
-															</p>
-															<p className="text-sm text-muted-foreground">
-																{vehicle.color} • {vehicle.year}
-															</p>
-														</div>
-													</div>
-													<div className="mt-3 pt-3 border-t">
-														<p className="text-sm">
-															<span className="text-muted-foreground">Plate: </span>
-															<span className="font-mono font-medium">{vehicle.plateNumber}</span>
-														</p>
-													</div>
-												</div>
-											))}
-										</div>
-									)}
-								</CardContent>
-							</Card>
-						</TabsContent>
-
-						<TabsContent value="payments" className="mt-4">
-							<Card>
-								<CardContent className="pt-6">
-									{customer.paymentMethods.length === 0 ? (
-										<p className="text-center text-muted-foreground py-4">No payment methods saved</p>
-									) : (
-										<div className="space-y-3">
-											{customer.paymentMethods.map((method) => (
-												<div key={method.id} className="flex items-center justify-between p-4 border rounded-lg">
-													<div className="flex items-center gap-3">
-														<div className="p-2 bg-primary/10 rounded-lg">
-															<CreditCard className="h-5 w-5 text-primary" />
-														</div>
-														<div>
-															<p className="font-medium">
-																{method.type === "visa" ? "Visa" : "Mastercard"} •••• {method.last4}
-															</p>
-															<p className="text-sm text-muted-foreground">
-																Expires {method.expiryMonth.toString().padStart(2, "0")}/{method.expiryYear}
-															</p>
-														</div>
-													</div>
-													{method.isDefault && <Badge variant="secondary">Default</Badge>}
-												</div>
-											))}
-										</div>
-									)}
-								</CardContent>
-							</Card>
-						</TabsContent>
-					</Tabs>
+											</div>
+										)}
+									</CardContent>
+								</Card>
+							</TabsContent>
+						</Tabs>
+					</div>
 				</div>
 			</div>
 

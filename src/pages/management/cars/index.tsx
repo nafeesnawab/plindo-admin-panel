@@ -225,18 +225,18 @@ export default function CarsManagementPage() {
 
 	const getBodyTypeColor = (bodyType: string) => {
 		const colors: Record<string, string> = {
-			Hatchback: "bg-blue-100 text-blue-800",
-			Sedan: "bg-green-100 text-green-800",
-			SUV: "bg-purple-100 text-purple-800",
-			Coupe: "bg-orange-100 text-orange-800",
-			Convertible: "bg-pink-100 text-pink-800",
-			Van: "bg-yellow-100 text-yellow-800",
-			"Pickup Truck": "bg-red-100 text-red-800",
-			"MPV/Minivan": "bg-teal-100 text-teal-800",
-			"Station Wagon": "bg-indigo-100 text-indigo-800",
-			Crossover: "bg-cyan-100 text-cyan-800",
+			Hatchback: "bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400",
+			Sedan: "bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400",
+			SUV: "bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400",
+			Coupe: "bg-orange-500/10 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400",
+			Convertible: "bg-pink-500/10 text-pink-600 dark:bg-pink-500/20 dark:text-pink-400",
+			Van: "bg-yellow-500/10 text-yellow-600 dark:bg-yellow-500/20 dark:text-yellow-400",
+			"Pickup Truck": "bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400",
+			"MPV/Minivan": "bg-teal-500/10 text-teal-600 dark:bg-teal-500/20 dark:text-teal-400",
+			"Station Wagon": "bg-indigo-500/10 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400",
+			Crossover: "bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/20 dark:text-cyan-400",
 		};
-		return colors[bodyType] || "bg-gray-100 text-gray-800";
+		return colors[bodyType] || "bg-gray-500/10 text-gray-600 dark:bg-gray-500/20 dark:text-gray-400";
 	};
 
 	return (
@@ -321,17 +321,19 @@ export default function CarsManagementPage() {
 						</div>
 					) : (
 						<>
+							<Table>
+								<TableHeader>
+									<TableRow>
+										<TableHead>Make</TableHead>
+										<TableHead>Model</TableHead>
+										<TableHead>Body Type</TableHead>
+										<TableHead>Created</TableHead>
+										<TableHead className="text-right">Actions</TableHead>
+									</TableRow>
+								</TableHeader>
+							</Table>
 							<div className="flex-1 min-h-0 overflow-auto">
 								<Table>
-									<TableHeader className="sticky top-0 bg-card z-10">
-										<TableRow>
-											<TableHead>Make</TableHead>
-											<TableHead>Model</TableHead>
-											<TableHead>Body Type</TableHead>
-											<TableHead>Created</TableHead>
-											<TableHead className="text-right">Actions</TableHead>
-										</TableRow>
-									</TableHeader>
 									<TableBody>
 										{filteredCars.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((car) => (
 											<TableRow key={car.id}>

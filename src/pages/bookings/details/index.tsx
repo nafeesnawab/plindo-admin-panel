@@ -8,11 +8,9 @@ import {
 	Car,
 	Check,
 	CheckCircle,
-	CreditCard,
 	DollarSign,
 	Mail,
 	MapPin,
-	MessageSquare,
 	Phone,
 	Play,
 	RefreshCw,
@@ -69,7 +67,7 @@ export default function BookingDetails() {
 
 	const { data: booking, isLoading } = useQuery({
 		queryKey: ["booking-details", id],
-		queryFn: () => bookingService.getBookingDetails(id!),
+		queryFn: () => bookingService.getBookingDetails(id ?? ""),
 		enabled: !!id,
 	});
 
@@ -162,6 +160,53 @@ export default function BookingDetails() {
 			</div>
 
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+				<div className="space-y-6">
+					<Card>
+						<CardHeader>
+							<CardTitle className="flex items-center gap-2">
+								<Calendar className="h-5 w-5" />
+								Status Timeline
+							</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<div className="relative">
+								{booking.statusTimeline.map((item, idx) => (
+									<div key={`timeline-${item.status}-${item.timestamp}`} className="flex gap-3 pb-4 last:pb-0">
+										<div className="relative">
+											<div
+												className={`w-8 h-8 rounded-full flex items-center justify-center ${statusColors[item.status]}`}
+											>
+												{statusIcons[item.status]}
+											</div>
+											{idx < booking.statusTimeline.length - 1 && (
+												<div className="absolute top-8 left-1/2 w-0.5 h-full -translate-x-1/2 bg-gray-200" />
+											)}
+										</div>
+										<div className="flex-1 pt-1">
+											<p className="text-sm font-medium capitalize">{item.status.replace("_", " ")}</p>
+											{item.note && <p className="text-xs text-muted-foreground">{item.note}</p>}
+											<p className="text-xs text-muted-foreground mt-1">
+												{format(new Date(item.timestamp), "MMM dd, yyyy 'at' hh:mm a")}
+											</p>
+										</div>
+									</div>
+								))}
+							</div>
+						</CardContent>
+					</Card>
+
+					{booking.notes && (
+						<Card>
+							<CardHeader>
+								<CardTitle>Notes</CardTitle>
+							</CardHeader>
+							<CardContent>
+								<p className="text-sm text-muted-foreground">{booking.notes}</p>
+							</CardContent>
+						</Card>
+					)}
+				</div>
+
 				<div className="lg:col-span-2 space-y-6">
 					<Card>
 						<CardHeader>
@@ -184,6 +229,10 @@ export default function BookingDetails() {
 								<div>
 									<p className="text-sm text-muted-foreground">Scheduled Time</p>
 									<p className="font-medium">{format(new Date(booking.scheduledDate), "hh:mm a")}</p>
+								</div>
+								<div>
+									<p className="text-sm text-muted-foreground">Amount</p>
+									<p className="font-medium">€{booking.payment.amount.toFixed(2)}</p>
 								</div>
 							</div>
 						</CardContent>
@@ -224,10 +273,6 @@ export default function BookingDetails() {
 										<span>{booking.customer.phone}</span>
 									</div>
 								</div>
-								<Button variant="outline" size="sm" className="w-full">
-									<MessageSquare className="h-4 w-4 mr-2" />
-									Contact Customer
-								</Button>
 							</CardContent>
 						</Card>
 
@@ -258,10 +303,6 @@ export default function BookingDetails() {
 										<span>{booking.partner.phone}</span>
 									</div>
 								</div>
-								<Button variant="outline" size="sm" className="w-full">
-									<MessageSquare className="h-4 w-4 mr-2" />
-									Contact Partner
-								</Button>
 							</CardContent>
 						</Card>
 					</div>
@@ -311,8 +352,8 @@ export default function BookingDetails() {
 								<div className="flex items-center gap-2 mb-2">
 									{Array.from({ length: 5 }).map((_, i) => (
 										<Star
-											key={i}
-											className={`h-5 w-5 ${i < booking.rating!.score ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
+											key={`star-${i}`}
+											className={`h-5 w-5 ${i < (booking.rating?.score ?? 0) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
 										/>
 									))}
 									<span className="text-sm text-muted-foreground ml-2">
@@ -349,8 +390,11 @@ export default function BookingDetails() {
 											Customer Evidence ({booking.dispute.customerEvidence.length})
 										</p>
 										<div className="flex gap-2">
-											{booking.dispute.customerEvidence.map((evidence, i) => (
-												<div key={i} className="p-2 bg-white rounded border text-xs">
+											{booking.dispute.customerEvidence.map((evidence) => (
+												<div
+													key={`evidence-${evidence.type}-${evidence.url}`}
+													className="p-2 bg-white rounded border text-xs"
+												>
 													{evidence.type === "photo" ? "📷" : "🎥"} {evidence.type}
 												</div>
 											))}
@@ -366,99 +410,6 @@ export default function BookingDetails() {
 								<Button variant="outline" className="w-full">
 									Resolve Dispute
 								</Button>
-							</CardContent>
-						</Card>
-					)}
-				</div>
-
-				<div className="space-y-6">
-					<Card>
-						<CardHeader>
-							<CardTitle className="flex items-center gap-2">
-								<CreditCard className="h-5 w-5" />
-								Payment Details
-							</CardTitle>
-						</CardHeader>
-						<CardContent className="space-y-4">
-							<div className="flex justify-between items-center">
-								<span className="text-sm text-muted-foreground">Service Amount</span>
-								<span className="font-medium">€{booking.payment.amount.toFixed(2)}</span>
-							</div>
-							<div className="flex justify-between items-center">
-								<span className="text-sm text-muted-foreground">Platform Fee (10%)</span>
-								<span className="font-medium">€{booking.payment.platformFee.toFixed(2)}</span>
-							</div>
-							<div className="flex justify-between items-center">
-								<span className="text-sm text-muted-foreground">Partner Payout</span>
-								<span className="font-medium">€{booking.payment.partnerPayout.toFixed(2)}</span>
-							</div>
-							<Separator />
-							<div className="flex justify-between items-center">
-								<span className="text-sm font-medium">Payment Method</span>
-								<span className="capitalize">{booking.payment.method}</span>
-							</div>
-							<div className="flex justify-between items-center">
-								<span className="text-sm font-medium">Payment Status</span>
-								<Badge
-									className={
-										booking.payment.status === "paid"
-											? "bg-green-500/10 text-green-600"
-											: booking.payment.status === "refunded"
-												? "bg-red-500/10 text-red-600"
-												: "bg-yellow-500/10 text-yellow-600"
-									}
-								>
-									{booking.payment.status.toUpperCase()}
-								</Badge>
-							</div>
-							<div className="pt-2">
-								<p className="text-xs text-muted-foreground">Transaction ID</p>
-								<p className="text-xs font-mono">{booking.payment.transactionId}</p>
-							</div>
-						</CardContent>
-					</Card>
-
-					<Card>
-						<CardHeader>
-							<CardTitle className="flex items-center gap-2">
-								<Calendar className="h-5 w-5" />
-								Status Timeline
-							</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<div className="relative">
-								{booking.statusTimeline.map((item, index) => (
-									<div key={index} className="flex gap-3 pb-4 last:pb-0">
-										<div className="relative">
-											<div
-												className={`w-8 h-8 rounded-full flex items-center justify-center ${statusColors[item.status]}`}
-											>
-												{statusIcons[item.status]}
-											</div>
-											{index < booking.statusTimeline.length - 1 && (
-												<div className="absolute top-8 left-1/2 w-0.5 h-full -translate-x-1/2 bg-gray-200" />
-											)}
-										</div>
-										<div className="flex-1 pt-1">
-											<p className="text-sm font-medium capitalize">{item.status.replace("_", " ")}</p>
-											{item.note && <p className="text-xs text-muted-foreground">{item.note}</p>}
-											<p className="text-xs text-muted-foreground mt-1">
-												{format(new Date(item.timestamp), "MMM dd, yyyy 'at' hh:mm a")}
-											</p>
-										</div>
-									</div>
-								))}
-							</div>
-						</CardContent>
-					</Card>
-
-					{booking.notes && (
-						<Card>
-							<CardHeader>
-								<CardTitle>Notes</CardTitle>
-							</CardHeader>
-							<CardContent>
-								<p className="text-sm text-muted-foreground">{booking.notes}</p>
 							</CardContent>
 						</Card>
 					)}
@@ -502,8 +453,11 @@ export default function BookingDetails() {
 					</DialogHeader>
 					<div className="space-y-4">
 						<div>
-							<label className="text-sm font-medium">Refund Amount (€)</label>
+							<label htmlFor="refund-amount" className="text-sm font-medium">
+								Refund Amount (€)
+							</label>
 							<Input
+								id="refund-amount"
 								type="number"
 								placeholder="Enter refund amount"
 								value={refundAmount}
@@ -513,8 +467,11 @@ export default function BookingDetails() {
 							<p className="text-xs text-muted-foreground mt-1">Maximum refund: €{booking.payment.amount.toFixed(2)}</p>
 						</div>
 						<div>
-							<label className="text-sm font-medium">Reason</label>
+							<label htmlFor="refund-reason" className="text-sm font-medium">
+								Reason
+							</label>
 							<Textarea
+								id="refund-reason"
 								placeholder="Enter refund reason..."
 								value={refundReason}
 								onChange={(e) => setRefundReason(e.target.value)}

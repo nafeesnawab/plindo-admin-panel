@@ -4,7 +4,6 @@ import dashboardService from "@/api/services/dashboardService";
 import BookingsTrendChart from "./components/bookings-trend-chart";
 import RevenueTrendChart from "./components/revenue-trend-chart";
 import StatsCards from "./components/stats-cards";
-import UserGrowthChart from "./components/user-growth-chart";
 
 export default function DashboardPage() {
 	const { data: stats, isLoading: statsLoading } = useQuery({
@@ -19,10 +18,6 @@ export default function DashboardPage() {
 			<div className="grid gap-6 lg:grid-cols-2">
 				<BookingsTrendChart />
 				<RevenueTrendChart />
-			</div>
-
-			<div className="grid gap-6 lg:grid-cols-1">
-				<UserGrowthChart />
 			</div>
 		</div>
 	);

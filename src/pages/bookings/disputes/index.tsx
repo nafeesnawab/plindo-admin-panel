@@ -1,52 +1,22 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { format, formatDistanceToNow } from "date-fns";
+import { AlertTriangle, CheckCircle, Eye, FileImage, FileVideo, RefreshCw, Scale, UserX } from "lucide-react";
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
-
+import { toast } from "sonner";
 import bookingService, { type Booking } from "@/api/services/bookingService";
 import { Avatar, AvatarFallback, AvatarImage } from "@/ui/avatar";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "@/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/ui/dialog";
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { Separator } from "@/ui/separator";
 import { Skeleton } from "@/ui/skeleton";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 import { Textarea } from "@/ui/textarea";
-import { formatDistanceToNow, format } from "date-fns";
-import {
-	AlertTriangle,
-	CheckCircle,
-	Eye,
-	FileImage,
-	FileVideo,
-	RefreshCw,
-	Scale,
-	UserX,
-} from "lucide-react";
-import { toast } from "sonner";
 
 export default function DisputesPage() {
 	const navigate = useNavigate();
@@ -162,9 +132,7 @@ export default function DisputesPage() {
 										<TableCell>
 											<div>
 												<p className="font-mono text-sm">{booking.bookingNumber}</p>
-												<p className="text-xs text-muted-foreground">
-													€{booking.payment.amount.toFixed(2)}
-												</p>
+												<p className="text-xs text-muted-foreground">€{booking.payment.amount.toFixed(2)}</p>
 											</div>
 										</TableCell>
 										<TableCell>
@@ -172,7 +140,10 @@ export default function DisputesPage() {
 												<Avatar className="h-8 w-8">
 													<AvatarImage src={booking.customer.avatar} alt={booking.customer.name} />
 													<AvatarFallback className="bg-primary/10 text-primary text-xs">
-														{booking.customer.name.split(" ").map((n) => n[0]).join("")}
+														{booking.customer.name
+															.split(" ")
+															.map((n) => n[0])
+															.join("")}
 													</AvatarFallback>
 												</Avatar>
 												<span className="text-sm">{booking.customer.name}</span>
@@ -191,44 +162,39 @@ export default function DisputesPage() {
 											<div className="flex items-center gap-2">
 												{booking.dispute?.customerEvidence && (
 													<div className="flex items-center gap-1">
-														{booking.dispute.customerEvidence.filter(e => e.type === "photo").length > 0 && (
+														{booking.dispute.customerEvidence.filter((e) => e.type === "photo").length > 0 && (
 															<Badge variant="outline" className="gap-1">
 																<FileImage className="h-3 w-3" />
-																{booking.dispute.customerEvidence.filter(e => e.type === "photo").length}
+																{booking.dispute.customerEvidence.filter((e) => e.type === "photo").length}
 															</Badge>
 														)}
-														{booking.dispute.customerEvidence.filter(e => e.type === "video").length > 0 && (
+														{booking.dispute.customerEvidence.filter((e) => e.type === "video").length > 0 && (
 															<Badge variant="outline" className="gap-1">
 																<FileVideo className="h-3 w-3" />
-																{booking.dispute.customerEvidence.filter(e => e.type === "video").length}
+																{booking.dispute.customerEvidence.filter((e) => e.type === "video").length}
 															</Badge>
 														)}
 													</div>
 												)}
 												{booking.dispute?.partnerResponse && (
-													<Badge variant="secondary" className="text-xs">Partner responded</Badge>
+													<Badge variant="secondary" className="text-xs">
+														Partner responded
+													</Badge>
 												)}
 											</div>
 										</TableCell>
 										<TableCell>
 											<span className="text-sm text-muted-foreground">
-												{booking.dispute?.createdAt && formatDistanceToNow(new Date(booking.dispute.createdAt), { addSuffix: true })}
+												{booking.dispute?.createdAt &&
+													formatDistanceToNow(new Date(booking.dispute.createdAt), { addSuffix: true })}
 											</span>
 										</TableCell>
 										<TableCell className="text-right">
 											<div className="flex items-center justify-end gap-2">
-												<Button
-													variant="ghost"
-													size="icon"
-													onClick={() => openDetailsDialog(booking)}
-												>
+												<Button variant="ghost" size="icon" onClick={() => openDetailsDialog(booking)}>
 													<Eye className="h-4 w-4" />
 												</Button>
-												<Button
-													variant="outline"
-													size="sm"
-													onClick={() => openResolveDialog(booking)}
-												>
+												<Button variant="outline" size="sm" onClick={() => openResolveDialog(booking)}>
 													<Scale className="h-4 w-4 mr-1" />
 													Resolve
 												</Button>
@@ -273,11 +239,9 @@ export default function DisputesPage() {
 							<AlertTriangle className="h-5 w-5 text-orange-500" />
 							Dispute Details
 						</DialogTitle>
-						<DialogDescription>
-							Booking: {selectedBooking?.bookingNumber}
-						</DialogDescription>
+						<DialogDescription>Booking: {selectedBooking?.bookingNumber}</DialogDescription>
 					</DialogHeader>
-					
+
 					{selectedBooking?.dispute && (
 						<div className="space-y-4 max-h-[60vh] overflow-y-auto">
 							<div className="grid grid-cols-2 gap-4">
@@ -289,7 +253,12 @@ export default function DisputesPage() {
 										<div className="flex items-center gap-2">
 											<Avatar className="h-8 w-8">
 												<AvatarImage src={selectedBooking.customer.avatar} />
-												<AvatarFallback>{selectedBooking.customer.name.split(" ").map(n => n[0]).join("")}</AvatarFallback>
+												<AvatarFallback>
+													{selectedBooking.customer.name
+														.split(" ")
+														.map((n) => n[0])
+														.join("")}
+												</AvatarFallback>
 											</Avatar>
 											<div>
 												<p className="text-sm font-medium">{selectedBooking.customer.name}</p>
@@ -320,7 +289,9 @@ export default function DisputesPage() {
 							</div>
 
 							<div>
-								<h4 className="font-medium mb-2">Customer Evidence ({selectedBooking.dispute.customerEvidence.length})</h4>
+								<h4 className="font-medium mb-2">
+									Customer Evidence ({selectedBooking.dispute.customerEvidence.length})
+								</h4>
 								<div className="grid grid-cols-3 gap-2">
 									{selectedBooking.dispute.customerEvidence.map((evidence, i) => (
 										<div key={i} className="border rounded-lg p-3 text-center bg-muted/50">
@@ -330,9 +301,7 @@ export default function DisputesPage() {
 												<FileVideo className="h-8 w-8 mx-auto text-muted-foreground mb-1" />
 											)}
 											<p className="text-xs text-muted-foreground capitalize">{evidence.type}</p>
-											<p className="text-xs text-muted-foreground">
-												{format(new Date(evidence.uploadedAt), "MMM dd")}
-											</p>
+											<p className="text-xs text-muted-foreground">{format(new Date(evidence.uploadedAt), "MMM dd")}</p>
 										</div>
 									))}
 								</div>
@@ -345,12 +314,17 @@ export default function DisputesPage() {
 										<h4 className="font-medium mb-2">Partner Response</h4>
 										<p className="text-sm text-muted-foreground">{selectedBooking.dispute.partnerResponse.response}</p>
 										<p className="text-xs text-muted-foreground mt-1">
-											Responded {formatDistanceToNow(new Date(selectedBooking.dispute.partnerResponse.respondedAt), { addSuffix: true })}
+											Responded{" "}
+											{formatDistanceToNow(new Date(selectedBooking.dispute.partnerResponse.respondedAt), {
+												addSuffix: true,
+											})}
 										</p>
 									</div>
 									{selectedBooking.dispute.partnerResponse.evidence.length > 0 && (
 										<div>
-											<h4 className="font-medium mb-2">Partner Evidence ({selectedBooking.dispute.partnerResponse.evidence.length})</h4>
+											<h4 className="font-medium mb-2">
+												Partner Evidence ({selectedBooking.dispute.partnerResponse.evidence.length})
+											</h4>
 											<div className="grid grid-cols-3 gap-2">
 												{selectedBooking.dispute.partnerResponse.evidence.map((evidence, i) => (
 													<div key={i} className="border rounded-lg p-3 text-center bg-muted/50">
@@ -371,14 +345,16 @@ export default function DisputesPage() {
 					)}
 
 					<DialogFooter>
-						<Button variant="outline" onClick={() => setShowDetailsDialog(false)}>Close</Button>
-						<Button onClick={() => navigate(`/bookings/${selectedBooking?.id}`)}>
-							View Full Booking
+						<Button variant="outline" onClick={() => setShowDetailsDialog(false)}>
+							Close
 						</Button>
-						<Button onClick={() => {
-							setShowDetailsDialog(false);
-							if (selectedBooking) openResolveDialog(selectedBooking);
-						}}>
+						<Button onClick={() => navigate(`/bookings/${selectedBooking?.id}`)}>View Full Booking</Button>
+						<Button
+							onClick={() => {
+								setShowDetailsDialog(false);
+								if (selectedBooking) openResolveDialog(selectedBooking);
+							}}
+						>
 							<Scale className="h-4 w-4 mr-2" />
 							Resolve Dispute
 						</Button>
@@ -397,7 +373,10 @@ export default function DisputesPage() {
 					<div className="space-y-4">
 						<div>
 							<Label>Resolution Action</Label>
-							<Select value={resolution.action} onValueChange={(v) => setResolution(prev => ({ ...prev, action: v }))}>
+							<Select
+								value={resolution.action}
+								onValueChange={(v) => setResolution((prev) => ({ ...prev, action: v }))}
+							>
 								<SelectTrigger>
 									<SelectValue placeholder="Select action" />
 								</SelectTrigger>
@@ -437,7 +416,7 @@ export default function DisputesPage() {
 									type="number"
 									placeholder="Enter refund amount"
 									value={resolution.refundAmount}
-									onChange={(e) => setResolution(prev => ({ ...prev, refundAmount: e.target.value }))}
+									onChange={(e) => setResolution((prev) => ({ ...prev, refundAmount: e.target.value }))}
 									max={selectedBooking?.payment.amount}
 								/>
 								<p className="text-xs text-muted-foreground mt-1">
@@ -451,13 +430,15 @@ export default function DisputesPage() {
 							<Textarea
 								placeholder="Enter notes about the resolution..."
 								value={resolution.notes}
-								onChange={(e) => setResolution(prev => ({ ...prev, notes: e.target.value }))}
+								onChange={(e) => setResolution((prev) => ({ ...prev, notes: e.target.value }))}
 								rows={4}
 							/>
 						</div>
 					</div>
 					<DialogFooter>
-						<Button variant="outline" onClick={() => setShowResolveDialog(false)}>Cancel</Button>
+						<Button variant="outline" onClick={() => setShowResolveDialog(false)}>
+							Cancel
+						</Button>
 						<Button
 							onClick={handleResolve}
 							disabled={!resolution.action || !resolution.notes || resolveMutation.isPending}

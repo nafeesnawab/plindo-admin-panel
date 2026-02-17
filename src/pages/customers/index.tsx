@@ -173,9 +173,9 @@ export default function CustomersPage() {
 					{data?.items.length === 0 ? (
 						<div className="text-center py-8 text-muted-foreground">No customers found</div>
 					) : (
-						<div className="flex-1 min-h-0 overflow-auto">
+						<>
 							<Table>
-								<TableHeader className="sticky top-0 bg-card z-10">
+								<TableHeader>
 									<TableRow>
 										<TableHead>Customer</TableHead>
 										<TableHead>Contact</TableHead>
@@ -186,85 +186,89 @@ export default function CustomersPage() {
 										<TableHead className="text-right">Actions</TableHead>
 									</TableRow>
 								</TableHeader>
-								<TableBody>
-									{data?.items.map((customer) => (
-										<TableRow key={customer.id}>
-											<TableCell>
-												<div className="flex items-center gap-3">
-													<Avatar className="h-10 w-10">
-														<AvatarImage src={customer.avatar} alt={customer.name} />
-														<AvatarFallback className="bg-primary/10 text-primary text-xs">
-															{customer.name
-																.split(" ")
-																.map((n) => n[0])
-																.join("")}
-														</AvatarFallback>
-													</Avatar>
-													<div>
-														<p className="font-medium">{customer.name}</p>
-														<p className="text-xs text-muted-foreground">{customer.location}</p>
-													</div>
-												</div>
-											</TableCell>
-											<TableCell>
-												<div className="text-sm">
-													<p>{customer.email}</p>
-													<p className="text-muted-foreground">{customer.phone}</p>
-												</div>
-											</TableCell>
-											<TableCell>{format(new Date(customer.registeredAt), "MMM dd, yyyy")}</TableCell>
-											<TableCell>{customer.totalBookings}</TableCell>
-											<TableCell>€{customer.totalSpent.toFixed(2)}</TableCell>
-											<TableCell>
-												{customer.status === "active" ? (
-													<Badge variant="secondary" className="bg-green-500/10 text-green-600">
-														Active
-													</Badge>
-												) : (
-													<Badge variant="secondary" className="bg-red-500/10 text-red-600">
-														Suspended
-													</Badge>
-												)}
-											</TableCell>
-											<TableCell className="text-right">
-												<div className="flex items-center justify-end gap-2">
-													<Button variant="ghost" size="icon" onClick={() => navigate(`/customers/${customer.id}`)}>
-														<Eye className="h-4 w-4" />
-													</Button>
-													{customer.status === "active" ? (
-														<Button
-															variant="ghost"
-															size="icon"
-															className="text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
-															onClick={() => openSuspendDialog(customer)}
-														>
-															<Pause className="h-4 w-4" />
-														</Button>
-													) : (
-														<Button
-															variant="ghost"
-															size="icon"
-															className="text-green-600 hover:text-green-700 hover:bg-green-50"
-															onClick={() => openReactivateDialog(customer)}
-														>
-															<Play className="h-4 w-4" />
-														</Button>
-													)}
-													<Button
-														variant="ghost"
-														size="icon"
-														className="text-red-600 hover:text-red-700 hover:bg-red-50"
-														onClick={() => openDeleteDialog(customer)}
-													>
-														<Trash2 className="h-4 w-4" />
-													</Button>
-												</div>
-											</TableCell>
-										</TableRow>
-									))}
-								</TableBody>
 							</Table>
-						</div>
+							<div className="flex-1 min-h-0 overflow-auto">
+								<Table>
+									<TableBody>
+										{data?.items.map((customer) => (
+											<TableRow key={customer.id}>
+												<TableCell>
+													<div className="flex items-center gap-3">
+														<Avatar className="h-10 w-10">
+															<AvatarImage src={customer.avatar} alt={customer.name} />
+															<AvatarFallback className="bg-primary/10 text-primary text-xs">
+																{customer.name
+																	.split(" ")
+																	.map((n) => n[0])
+																	.join("")}
+															</AvatarFallback>
+														</Avatar>
+														<div>
+															<p className="font-medium">{customer.name}</p>
+															<p className="text-xs text-muted-foreground">{customer.location}</p>
+														</div>
+													</div>
+												</TableCell>
+												<TableCell>
+													<div className="text-sm">
+														<p>{customer.email}</p>
+														<p className="text-muted-foreground">{customer.phone}</p>
+													</div>
+												</TableCell>
+												<TableCell>{format(new Date(customer.registeredAt), "MMM dd, yyyy")}</TableCell>
+												<TableCell>{customer.totalBookings}</TableCell>
+												<TableCell>€{customer.totalSpent.toFixed(2)}</TableCell>
+												<TableCell>
+													{customer.status === "active" ? (
+														<Badge variant="secondary" className="bg-green-500/10 text-green-600">
+															Active
+														</Badge>
+													) : (
+														<Badge variant="secondary" className="bg-red-500/10 text-red-600">
+															Suspended
+														</Badge>
+													)}
+												</TableCell>
+												<TableCell className="text-right">
+													<div className="flex items-center justify-end gap-2">
+														<Button variant="ghost" size="icon" onClick={() => navigate(`/customers/${customer.id}`)}>
+															<Eye className="h-4 w-4" />
+														</Button>
+														{customer.status === "active" ? (
+															<Button
+																variant="ghost"
+																size="icon"
+																className="text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50"
+																onClick={() => openSuspendDialog(customer)}
+															>
+																<Pause className="h-4 w-4" />
+															</Button>
+														) : (
+															<Button
+																variant="ghost"
+																size="icon"
+																className="text-green-600 hover:text-green-700 hover:bg-green-50"
+																onClick={() => openReactivateDialog(customer)}
+															>
+																<Play className="h-4 w-4" />
+															</Button>
+														)}
+														<Button
+															variant="ghost"
+															size="icon"
+															className="text-red-600 hover:text-red-700 hover:bg-red-50"
+															onClick={() => openDeleteDialog(customer)}
+														>
+															<Trash2 className="h-4 w-4" />
+														</Button>
+													</div>
+												</TableCell>
+											</TableRow>
+										))}
+									</TableBody>
+								</Table>
+							</div>
+						</>
 					)}
 
 					{data && data.total > 10 && (

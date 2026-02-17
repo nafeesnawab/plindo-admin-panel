@@ -1,8 +1,8 @@
+import type { CSSProperties } from "react";
 import bgImg from "@/assets/images/background/banner-1.png";
 import Character from "@/assets/images/characters/character_3.png";
 import { GLOBAL_CONFIG } from "@/global-config";
 import { Text, Title } from "@/ui/typography";
-import type { CSSProperties } from "react";
 
 export default function BannerCard() {
 	const bgStyle: CSSProperties = {

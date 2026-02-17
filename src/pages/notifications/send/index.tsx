@@ -1,33 +1,16 @@
-import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-
+import { Bell, Building2, Calendar, Eye, Mail, Send, Smartphone, User, Users } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 import notificationService, { type SendNotificationPayload } from "@/api/services/notificationService";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { Separator } from "@/ui/separator";
 import { Textarea } from "@/ui/textarea";
-import {
-	Bell,
-	Mail,
-	Calendar,
-	Send,
-	Eye,
-	Users,
-	User,
-	Building2,
-	Smartphone,
-} from "lucide-react";
-import { toast } from "sonner";
 
 export default function SendNotificationPage() {
 	const queryClient = useQueryClient();
@@ -85,19 +68,27 @@ export default function SendNotificationPage() {
 
 	const getRecipientIcon = () => {
 		switch (form.recipientType) {
-			case "all_users": return <Users className="h-4 w-4" />;
-			case "all_customers": return <User className="h-4 w-4" />;
-			case "all_partners": return <Building2 className="h-4 w-4" />;
-			case "specific_user": return <User className="h-4 w-4" />;
+			case "all_users":
+				return <Users className="h-4 w-4" />;
+			case "all_customers":
+				return <User className="h-4 w-4" />;
+			case "all_partners":
+				return <Building2 className="h-4 w-4" />;
+			case "specific_user":
+				return <User className="h-4 w-4" />;
 		}
 	};
 
 	const getRecipientLabel = () => {
 		switch (form.recipientType) {
-			case "all_users": return "All Users";
-			case "all_customers": return "All Customers";
-			case "all_partners": return "All Partners";
-			case "specific_user": return "Specific User";
+			case "all_users":
+				return "All Users";
+			case "all_customers":
+				return "All Customers";
+			case "all_partners":
+				return "All Partners";
+			case "specific_user":
+				return "Specific User";
 		}
 	};
 
@@ -116,7 +107,9 @@ export default function SendNotificationPage() {
 							<Label>Recipient Type</Label>
 							<Select
 								value={form.recipientType}
-								onValueChange={(v) => setForm({ ...form, recipientType: v as SendNotificationPayload["recipientType"] })}
+								onValueChange={(v) =>
+									setForm({ ...form, recipientType: v as SendNotificationPayload["recipientType"] })
+								}
 							>
 								<SelectTrigger>
 									<SelectValue />
@@ -165,7 +158,9 @@ export default function SendNotificationPage() {
 							<Label>Notification Type</Label>
 							<Select
 								value={form.notificationType}
-								onValueChange={(v) => setForm({ ...form, notificationType: v as SendNotificationPayload["notificationType"] })}
+								onValueChange={(v) =>
+									setForm({ ...form, notificationType: v as SendNotificationPayload["notificationType"] })
+								}
 							>
 								<SelectTrigger>
 									<SelectValue />
@@ -260,21 +255,13 @@ export default function SendNotificationPage() {
 								</div>
 								<div className="space-y-2">
 									<Label>Time</Label>
-									<Input
-										type="time"
-										value={scheduleTime}
-										onChange={(e) => setScheduleTime(e.target.value)}
-									/>
+									<Input type="time" value={scheduleTime} onChange={(e) => setScheduleTime(e.target.value)} />
 								</div>
 							</div>
 						)}
 
 						<div className="flex gap-2 pt-4">
-							<Button
-								variant="outline"
-								onClick={() => setShowPreview(!showPreview)}
-								className="flex-1"
-							>
+							<Button variant="outline" onClick={() => setShowPreview(!showPreview)} className="flex-1">
 								<Eye className="h-4 w-4 mr-2" />
 								{showPreview ? "Hide" : "Show"} Preview
 							</Button>
@@ -322,9 +309,7 @@ export default function SendNotificationPage() {
 												<Bell className="h-5 w-5 text-primary" />
 											</div>
 											<div className="flex-1 min-w-0">
-												<p className="font-medium text-sm truncate">
-													{form.title || "Notification Title"}
-												</p>
+												<p className="font-medium text-sm truncate">{form.title || "Notification Title"}</p>
 												<p className="text-xs text-muted-foreground line-clamp-2">
 													{form.body || "Notification message will appear here..."}
 												</p>
@@ -367,10 +352,18 @@ export default function SendNotificationPage() {
 						<CardTitle>Quick Tips</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-3 text-sm text-muted-foreground">
-						<p>• <strong>Push notifications</strong> are limited to 500 characters for optimal display.</p>
-						<p>• <strong>All Users</strong> includes both customers and partners.</p>
-						<p>• <strong>Scheduled notifications</strong> will be sent at the specified time in your local timezone.</p>
-						<p>• Use <strong>Both</strong> option for important announcements to ensure maximum reach.</p>
+						<p>
+							• <strong>Push notifications</strong> are limited to 500 characters for optimal display.
+						</p>
+						<p>
+							• <strong>All Users</strong> includes both customers and partners.
+						</p>
+						<p>
+							• <strong>Scheduled notifications</strong> will be sent at the specified time in your local timezone.
+						</p>
+						<p>
+							• Use <strong>Both</strong> option for important announcements to ensure maximum reach.
+						</p>
 					</CardContent>
 				</Card>
 			</div>

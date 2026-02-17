@@ -1,30 +1,16 @@
-import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-
+import { format } from "date-fns";
+import { Calendar, CheckCircle, CreditCard, Save, Smartphone, Wallet } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import settingsService from "@/api/services/settingsService";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card";
 import { Label } from "@/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { Skeleton } from "@/ui/skeleton";
 import { Switch } from "@/ui/switch";
-import { format } from "date-fns";
-import {
-	CheckCircle,
-	CreditCard,
-	Save,
-	Smartphone,
-	Wallet,
-	Calendar,
-} from "lucide-react";
-import { toast } from "sonner";
 
 export default function PaymentSettingsPage() {
 	const queryClient = useQueryClient();
@@ -48,10 +34,11 @@ export default function PaymentSettingsPage() {
 	}, [data]);
 
 	const updateMutation = useMutation({
-		mutationFn: () => settingsService.updatePaymentSettings({
-			paymentMethods,
-			payoutSchedule,
-		}),
+		mutationFn: () =>
+			settingsService.updatePaymentSettings({
+				paymentMethods,
+				payoutSchedule,
+			}),
 		onSuccess: () => {
 			toast.success("Payment settings updated");
 			queryClient.invalidateQueries({ queryKey: ["settings-payment"] });
@@ -61,10 +48,9 @@ export default function PaymentSettingsPage() {
 		},
 	});
 
-	const hasChanges = data && (
-		JSON.stringify(paymentMethods) !== JSON.stringify(data.paymentMethods) ||
-		payoutSchedule !== data.payoutSchedule
-	);
+	const hasChanges =
+		data &&
+		(JSON.stringify(paymentMethods) !== JSON.stringify(data.paymentMethods) || payoutSchedule !== data.payoutSchedule);
 
 	if (isLoading) {
 		return (
@@ -85,10 +71,7 @@ export default function PaymentSettingsPage() {
 					<h1 className="text-2xl font-bold">Payment Settings</h1>
 					<p className="text-muted-foreground">Configure payment methods and payout schedule</p>
 				</div>
-				<Button
-					onClick={() => updateMutation.mutate()}
-					disabled={!hasChanges || updateMutation.isPending}
-				>
+				<Button onClick={() => updateMutation.mutate()} disabled={!hasChanges || updateMutation.isPending}>
 					<Save className="h-4 w-4 mr-2" />
 					Save Changes
 				</Button>
@@ -101,9 +84,7 @@ export default function PaymentSettingsPage() {
 							<Wallet className="h-5 w-5 text-purple-600" />
 							Stripe Configuration
 						</CardTitle>
-						<CardDescription>
-							Payment processor connection status
-						</CardDescription>
+						<CardDescription>Payment processor connection status</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<div className="flex items-center justify-between p-4 border rounded-lg">
@@ -113,9 +94,7 @@ export default function PaymentSettingsPage() {
 								</div>
 								<div>
 									<p className="font-medium">Stripe</p>
-									<p className="text-sm text-muted-foreground">
-										{data?.stripeAccountId || "Not connected"}
-									</p>
+									<p className="text-sm text-muted-foreground">{data?.stripeAccountId || "Not connected"}</p>
 								</div>
 							</div>
 							{data?.stripeConnected ? (
@@ -139,9 +118,7 @@ export default function PaymentSettingsPage() {
 							<Calendar className="h-5 w-5 text-blue-600" />
 							Payout Schedule
 						</CardTitle>
-						<CardDescription>
-							When partners receive their earnings
-						</CardDescription>
+						<CardDescription>When partners receive their earnings</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<div className="space-y-2">
@@ -169,9 +146,7 @@ export default function PaymentSettingsPage() {
 						<CreditCard className="h-5 w-5 text-green-600" />
 						Payment Methods
 					</CardTitle>
-					<CardDescription>
-						Enable or disable payment methods for customers
-					</CardDescription>
+					<CardDescription>Enable or disable payment methods for customers</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -221,9 +196,7 @@ export default function PaymentSettingsPage() {
 			</Card>
 
 			{data?.updatedAt && (
-				<p className="text-sm text-muted-foreground">
-					Last updated: {format(new Date(data.updatedAt), "PPpp")}
-				</p>
+				<p className="text-sm text-muted-foreground">Last updated: {format(new Date(data.updatedAt), "PPpp")}</p>
 			)}
 		</div>
 	);

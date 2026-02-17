@@ -69,6 +69,8 @@ export interface EarningsHistory {
 export interface PartnerDetails extends Partner {
 	reviews: PartnerReview[];
 	earningsHistory: EarningsHistory[];
+	carWashBays?: number;
+	detailingBays?: number;
 }
 
 export interface PaginatedResponse<T> {
@@ -97,11 +99,9 @@ const getActivePartners = (params?: PartnerFilters) =>
 const getSuspendedPartners = (params?: PartnerFilters) =>
 	apiClient.get<PaginatedResponse<Partner>>({ url: PartnerApi.Suspended, params });
 
-const getPartnerDetails = (id: string) =>
-	apiClient.get<PartnerDetails>({ url: `${PartnerApi.Details}/${id}` });
+const getPartnerDetails = (id: string) => apiClient.get<PartnerDetails>({ url: `${PartnerApi.Details}/${id}` });
 
-const approvePartner = (id: string) =>
-	apiClient.post({ url: `/partners/${id}/approve` });
+const approvePartner = (id: string) => apiClient.post({ url: `/partners/${id}/approve` });
 
 const rejectPartner = (id: string, reason: string) =>
 	apiClient.post({ url: `/partners/${id}/reject`, data: { reason } });
@@ -109,11 +109,9 @@ const rejectPartner = (id: string, reason: string) =>
 const suspendPartner = (id: string, reason: string) =>
 	apiClient.post({ url: `/partners/${id}/suspend`, data: { reason } });
 
-const reactivatePartner = (id: string) =>
-	apiClient.post({ url: `/partners/${id}/reactivate` });
+const reactivatePartner = (id: string) => apiClient.post({ url: `/partners/${id}/reactivate` });
 
-const removePartner = (id: string) =>
-	apiClient.delete({ url: `${PartnerApi.Details}/${id}` });
+const removePartner = (id: string) => apiClient.delete({ url: `${PartnerApi.Details}/${id}` });
 
 export default {
 	getPendingPartners,

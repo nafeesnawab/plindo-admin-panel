@@ -1,19 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-
+import { ArrowRight, Crown, DollarSign, TrendingDown, TrendingUp, Users } from "lucide-react";
 import analyticsService from "@/api/services/analyticsService";
 import { Chart } from "@/components/chart";
 import { Badge } from "@/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 import { Progress } from "@/ui/progress";
 import { Skeleton } from "@/ui/skeleton";
-import {
-	ArrowRight,
-	Crown,
-	DollarSign,
-	TrendingDown,
-	TrendingUp,
-	Users,
-} from "lucide-react";
 
 export default function SubscriptionAnalyticsPage() {
 	const { data, isLoading } = useQuery({
@@ -111,12 +103,14 @@ export default function SubscriptionAnalyticsPage() {
 	}
 
 	const funnel = data?.conversionFunnel;
-	const funnelSteps = funnel ? [
-		{ label: "Visitors", value: funnel.visitors, color: "bg-blue-500" },
-		{ label: "Signups", value: funnel.signups, color: "bg-purple-500" },
-		{ label: "Trials", value: funnel.trials, color: "bg-orange-500" },
-		{ label: "Subscribed", value: funnel.subscribed, color: "bg-green-500" },
-	] : [];
+	const funnelSteps = funnel
+		? [
+				{ label: "Visitors", value: funnel.visitors, color: "bg-blue-500" },
+				{ label: "Signups", value: funnel.signups, color: "bg-purple-500" },
+				{ label: "Trials", value: funnel.trials, color: "bg-orange-500" },
+				{ label: "Subscribed", value: funnel.subscribed, color: "bg-green-500" },
+			]
+		: [];
 
 	return (
 		<div className="space-y-6">
@@ -181,13 +175,13 @@ export default function SubscriptionAnalyticsPage() {
 							</div>
 							<div className="text-right">
 								<Badge variant="outline" className="text-blue-600">
-									{((data?.overview.basicSubscribers || 0) / (data?.overview.totalActive || 1) * 100).toFixed(0)}%
+									{(((data?.overview.basicSubscribers || 0) / (data?.overview.totalActive || 1)) * 100).toFixed(0)}%
 								</Badge>
 							</div>
 						</div>
-						<Progress 
-							value={(data?.overview.basicSubscribers || 0) / (data?.overview.totalActive || 1) * 100} 
-							className="h-2 mt-3" 
+						<Progress
+							value={((data?.overview.basicSubscribers || 0) / (data?.overview.totalActive || 1)) * 100}
+							className="h-2 mt-3"
 						/>
 					</CardContent>
 				</Card>
@@ -204,13 +198,13 @@ export default function SubscriptionAnalyticsPage() {
 							</div>
 							<div className="text-right">
 								<Badge variant="outline" className="text-amber-600">
-									{((data?.overview.premiumSubscribers || 0) / (data?.overview.totalActive || 1) * 100).toFixed(0)}%
+									{(((data?.overview.premiumSubscribers || 0) / (data?.overview.totalActive || 1)) * 100).toFixed(0)}%
 								</Badge>
 							</div>
 						</div>
-						<Progress 
-							value={(data?.overview.premiumSubscribers || 0) / (data?.overview.totalActive || 1) * 100} 
-							className="h-2 mt-3" 
+						<Progress
+							value={((data?.overview.premiumSubscribers || 0) / (data?.overview.totalActive || 1)) * 100}
+							className="h-2 mt-3"
 						/>
 					</CardContent>
 				</Card>
@@ -304,7 +298,8 @@ export default function SubscriptionAnalyticsPage() {
 					{funnel && (
 						<div className="mt-6 p-4 bg-muted/50 rounded-lg">
 							<p className="text-sm text-muted-foreground">
-								<strong>Overall Conversion:</strong> {((funnel.subscribed / funnel.visitors) * 100).toFixed(2)}% of visitors become subscribers
+								<strong>Overall Conversion:</strong> {((funnel.subscribed / funnel.visitors) * 100).toFixed(2)}% of
+								visitors become subscribers
 							</p>
 						</div>
 					)}

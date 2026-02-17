@@ -1,30 +1,16 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-
+import { format } from "date-fns";
+import { FileSpreadsheet, FileText } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 import financeService from "@/api/services/financeService";
 import { Chart } from "@/components/chart";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { Skeleton } from "@/ui/skeleton";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/ui/table";
-import { format } from "date-fns";
-import { FileSpreadsheet, FileText } from "lucide-react";
-import { toast } from "sonner";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 
 export default function CommissionsPage() {
 	const [period, setPeriod] = useState<"week" | "month" | "year">("month");
@@ -209,9 +195,7 @@ export default function CommissionsPage() {
 						<TableBody>
 							{data?.daily.map((day) => (
 								<TableRow key={day.date}>
-									<TableCell className="font-medium">
-										{format(new Date(day.date), "MMM dd, yyyy")}
-									</TableCell>
+									<TableCell className="font-medium">{format(new Date(day.date), "MMM dd, yyyy")}</TableCell>
 									<TableCell className="text-right">{day.bookings}</TableCell>
 									<TableCell className="text-right">€{day.grossRevenue.toFixed(2)}</TableCell>
 									<TableCell className="text-right text-blue-600">€{day.customerFees.toFixed(2)}</TableCell>

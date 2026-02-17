@@ -1,45 +1,16 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-
+import { format } from "date-fns";
+import { Bell, Building2, CheckCircle, Eye, Mail, Smartphone, User, Users, XCircle } from "lucide-react";
+import { useState } from "react";
 import notificationService, { type Notification } from "@/api/services/notificationService";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
-import {
-	Dialog,
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-} from "@/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/ui/dialog";
 import { Progress } from "@/ui/progress";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { Skeleton } from "@/ui/skeleton";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/ui/table";
-import { format } from "date-fns";
-import {
-	Bell,
-	Building2,
-	CheckCircle,
-	Eye,
-	Mail,
-	Smartphone,
-	User,
-	Users,
-	XCircle,
-} from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 
 export default function NotificationHistoryPage() {
 	const [page, setPage] = useState(1);
@@ -48,30 +19,41 @@ export default function NotificationHistoryPage() {
 
 	const { data, isLoading } = useQuery({
 		queryKey: ["notifications", page, recipientFilter],
-		queryFn: () => notificationService.getHistory({
-			page,
-			limit: 10,
-			recipientType: recipientFilter || undefined,
-		}),
+		queryFn: () =>
+			notificationService.getHistory({
+				page,
+				limit: 10,
+				recipientType: recipientFilter || undefined,
+			}),
 	});
 
 	const getRecipientIcon = (type: string) => {
 		switch (type) {
-			case "all_users": return <Users className="h-4 w-4" />;
-			case "all_customers": return <User className="h-4 w-4" />;
-			case "all_partners": return <Building2 className="h-4 w-4" />;
-			case "specific_user": return <User className="h-4 w-4" />;
-			default: return <Users className="h-4 w-4" />;
+			case "all_users":
+				return <Users className="h-4 w-4" />;
+			case "all_customers":
+				return <User className="h-4 w-4" />;
+			case "all_partners":
+				return <Building2 className="h-4 w-4" />;
+			case "specific_user":
+				return <User className="h-4 w-4" />;
+			default:
+				return <Users className="h-4 w-4" />;
 		}
 	};
 
 	const getRecipientLabel = (type: string) => {
 		switch (type) {
-			case "all_users": return "All Users";
-			case "all_customers": return "All Customers";
-			case "all_partners": return "All Partners";
-			case "specific_user": return "Specific User";
-			default: return type;
+			case "all_users":
+				return "All Users";
+			case "all_customers":
+				return "All Customers";
+			case "all_partners":
+				return "All Partners";
+			case "specific_user":
+				return "Specific User";
+			default:
+				return type;
 		}
 	};
 
@@ -92,10 +74,14 @@ export default function NotificationHistoryPage() {
 
 	const getTypeIcon = (type: string) => {
 		switch (type) {
-			case "push": return <Smartphone className="h-4 w-4" />;
-			case "email": return <Mail className="h-4 w-4" />;
-			case "both": return <Bell className="h-4 w-4" />;
-			default: return <Bell className="h-4 w-4" />;
+			case "push":
+				return <Smartphone className="h-4 w-4" />;
+			case "email":
+				return <Mail className="h-4 w-4" />;
+			case "both":
+				return <Bell className="h-4 w-4" />;
+			default:
+				return <Bell className="h-4 w-4" />;
 		}
 	};
 
@@ -125,7 +111,13 @@ export default function NotificationHistoryPage() {
 							<Bell className="h-5 w-5" />
 							Notification History
 						</CardTitle>
-						<Select value={recipientFilter} onValueChange={(v) => { setRecipientFilter(v); setPage(1); }}>
+						<Select
+							value={recipientFilter}
+							onValueChange={(v) => {
+								setRecipientFilter(v);
+								setPage(1);
+							}}
+						>
 							<SelectTrigger className="w-[180px]">
 								<SelectValue placeholder="All Recipients" />
 							</SelectTrigger>
@@ -141,9 +133,7 @@ export default function NotificationHistoryPage() {
 				</CardHeader>
 				<CardContent>
 					{data?.items.length === 0 ? (
-						<div className="text-center py-12 text-muted-foreground">
-							No notifications found
-						</div>
+						<div className="text-center py-12 text-muted-foreground">No notifications found</div>
 					) : (
 						<Table>
 							<TableHeader>
@@ -188,11 +178,7 @@ export default function NotificationHistoryPage() {
 											</div>
 										</TableCell>
 										<TableCell className="text-right">
-											<Button
-												variant="ghost"
-												size="icon"
-												onClick={() => setSelectedNotification(notification)}
-											>
+											<Button variant="ghost" size="icon" onClick={() => setSelectedNotification(notification)}>
 												<Eye className="h-4 w-4" />
 											</Button>
 										</TableCell>

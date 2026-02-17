@@ -1,20 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-
+import { AlertTriangle, ArrowUpRight, Calendar, Check, Crown, TrendingDown, Users } from "lucide-react";
 import financeService from "@/api/services/financeService";
 import { Chart } from "@/components/chart";
 import { Badge } from "@/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 import { Progress } from "@/ui/progress";
 import { Skeleton } from "@/ui/skeleton";
-import {
-	AlertTriangle,
-	ArrowUpRight,
-	Calendar,
-	Check,
-	Crown,
-	TrendingDown,
-	Users,
-} from "lucide-react";
 
 export default function SubscriptionsPage() {
 	const { data, isLoading } = useQuery({
@@ -85,10 +76,7 @@ export default function SubscriptionsPage() {
 		},
 	};
 
-	const revenueSeries = [
-		data?.overview.basicRevenue || 0,
-		data?.overview.premiumRevenue || 0,
-	];
+	const revenueSeries = [data?.overview.basicRevenue || 0, data?.overview.premiumRevenue || 0];
 
 	if (isLoading) {
 		return (
@@ -108,7 +96,8 @@ export default function SubscriptionsPage() {
 
 	const totalSubscribers = data?.overview.totalActive || 0;
 	const basicPercentage = totalSubscribers > 0 ? ((data?.overview.basicSubscribers || 0) / totalSubscribers) * 100 : 0;
-	const premiumPercentage = totalSubscribers > 0 ? ((data?.overview.premiumSubscribers || 0) / totalSubscribers) * 100 : 0;
+	const premiumPercentage =
+		totalSubscribers > 0 ? ((data?.overview.premiumSubscribers || 0) / totalSubscribers) * 100 : 0;
 
 	return (
 		<div className="space-y-6">
@@ -185,13 +174,11 @@ export default function SubscriptionsPage() {
 									<span className="font-bold">€{plan.revenue.toLocaleString()}/mo</span>
 								</div>
 								<div className="flex items-center gap-4">
-									<Progress 
-										value={plan.name === "Basic" ? basicPercentage : premiumPercentage} 
-										className="flex-1 h-2" 
+									<Progress
+										value={plan.name === "Basic" ? basicPercentage : premiumPercentage}
+										className="flex-1 h-2"
 									/>
-									<span className="text-sm text-muted-foreground w-24 text-right">
-										{plan.subscribers} users
-									</span>
+									<span className="text-sm text-muted-foreground w-24 text-right">{plan.subscribers} users</span>
 								</div>
 								<div className="flex flex-wrap gap-2">
 									{plan.features.map((feature) => (
@@ -233,11 +220,11 @@ export default function SubscriptionsPage() {
 						<div>
 							<h3 className="font-medium text-orange-800 dark:text-orange-200">Churn Rate Alert</h3>
 							<p className="text-sm text-orange-700/80 dark:text-orange-300/80 mt-1">
-								Your current churn rate is {data?.overview.churnRate}%. Industry average for subscription services is 5-7%. 
-								{(data?.overview.churnRate || 0) > 7 
+								Your current churn rate is {data?.overview.churnRate}%. Industry average for subscription services is
+								5-7%.
+								{(data?.overview.churnRate || 0) > 7
 									? " Consider implementing retention strategies like personalized offers or loyalty rewards."
-									: " Great job! Your retention is performing well."
-								}
+									: " Great job! Your retention is performing well."}
 							</p>
 						</div>
 					</div>

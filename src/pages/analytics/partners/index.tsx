@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-
+import { Building2, CheckCircle, Clock, Star, TrendingUp, UserX } from "lucide-react";
 import analyticsService from "@/api/services/analyticsService";
 import { Chart } from "@/components/chart";
 import { Avatar, AvatarFallback } from "@/ui/avatar";
@@ -7,23 +7,8 @@ import { Badge } from "@/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 import { Progress } from "@/ui/progress";
 import { Skeleton } from "@/ui/skeleton";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/tabs";
-import {
-	Building2,
-	CheckCircle,
-	Clock,
-	Star,
-	TrendingUp,
-	UserX,
-} from "lucide-react";
 
 export default function PartnerAnalyticsPage() {
 	const { data, isLoading } = useQuery({
@@ -160,9 +145,9 @@ export default function PartnerAnalyticsPage() {
 							<span className="text-sm text-muted-foreground">Pending</span>
 						</div>
 						<p className="text-xl font-bold">{data?.overview.pendingPartners}</p>
-						<Progress 
-							value={(data?.overview.pendingPartners || 0) / (data?.overview.totalPartners || 1) * 100} 
-							className="h-1 mt-2" 
+						<Progress
+							value={((data?.overview.pendingPartners || 0) / (data?.overview.totalPartners || 1)) * 100}
+							className="h-1 mt-2"
 						/>
 					</CardContent>
 				</Card>
@@ -173,9 +158,9 @@ export default function PartnerAnalyticsPage() {
 							<span className="text-sm text-muted-foreground">Suspended</span>
 						</div>
 						<p className="text-xl font-bold">{data?.overview.suspendedPartners}</p>
-						<Progress 
-							value={(data?.overview.suspendedPartners || 0) / (data?.overview.totalPartners || 1) * 100} 
-							className="h-1 mt-2" 
+						<Progress
+							value={((data?.overview.suspendedPartners || 0) / (data?.overview.totalPartners || 1)) * 100}
+							className="h-1 mt-2"
 						/>
 					</CardContent>
 				</Card>
@@ -265,7 +250,11 @@ export default function PartnerAnalyticsPage() {
 													<div className="flex items-center gap-2">
 														<Avatar className="h-8 w-8">
 															<AvatarFallback className="text-xs bg-blue-500/10 text-blue-600">
-																{partner.businessName.split(" ").slice(0, 2).map((n) => n[0]).join("")}
+																{partner.businessName
+																	.split(" ")
+																	.slice(0, 2)
+																	.map((n) => n[0])
+																	.join("")}
 															</AvatarFallback>
 														</Avatar>
 														<span className="font-medium">{partner.businessName}</span>
@@ -292,7 +281,11 @@ export default function PartnerAnalyticsPage() {
 													<div className="flex items-center gap-2">
 														<Avatar className="h-8 w-8">
 															<AvatarFallback className="text-xs bg-green-500/10 text-green-600">
-																{partner.businessName.split(" ").slice(0, 2).map((n) => n[0]).join("")}
+																{partner.businessName
+																	.split(" ")
+																	.slice(0, 2)
+																	.map((n) => n[0])
+																	.join("")}
 															</AvatarFallback>
 														</Avatar>
 														<span className="font-medium">{partner.businessName}</span>
@@ -319,7 +312,11 @@ export default function PartnerAnalyticsPage() {
 													<div className="flex items-center gap-2">
 														<Avatar className="h-8 w-8">
 															<AvatarFallback className="text-xs bg-yellow-500/10 text-yellow-600">
-																{partner.businessName.split(" ").slice(0, 2).map((n) => n[0]).join("")}
+																{partner.businessName
+																	.split(" ")
+																	.slice(0, 2)
+																	.map((n) => n[0])
+																	.join("")}
 															</AvatarFallback>
 														</Avatar>
 														<span className="font-medium">{partner.businessName}</span>

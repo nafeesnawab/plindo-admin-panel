@@ -8,15 +8,12 @@ import {
 	Clock,
 	CreditCard,
 	Crown,
-	Edit,
 	Megaphone,
 	Percent,
 	Save,
 	Settings,
-	Smartphone,
 	Sparkles,
 	Users,
-	Wallet,
 	XCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -33,7 +30,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/ui/dialog";
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
 import { Skeleton } from "@/ui/skeleton";
 import { Switch } from "@/ui/switch";
 import { Textarea } from "@/ui/textarea";
@@ -413,146 +409,6 @@ function SubscriptionPlansTab() {
 	);
 }
 
-function PaymentTab() {
-	const queryClient = useQueryClient();
-	const [paymentMethods, setPaymentMethods] = useState({ cards: true, applePay: true, googlePay: true });
-	const [payoutSchedule, setPayoutSchedule] = useState<"weekly" | "monthly">("weekly");
-
-	const { data, isLoading } = useQuery({
-		queryKey: ["settings-payment"],
-		queryFn: () => settingsService.getPaymentSettings(),
-	});
-
-	useEffect(() => {
-		if (data) {
-			setPaymentMethods(data.paymentMethods);
-			setPayoutSchedule(data.payoutSchedule);
-		}
-	}, [data]);
-
-	const updateMutation = useMutation({
-		mutationFn: () => settingsService.updatePaymentSettings({ paymentMethods, payoutSchedule }),
-		onSuccess: () => {
-			toast.success("Payment settings updated");
-			queryClient.invalidateQueries({ queryKey: ["settings-payment"] });
-		},
-		onError: () => toast.error("Failed to update settings"),
-	});
-
-	const hasChanges =
-		data &&
-		(JSON.stringify(paymentMethods) !== JSON.stringify(data.paymentMethods) || payoutSchedule !== data.payoutSchedule);
-
-	if (isLoading) return <Skeleton className="h-[200px]" />;
-
-	return (
-		<div className="flex-1 min-h-0 overflow-auto space-y-6">
-			<div className="flex justify-end">
-				<Button onClick={() => updateMutation.mutate()} disabled={!hasChanges || updateMutation.isPending}>
-					<Save className="h-4 w-4 mr-2" />
-					Save Changes
-				</Button>
-			</div>
-			<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-				<Card>
-					<CardHeader>
-						<CardTitle className="flex items-center gap-2">
-							<Wallet className="h-5 w-5 text-purple-600" />
-							Stripe
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="flex items-center justify-between p-3 border rounded-lg">
-							<div>
-								<p className="font-medium">Stripe</p>
-								<p className="text-xs text-muted-foreground">{data?.stripeAccountId || "Not connected"}</p>
-							</div>
-							{data?.stripeConnected ? (
-								<Badge className="bg-green-500/10 text-green-600">Connected</Badge>
-							) : (
-								<Badge variant="destructive">Disconnected</Badge>
-							)}
-						</div>
-					</CardContent>
-				</Card>
-				<Card>
-					<CardHeader>
-						<CardTitle className="flex items-center gap-2">
-							<Calendar className="h-5 w-5 text-blue-600" />
-							Payout Schedule
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<Select value={payoutSchedule} onValueChange={(v) => setPayoutSchedule(v as "weekly" | "monthly")}>
-							<SelectTrigger>
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="weekly">Weekly (Every Monday)</SelectItem>
-								<SelectItem value="monthly">Monthly (1st of month)</SelectItem>
-							</SelectContent>
-						</Select>
-					</CardContent>
-				</Card>
-			</div>
-			<Card>
-				<CardHeader>
-					<CardTitle className="flex items-center gap-2">
-						<CreditCard className="h-5 w-5 text-green-600" />
-						Payment Methods
-					</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-						<div className="flex items-center justify-between p-4 border rounded-lg">
-							<div className="flex items-center gap-3">
-								<CreditCard className="h-5 w-5 text-blue-600" />
-								<div>
-									<p className="font-medium">Cards</p>
-									<p className="text-xs text-muted-foreground">Visa, Mastercard</p>
-								</div>
-							</div>
-							<Switch
-								checked={paymentMethods.cards}
-								onCheckedChange={(checked) => setPaymentMethods({ ...paymentMethods, cards: checked })}
-							/>
-						</div>
-						<div className="flex items-center justify-between p-4 border rounded-lg">
-							<div className="flex items-center gap-3">
-								<Smartphone className="h-5 w-5 text-gray-800" />
-								<div>
-									<p className="font-medium">Apple Pay</p>
-									<p className="text-xs text-muted-foreground">iOS devices</p>
-								</div>
-							</div>
-							<Switch
-								checked={paymentMethods.applePay}
-								onCheckedChange={(checked) => setPaymentMethods({ ...paymentMethods, applePay: checked })}
-							/>
-						</div>
-						<div className="flex items-center justify-between p-4 border rounded-lg">
-							<div className="flex items-center gap-3">
-								<Wallet className="h-5 w-5 text-green-600" />
-								<div>
-									<p className="font-medium">Google Pay</p>
-									<p className="text-xs text-muted-foreground">Android</p>
-								</div>
-							</div>
-							<Switch
-								checked={paymentMethods.googlePay}
-								onCheckedChange={(checked) => setPaymentMethods({ ...paymentMethods, googlePay: checked })}
-							/>
-						</div>
-					</div>
-				</CardContent>
-			</Card>
-			{data?.updatedAt && (
-				<p className="text-sm text-muted-foreground">Last updated: {format(new Date(data.updatedAt), "PPpp")}</p>
-			)}
-		</div>
-	);
-}
-
 const notificationTypeLabels: Record<string, { label: string; icon: React.ReactNode; description: string }> = {
 	bookingConfirmation: {
 		label: "Booking Confirmation",
@@ -607,11 +463,6 @@ function NotificationsTab() {
 		queryFn: () => settingsService.getNotificationSettings(),
 	});
 
-	const { data: templatesData, isLoading: templatesLoading } = useQuery({
-		queryKey: ["settings-notification-templates"],
-		queryFn: () => settingsService.getNotificationTemplates(),
-	});
-
 	useEffect(() => {
 		if (settingsData) setTypes(settingsData.types);
 	}, [settingsData]);
@@ -638,7 +489,7 @@ function NotificationsTab() {
 
 	const hasChanges = settingsData && JSON.stringify(types) !== JSON.stringify(settingsData.types);
 
-	if (settingsLoading || templatesLoading) return <Skeleton className="h-[300px]" />;
+	if (settingsLoading) return <Skeleton className="h-[300px]" />;
 
 	return (
 		<div className="flex-1 min-h-0 overflow-auto space-y-6">
@@ -673,37 +524,6 @@ function NotificationsTab() {
 									checked={types[key as keyof NotificationTypes] ?? true}
 									onCheckedChange={(checked) => setTypes({ ...types, [key as keyof NotificationTypes]: checked })}
 								/>
-							</div>
-						))}
-					</div>
-				</CardContent>
-			</Card>
-			<Card>
-				<CardHeader>
-					<CardTitle className="flex items-center gap-2">
-						<Edit className="h-5 w-5 text-green-600" />
-						Email Templates
-					</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<div className="space-y-3">
-						{templatesData?.map((template) => (
-							<div key={template.id} className="flex items-center justify-between p-3 border rounded-lg">
-								<div className="flex-1 min-w-0">
-									<p className="font-medium text-sm">{template.name}</p>
-									<p className="text-xs text-muted-foreground truncate">{template.subject}</p>
-								</div>
-								<Button
-									variant="ghost"
-									size="sm"
-									onClick={() => {
-										setEditingTemplate(template);
-										setTemplateSubject(template.subject);
-										setTemplateBody(template.body);
-									}}
-								>
-									<Edit className="h-4 w-4" />
-								</Button>
 							</div>
 						))}
 					</div>
@@ -764,14 +584,13 @@ export default function PlatformSettingsPage() {
 		{ key: "commission", label: "Commission", children: <CommissionTab /> },
 		{ key: "booking-rules", label: "Booking Rules", children: <BookingRulesTab /> },
 		{ key: "subscription-plans", label: "Subscription Plans", children: <SubscriptionPlansTab /> },
-		{ key: "payment", label: "Payment", children: <PaymentTab /> },
 		{ key: "notifications", label: "Notifications", children: <NotificationsTab /> },
 	];
 
 	return (
 		<div className="h-full flex flex-col overflow-hidden">
 			<Card className="flex-1 min-h-0 flex flex-col">
-				<CardContent className="pt-6 flex-1 min-h-0 flex flex-col">
+				<CardContent className="pt-4 flex-1 min-h-0 flex flex-col">
 					<Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} className="ant-tabs-flex-fill" />
 				</CardContent>
 			</Card>
