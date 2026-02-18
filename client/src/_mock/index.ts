@@ -1,0 +1,70 @@
+import { setupWorker } from "msw/browser";
+import { bookingHandlers } from "./handlers/_bookings";
+import { carsHandlers } from "./handlers/_cars";
+import { customerHandlers } from "./handlers/_customers";
+import {
+	getBookingsTrend,
+	getDashboardStats,
+	getRecentBookings,
+	getRecentPartnerApplications,
+	getRecentUsers,
+	getRevenueTrend,
+	getUserGrowth,
+} from "./handlers/_dashboard";
+import { mockTokenExpired } from "./handlers/_demo";
+import { financeHandlers } from "./handlers/_finance";
+import { legalHandlers } from "./handlers/_legal";
+import { logsHandlers } from "./handlers/_logs";
+import { menuList } from "./handlers/_menu";
+import { partnerAuthHandlers } from "./handlers/_partner-auth";
+import { partnerDriversHandlers } from "./handlers/_partner-drivers";
+import { partnerEarningsHandlers } from "./handlers/_partner-earnings";
+import { partnerMessagesHandlers } from "./handlers/_partner-messages";
+import { partnerReviewsHandlers } from "./handlers/_partner-reviews";
+import { partnerScheduleHandlers } from "./handlers/_partner-schedule";
+import { partnerServicesHandlers } from "./handlers/_partner-services";
+import { partnerSettingsHandlers } from "./handlers/_partner-settings";
+import { partnerHandlers } from "./handlers/_partners";
+import { productOrderHandlers } from "./handlers/_product-orders";
+import { productHandlers } from "./handlers/_products";
+import { settingsHandlers } from "./handlers/_settings";
+import { slotBookingHandlers } from "./handlers/_slot-bookings";
+import { unifiedSignIn } from "./handlers/_unified-auth";
+import { signIn, userList } from "./handlers/_user";
+
+const handlers = [
+	unifiedSignIn,
+	signIn,
+	userList,
+	mockTokenExpired,
+	menuList,
+	getDashboardStats,
+	getBookingsTrend,
+	getRevenueTrend,
+	getUserGrowth,
+	getRecentBookings,
+	getRecentPartnerApplications,
+	getRecentUsers,
+	...partnerHandlers,
+	...customerHandlers,
+	...slotBookingHandlers, // Must be before bookingHandlers to match /api/bookings/slots before /api/bookings/:id
+	...bookingHandlers,
+	...financeHandlers,
+	...settingsHandlers,
+	...legalHandlers,
+	...logsHandlers,
+	...partnerAuthHandlers,
+	...partnerServicesHandlers,
+	...partnerScheduleHandlers,
+	...partnerEarningsHandlers,
+	...partnerReviewsHandlers,
+	...partnerMessagesHandlers,
+	...partnerDriversHandlers,
+	...partnerSettingsHandlers,
+	...carsHandlers,
+	...productHandlers,
+	...productOrderHandlers,
+];
+const worker = setupWorker(...handlers);
+
+export { worker };

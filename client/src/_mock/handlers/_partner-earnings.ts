@@ -1,0 +1,207 @@
+import { delay, HttpResponse, http } from "msw";
+import { ResultStatus } from "@/types/enum";
+
+interface Transaction {
+	id: string;
+	date: string;
+	bookingId: string;
+	customer: string;
+	service: string;
+	grossAmount: number;
+	commission: number;
+	netAmount: number;
+}
+
+interface Payout {
+	id: string;
+	payoutDate: string;
+	period: string;
+	totalBookings: number;
+	grossEarnings: number;
+	commission: number;
+	netAmount: number;
+	status: "completed" | "pending" | "processing";
+}
+
+const transactionsStore = new Map<string, Transaction[]>();
+const payoutsStore = new Map<string, Payout[]>();
+
+const generateMockTransactions = (partnerId: string): Transaction[] => {
+	const services = ["Basic Wash", "Premium Detail", "Interior Clean", "Full Detail"];
+	const customers = ["John Smith", "Sarah Johnson", "Mike Brown", "Emily Davis", "James Wilson"];
+	const prices = [25, 75, 45, 120];
+
+	return Array.from({ length: 10 }, (_, i) => {
+		const serviceIndex = i % 4;
+		const grossAmount = prices[serviceIndex];
+		const commission = grossAmount * 0.1;
+
+		return {
+			id: `TXN-${partnerId}-${1000 + i}`,
+			date: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+			bookingId: `BK-${2000 + i}`,
+			customer: customers[i % 5],
+			service: services[serviceIndex],
+			grossAmount,
+			commission,
+			netAmount: grossAmount - commission,
+		};
+	});
+};
+
+const generateMockPayouts = (partnerId: string): Payout[] => {
+	return [
+		{
+			id: `PAY-${partnerId}-001`,
+			payoutDate: "2024-01-15",
+			period: "Jan 1-15, 2024",
+			totalBookings: 45,
+			grossEarnings: 2850,
+			commission: 285,
+			netAmount: 2565,
+			status: "completed",
+		},
+		{
+			id: `PAY-${partnerId}-002`,
+			payoutDate: "2024-01-01",
+			period: "Dec 16-31, 2023",
+			totalBookings: 52,
+			grossEarnings: 3200,
+			commission: 320,
+			netAmount: 2880,
+			status: "completed",
+		},
+		{
+			id: `PAY-${partnerId}-003`,
+			payoutDate: "2024-01-22",
+			period: "Jan 16-22, 2024",
+			totalBookings: 28,
+			grossEarnings: 1680,
+			commission: 168,
+			netAmount: 1512,
+			status: "pending",
+		},
+	];
+};
+
+const initializePartnerData = (partnerId: string) => {
+	if (!transactionsStore.has(partnerId)) {
+		transactionsStore.set(partnerId, generateMockTransactions(partnerId));
+	}
+	if (!payoutsStore.has(partnerId)) {
+		payoutsStore.set(partnerId, generateMockPayouts(partnerId));
+	}
+};
+
+initializePartnerData("demo-partner-1");
+
+const getEarningsOverview = http.get("/api/partner/earnings/overview", async ({ request }) => {
+	await delay(300);
+
+	const url = new URL(request.url);
+	const partnerId = url.searchParams.get("partnerId") || "demo-partner-1";
+	initializePartnerData(partnerId);
+
+	return HttpResponse.json({
+		status: ResultStatus.SUCCESS,
+		message: "",
+		data: {
+			earnings: {
+				total: 45680,
+				thisMonth: 4250,
+				thisWeek: 1120,
+				today: 285,
+				grossRevenue: 4250,
+				commission: 425,
+				netEarnings: 3825,
+				pendingPayout: 1512,
+				nextPayoutDate: "2024-01-31",
+			},
+		},
+	});
+});
+
+const getTransactions = http.get("/api/partner/earnings/transactions", async ({ request }) => {
+	await delay(300);
+
+	const url = new URL(request.url);
+	const partnerId = url.searchParams.get("partnerId") || "demo-partner-1";
+	const page = parseInt(url.searchParams.get("page") || "1");
+	const limit = parseInt(url.searchParams.get("limit") || "20");
+
+	initializePartnerData(partnerId);
+	const transactions = transactionsStore.get(partnerId) || [];
+
+	const total = transactions.length;
+	const startIndex = (page - 1) * limit;
+	const paginatedTransactions = transactions.slice(startIndex, startIndex + limit);
+
+	return HttpResponse.json({
+		status: ResultStatus.SUCCESS,
+		message: "",
+		data: {
+			transactions: paginatedTransactions,
+			pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+		},
+	});
+});
+
+const getPayouts = http.get("/api/partner/earnings/payouts", async ({ request }) => {
+	await delay(300);
+
+	const url = new URL(request.url);
+	const partnerId = url.searchParams.get("partnerId") || "demo-partner-1";
+
+	initializePartnerData(partnerId);
+	const payouts = payoutsStore.get(partnerId) || [];
+
+	return HttpResponse.json({
+		status: ResultStatus.SUCCESS,
+		message: "",
+		data: { payouts },
+	});
+});
+
+const getEarningsChart = http.get("/api/partner/earnings/chart", async ({ request }) => {
+	await delay(300);
+
+	const url = new URL(request.url);
+	const period = url.searchParams.get("period") || "month";
+
+	const labels: string[] = [];
+	const data: number[] = [];
+
+	if (period === "day") {
+		for (let i = 6; i >= 0; i--) {
+			const date = new Date();
+			date.setDate(date.getDate() - i);
+			labels.push(date.toLocaleDateString("en-US", { weekday: "short" }));
+			data.push(Math.floor(Math.random() * 300) + 100);
+		}
+	} else if (period === "week") {
+		for (let i = 3; i >= 0; i--) {
+			labels.push(`Week ${4 - i}`);
+			data.push(Math.floor(Math.random() * 1500) + 500);
+		}
+	} else if (period === "month") {
+		for (let i = 5; i >= 0; i--) {
+			const date = new Date();
+			date.setMonth(date.getMonth() - i);
+			labels.push(date.toLocaleDateString("en-US", { month: "short" }));
+			data.push(Math.floor(Math.random() * 5000) + 2000);
+		}
+	} else {
+		for (let i = 2; i >= 0; i--) {
+			labels.push(`${2024 - i}`);
+			data.push(Math.floor(Math.random() * 50000) + 20000);
+		}
+	}
+
+	return HttpResponse.json({
+		status: ResultStatus.SUCCESS,
+		message: "",
+		data: { labels, values: data },
+	});
+});
+
+export const partnerEarningsHandlers = [getEarningsOverview, getTransactions, getPayouts, getEarningsChart];

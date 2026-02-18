@@ -24,5 +24,3 @@ dist-ssr
 # env
 .env
 
-# vite build stats
-stats.html
