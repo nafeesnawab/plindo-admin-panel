@@ -1,6 +1,17 @@
 import { createContext, type ReactNode, useContext, useState } from "react";
 import type { BusinessDetails, BusinessDocuments, BusinessInfo, Driver } from "@/types/partner";
 import { createEmptyDriver, INITIAL_BUSINESS_DETAILS, INITIAL_BUSINESS_INFO, INITIAL_DOCUMENTS } from "@/types/partner";
+import type { ServiceCategory } from "@/types/booking";
+
+const DEFAULT_SCHEDULE = [
+	{ dayOfWeek: 0, dayName: "Sunday", isEnabled: false, timeBlocks: [] },
+	{ dayOfWeek: 1, dayName: "Monday", isEnabled: false, timeBlocks: [] },
+	{ dayOfWeek: 2, dayName: "Tuesday", isEnabled: false, timeBlocks: [] },
+	{ dayOfWeek: 3, dayName: "Wednesday", isEnabled: false, timeBlocks: [] },
+	{ dayOfWeek: 4, dayName: "Thursday", isEnabled: false, timeBlocks: [] },
+	{ dayOfWeek: 5, dayName: "Friday", isEnabled: false, timeBlocks: [] },
+	{ dayOfWeek: 6, dayName: "Saturday", isEnabled: false, timeBlocks: [] },
+];
 
 interface RegistrationContextType {
 	currentStep: number;
@@ -20,6 +31,13 @@ interface RegistrationContextType {
 	removeDriver: (id: string) => void;
 	updateDriver: (id: string, data: Partial<Driver>) => void;
 
+	schedule: any[];
+	setSchedule: (schedule: any[]) => void;
+	capacityByCategory: Record<ServiceCategory, number>;
+	setCapacityByCategory: (capacity: Record<ServiceCategory, number>) => void;
+	bufferTime: number;
+	setBufferTime: (time: number) => void;
+
 	businessDetails: BusinessDetails;
 	setBusinessDetails: (details: BusinessDetails) => void;
 
@@ -37,10 +55,13 @@ export function PartnerRegistrationProvider({ children }: { children: ReactNode 
 	const [businessInfo, setBusinessInfo] = useState<BusinessInfo>(INITIAL_BUSINESS_INFO);
 	const [documents, setDocuments] = useState<BusinessDocuments>(INITIAL_DOCUMENTS);
 	const [drivers, setDrivers] = useState<Driver[]>([createEmptyDriver()]);
+	const [schedule, setSchedule] = useState<any[]>(DEFAULT_SCHEDULE);
+	const [capacityByCategory, setCapacityByCategory] = useState<Record<ServiceCategory, number>>({ wash: 0, detailing: 0, other: 0 });
+	const [bufferTime, setBufferTime] = useState(15);
 	const [businessDetails, setBusinessDetails] = useState<BusinessDetails>(INITIAL_BUSINESS_DETAILS);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
-	const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, 5));
+	const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, 6));
 	const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
 
 	const addDriver = () => {
@@ -60,6 +81,9 @@ export function PartnerRegistrationProvider({ children }: { children: ReactNode 
 		setBusinessInfo(INITIAL_BUSINESS_INFO);
 		setDocuments(INITIAL_DOCUMENTS);
 		setDrivers([createEmptyDriver()]);
+		setSchedule(DEFAULT_SCHEDULE);
+		setCapacityByCategory({ wash: 0, detailing: 0, other: 0 });
+		setBufferTime(15);
 		setBusinessDetails(INITIAL_BUSINESS_DETAILS);
 		setIsSubmitting(false);
 	};
@@ -99,11 +123,15 @@ export function PartnerRegistrationProvider({ children }: { children: ReactNode 
 			}
 		});
 
+		// Schedule & Capacity
+		formData.append("schedule", JSON.stringify(schedule));
+		formData.append("capacityByCategory", JSON.stringify(capacityByCategory));
+		formData.append("bufferTime", JSON.stringify(bufferTime));
+
 		// Business Details (without file objects)
 		const detailsData = {
 			description: businessDetails.description,
 			serviceRadius: businessDetails.serviceRadius,
-			workingHours: businessDetails.workingHours,
 		};
 		formData.append("businessDetails", JSON.stringify(detailsData));
 
@@ -137,6 +165,12 @@ export function PartnerRegistrationProvider({ children }: { children: ReactNode 
 				addDriver,
 				removeDriver,
 				updateDriver,
+				schedule,
+				setSchedule,
+				capacityByCategory,
+				setCapacityByCategory,
+				bufferTime,
+				setBufferTime,
 				businessDetails,
 				setBusinessDetails,
 				isSubmitting,

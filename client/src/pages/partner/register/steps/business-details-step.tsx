@@ -1,34 +1,12 @@
-import { Camera, Clock, MapPin, Plus, X } from "lucide-react";
+import { Camera, MapPin, Plus, X } from "lucide-react";
 import { useRef } from "react";
-import type { WeeklyWorkingHours, WorkingHoursDay } from "@/types/partner";
 import { Button } from "@/ui/button";
 import { Card, CardContent } from "@/ui/card";
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
 import { Slider } from "@/ui/slider";
-import { Switch } from "@/ui/switch";
 import { Textarea } from "@/ui/textarea";
 import { usePartnerRegistration } from "../context/registration-context";
-
-const DAYS_OF_WEEK: (keyof WeeklyWorkingHours)[] = [
-	"monday",
-	"tuesday",
-	"wednesday",
-	"thursday",
-	"friday",
-	"saturday",
-	"sunday",
-];
-
-const DAY_LABELS: Record<keyof WeeklyWorkingHours, string> = {
-	monday: "Monday",
-	tuesday: "Tuesday",
-	wednesday: "Wednesday",
-	thursday: "Thursday",
-	friday: "Friday",
-	saturday: "Saturday",
-	sunday: "Sunday",
-};
 
 interface ImageUploadProps {
 	label: string;
@@ -39,13 +17,7 @@ interface ImageUploadProps {
 	aspectRatio?: string;
 }
 
-function ImageUploadBox({
-	label,
-	description,
-	preview,
-	onFileChange,
-	aspectRatio = "aspect-square",
-}: ImageUploadProps) {
+function ImageUploadBox({ label, description, preview, onFileChange, aspectRatio = "aspect-square" }: ImageUploadProps) {
 	const inputRef = useRef<HTMLInputElement>(null);
 
 	const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -62,280 +34,159 @@ function ImageUploadBox({
 	return (
 		<div className="space-y-2">
 			<Label>{label}</Label>
-			<p className="text-xs text-muted-foreground">{description}</p>
 			<div
-				className={`relative ${aspectRatio} w-full overflow-hidden rounded-lg border-2 border-dashed hover:border-primary cursor-pointer transition-colors`}
+				className={`relative ${aspectRatio} w-full max-w-xs cursor-pointer overflow-hidden rounded-lg border-2 border-dashed border-border hover:border-primary transition-colors`}
 				onClick={() => inputRef.current?.click()}
-				onKeyDown={(e) => e.key === "Enter" && inputRef.current?.click()}
-				role="button"
-				tabIndex={0}
 			>
-				<input ref={inputRef} type="file" accept="image/*" onChange={handleFileInput} className="hidden" />
 				{preview ? (
 					<>
 						<img src={preview} alt={label} className="h-full w-full object-cover" />
-						<Button
+						<button
 							type="button"
-							variant="destructive"
-							size="icon"
-							className="absolute right-2 top-2 h-8 w-8"
+							className="absolute top-2 right-2 rounded-full bg-destructive p-1 text-destructive-foreground hover:bg-destructive/90"
 							onClick={(e) => {
 								e.stopPropagation();
-								onFileChange(null, undefined);
+								onFileChange(null);
 							}}
 						>
 							<X className="h-4 w-4" />
-						</Button>
+						</button>
 					</>
 				) : (
-					<div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground">
-						<Camera className="h-8 w-8 mb-2" />
-						<span className="text-sm">Click to upload</span>
+					<div className="flex h-full flex-col items-center justify-center gap-2 p-4 text-muted-foreground">
+						<Camera className="h-8 w-8" />
+						<p className="text-center text-xs">{description}</p>
 					</div>
 				)}
 			</div>
-		</div>
-	);
-}
-
-interface WorkingHoursDayRowProps {
-	day: keyof WeeklyWorkingHours;
-	hours: WorkingHoursDay;
-	onChange: (hours: WorkingHoursDay) => void;
-}
-
-function WorkingHoursDayRow({ day, hours, onChange }: WorkingHoursDayRowProps) {
-	return (
-		<div className="flex items-center gap-4 py-2">
-			<div className="w-24">
-				<span className="text-sm font-medium">{DAY_LABELS[day]}</span>
-			</div>
-			<Switch checked={hours.isOpen} onCheckedChange={(isOpen) => onChange({ ...hours, isOpen })} />
-			{hours.isOpen ? (
-				<div className="flex items-center gap-2 flex-1">
-					<Input
-						type="time"
-						value={hours.openTime}
-						onChange={(e) => onChange({ ...hours, openTime: e.target.value })}
-						className="w-28"
-					/>
-					<span className="text-muted-foreground">to</span>
-					<Input
-						type="time"
-						value={hours.closeTime}
-						onChange={(e) => onChange({ ...hours, closeTime: e.target.value })}
-						className="w-28"
-					/>
-				</div>
-			) : (
-				<span className="text-sm text-muted-foreground">Closed</span>
-			)}
+			<input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={handleFileInput} />
 		</div>
 	);
 }
 
 export function BusinessDetailsStep() {
 	const { businessDetails, setBusinessDetails, nextStep, prevStep } = usePartnerRegistration();
-	const workPhotosInputRef = useRef<HTMLInputElement>(null);
 
-	const handleLogoChange = (file: File | null, preview?: string) => {
-		setBusinessDetails({
-			...businessDetails,
-			logo: file,
-			logoPreview: preview,
-		});
+	const handleNext = () => {
+		nextStep();
 	};
-
-	const handleCoverChange = (file: File | null, preview?: string) => {
-		setBusinessDetails({
-			...businessDetails,
-			coverPhoto: file,
-			coverPhotoPreview: preview,
-		});
-	};
-
-	const handleWorkPhotosChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const files = Array.from(e.target.files || []);
-		const remainingSlots = 10 - businessDetails.workPhotos.length;
-		const newFiles = files.slice(0, remainingSlots);
-
-		const newPreviews: string[] = [];
-		let processedCount = 0;
-
-		newFiles.forEach((file) => {
-			const reader = new FileReader();
-			reader.onloadend = () => {
-				newPreviews.push(reader.result as string);
-				processedCount++;
-				if (processedCount === newFiles.length) {
-					setBusinessDetails({
-						...businessDetails,
-						workPhotos: [...businessDetails.workPhotos, ...newFiles],
-						workPhotosPreview: [...businessDetails.workPhotosPreview, ...newPreviews],
-					});
-				}
-			};
-			reader.readAsDataURL(file);
-		});
-	};
-
-	const removeWorkPhoto = (index: number) => {
-		setBusinessDetails({
-			...businessDetails,
-			workPhotos: businessDetails.workPhotos.filter((_, i) => i !== index),
-			workPhotosPreview: businessDetails.workPhotosPreview.filter((_, i) => i !== index),
-		});
-	};
-
-	const updateWorkingHours = (day: keyof WeeklyWorkingHours, hours: WorkingHoursDay) => {
-		setBusinessDetails({
-			...businessDetails,
-			workingHours: {
-				...businessDetails.workingHours,
-				[day]: hours,
-			},
-		});
-	};
-
-	const isComplete =
-		businessDetails.logo !== null &&
-		businessDetails.coverPhoto !== null &&
-		businessDetails.description.trim().length >= 50;
 
 	return (
 		<div className="space-y-6">
 			<div>
 				<h2 className="text-2xl font-semibold">Business Details</h2>
-				<p className="text-muted-foreground">Add your business branding and set your working hours</p>
+				<p className="text-muted-foreground">Add your business description, logo, and photos</p>
 			</div>
 
-			{/* Logo and Cover Photo */}
-			<div className="grid gap-6 md:grid-cols-2">
-				<ImageUploadBox
-					label="Business Logo *"
-					description="Square image, min 200x200px"
-					file={businessDetails.logo}
-					preview={businessDetails.logoPreview}
-					onFileChange={handleLogoChange}
-					aspectRatio="aspect-square max-w-[200px]"
-				/>
-
-				<ImageUploadBox
-					label="Cover Photo *"
-					description="Wide image for your profile banner"
-					file={businessDetails.coverPhoto}
-					preview={businessDetails.coverPhotoPreview}
-					onFileChange={handleCoverChange}
-					aspectRatio="aspect-video"
-				/>
-			</div>
-
-			{/* Work Photos Gallery */}
-			<div className="space-y-2">
-				<Label>Work Photos (up to 10)</Label>
-				<p className="text-xs text-muted-foreground">Showcase your facility and work quality</p>
-				<div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-					{businessDetails.workPhotosPreview.map((preview, index) => (
-						<div key={index} className="relative aspect-square rounded-lg overflow-hidden border">
-							<img src={preview} alt={`Work photo ${index + 1}`} className="h-full w-full object-cover" />
-							<Button
-								type="button"
-								variant="destructive"
-								size="icon"
-								className="absolute right-1 top-1 h-6 w-6"
-								onClick={() => removeWorkPhoto(index)}
-							>
-								<X className="h-3 w-3" />
-							</Button>
-						</div>
-					))}
-					{businessDetails.workPhotos.length < 10 && (
-						<div
-							className="aspect-square rounded-lg border-2 border-dashed flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors"
-							onClick={() => workPhotosInputRef.current?.click()}
-							onKeyDown={(e) => e.key === "Enter" && workPhotosInputRef.current?.click()}
-							role="button"
-							tabIndex={0}
-						>
-							<input
-								ref={workPhotosInputRef}
-								type="file"
-								accept="image/*"
-								multiple
-								onChange={handleWorkPhotosChange}
-								className="hidden"
-							/>
-							<Plus className="h-6 w-6 text-muted-foreground" />
-							<span className="text-xs text-muted-foreground mt-1">Add Photo</span>
-						</div>
-					)}
-				</div>
-			</div>
-
-			{/* Description */}
 			<div className="space-y-2">
 				<Label htmlFor="description">Business Description *</Label>
 				<Textarea
 					id="description"
-					placeholder="Describe your car wash services, specialties, and what makes you unique..."
+					placeholder="Describe your car wash and detailing services..."
 					value={businessDetails.description}
 					onChange={(e) => setBusinessDetails({ ...businessDetails, description: e.target.value })}
 					rows={4}
-					maxLength={500}
 				/>
-				<p className="text-xs text-muted-foreground text-right">
-					{businessDetails.description.length}/500 characters (min 50)
-				</p>
 			</div>
 
-			{/* Service Radius */}
-			<Card>
-				<CardContent className="p-4">
-					<div className="flex items-center gap-2 mb-4">
-						<MapPin className="h-5 w-5 text-primary" />
-						<Label>Service Radius</Label>
-					</div>
-					<p className="text-sm text-muted-foreground mb-4">How far are you willing to travel to pick up vehicles?</p>
-					<div className="flex items-center gap-4">
-						<Slider
-							value={[businessDetails.serviceRadius]}
-							onValueChange={([value]) => setBusinessDetails({ ...businessDetails, serviceRadius: value })}
-							max={50}
-							min={1}
-							step={1}
-							className="flex-1"
-						/>
-						<span className="w-20 text-right font-semibold">{businessDetails.serviceRadius} km</span>
-					</div>
-				</CardContent>
-			</Card>
+			<div className="space-y-2">
+				<Label>Service Radius</Label>
+				<div className="flex items-center gap-4">
+					<MapPin className="h-5 w-5 text-muted-foreground" />
+					<Slider
+						value={[businessDetails.serviceRadius]}
+						onValueChange={([value]) => setBusinessDetails({ ...businessDetails, serviceRadius: value })}
+						min={1}
+						max={50}
+						step={1}
+						className="flex-1"
+					/>
+					<span className="text-sm font-medium w-16 text-right">{businessDetails.serviceRadius} km</span>
+				</div>
+			</div>
 
-			{/* Working Hours */}
-			<Card>
-				<CardContent className="p-4">
-					<div className="flex items-center gap-2 mb-4">
-						<Clock className="h-5 w-5 text-primary" />
-						<Label>Working Hours</Label>
-					</div>
-					<div className="divide-y">
-						{DAYS_OF_WEEK.map((day) => (
-							<WorkingHoursDayRow
-								key={day}
-								day={day}
-								hours={businessDetails.workingHours[day]}
-								onChange={(hours) => updateWorkingHours(day, hours)}
+			<div className="grid gap-6 md:grid-cols-2">
+				<ImageUploadBox
+					label="Business Logo"
+					description="Click to upload logo"
+					file={businessDetails.logo}
+					preview={businessDetails.logoPreview}
+					onFileChange={(file, preview) =>
+						setBusinessDetails({ ...businessDetails, logo: file, logoPreview: preview })
+					}
+				/>
+
+				<ImageUploadBox
+					label="Cover Photo"
+					description="Click to upload cover photo"
+					file={businessDetails.coverPhoto}
+					preview={businessDetails.coverPhotoPreview}
+					onFileChange={(file, preview) =>
+						setBusinessDetails({ ...businessDetails, coverPhoto: file, coverPhotoPreview: preview })
+					}
+					aspectRatio="aspect-video"
+				/>
+			</div>
+
+			<div className="space-y-2">
+				<Label>Work Photos (Optional)</Label>
+				<div className="grid gap-4 grid-cols-2 md:grid-cols-3">
+					{businessDetails.workPhotosPreview.map((preview, index) => (
+						<div key={index} className="relative aspect-video rounded-lg overflow-hidden border">
+							<img src={preview} alt={`Work ${index + 1}`} className="h-full w-full object-cover" />
+							<button
+								type="button"
+								className="absolute top-2 right-2 rounded-full bg-destructive p-1 text-destructive-foreground"
+								onClick={() => {
+									const newPhotos = [...businessDetails.workPhotos];
+									const newPreviews = [...businessDetails.workPhotosPreview];
+									newPhotos.splice(index, 1);
+									newPreviews.splice(index, 1);
+									setBusinessDetails({
+										...businessDetails,
+										workPhotos: newPhotos,
+										workPhotosPreview: newPreviews,
+									});
+								}}
+							>
+								<X className="h-3 w-3" />
+							</button>
+						</div>
+					))}
+					{businessDetails.workPhotos.length < 6 && (
+						<label className="aspect-video cursor-pointer rounded-lg border-2 border-dashed hover:border-primary transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground">
+							<Plus className="h-6 w-6" />
+							<span className="text-xs">Add Photo</span>
+							<input
+								type="file"
+								accept="image/*"
+								className="hidden"
+								onChange={(e) => {
+									const file = e.target.files?.[0];
+									if (file) {
+										const reader = new FileReader();
+										reader.onloadend = () => {
+											setBusinessDetails({
+												...businessDetails,
+												workPhotos: [...businessDetails.workPhotos, file],
+												workPhotosPreview: [...businessDetails.workPhotosPreview, reader.result as string],
+											});
+										};
+										reader.readAsDataURL(file);
+									}
+								}}
 							/>
-						))}
-					</div>
-				</CardContent>
-			</Card>
+						</label>
+					)}
+				</div>
+			</div>
 
 			<div className="flex justify-between pt-4">
 				<Button type="button" variant="outline" onClick={prevStep}>
 					Back
 				</Button>
-				<Button type="button" onClick={nextStep} disabled={!isComplete}>
-					Review Application
+				<Button type="button" onClick={handleNext} disabled={!businessDetails.description.trim()}>
+					Continue
 				</Button>
 			</div>
 		</div>

@@ -15,6 +15,7 @@ export default function PartnerSettings() {
 		setLogoutDialogOpen,
 		handleNotificationToggle,
 		handleAccountUpdate,
+		handleAccountSave,
 		handleChangePassword,
 		handleLogout,
 	} = useSettings();
@@ -25,6 +26,7 @@ export default function PartnerSettings() {
 				<AccountCard
 					account={settings.account}
 					onUpdate={handleAccountUpdate}
+					onSave={handleAccountSave}
 					onChangePassword={() => setPasswordDialogOpen(true)}
 				/>
 				<NotificationsCard

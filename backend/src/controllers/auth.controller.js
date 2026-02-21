@@ -1,5 +1,7 @@
 import jwt from "jsonwebtoken";
 import Partner from "../models/Partner.model.js";
+import PartnerAvailability from "../models/PartnerAvailability.model.js";
+import PartnerCapacity from "../models/PartnerCapacity.model.js";
 import User from "../models/User.model.js";
 import { error, success } from "../utils/response.js";
 
@@ -7,9 +9,13 @@ const generateTokens = (id, role) => {
 	const accessToken = jwt.sign({ id, role }, process.env.JWT_SECRET, {
 		expiresIn: process.env.JWT_EXPIRE || "7d",
 	});
-	const refreshToken = jwt.sign({ id, role }, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET, {
-		expiresIn: process.env.JWT_REFRESH_EXPIRE || "30d",
-	});
+	const refreshToken = jwt.sign(
+		{ id, role },
+		process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
+		{
+			expiresIn: process.env.JWT_REFRESH_EXPIRE || "30d",
+		},
+	);
 	return { accessToken, refreshToken };
 };
 
@@ -121,13 +127,20 @@ export const register = async (req, res) => {
 
 /**
  * POST /api/auth/partner/register
- * Register a new partner application.
+ * Register a new partner application (multipart/form-data).
  */
 export const registerPartner = async (req, res) => {
 	try {
+		// Parse JSON fields sent as FormData strings
+		const businessInfo = JSON.parse(req.body.businessInfo || "{}");
+		const businessDetails = JSON.parse(req.body.businessDetails || "{}");
+		const driversData = JSON.parse(req.body.drivers || "[]");
+		const schedule = JSON.parse(req.body.schedule || "[]");
+		const capacityByCategory = JSON.parse(req.body.capacityByCategory || "{}");
+		const bufferTime = JSON.parse(req.body.bufferTime || "15");
+
 		const {
 			email,
-			password,
 			businessName,
 			businessLicenseNumber,
 			contactPersonName,
@@ -135,14 +148,61 @@ export const registerPartner = async (req, res) => {
 			address,
 			latitude,
 			longitude,
-			description,
-			serviceRadius,
-		} = req.body;
+			password,
+		} = businessInfo;
+		const { description, serviceRadius } = businessDetails;
+
+		if (!email || !businessName) {
+			return error(res, "Email and business name are required", 400);
+		}
+
+		if (!password || password.length < 8) {
+			return error(res, "Password must be at least 8 characters", 400);
+		}
 
 		const existing = await Partner.findOne({ email });
 		if (existing) {
-			return error(res, "A partner application with this email already exists", 400);
+			return error(
+				res,
+				"A partner application with this email already exists",
+				400,
+			);
 		}
+
+		// Helper to get uploaded file URL by field name
+		const files = req.files || [];
+		const getFileUrl = (fieldname) => {
+			const file = files.find((f) => f.fieldname === fieldname);
+			return file ? `/uploads/${file.filename}` : null;
+		};
+
+		// Work photos
+		const workPhotos = [];
+		for (let i = 0; files.find((f) => f.fieldname === `workPhoto_${i}`); i++) {
+			workPhotos.push(
+				`/uploads/${files.find((f) => f.fieldname === `workPhoto_${i}`).filename}`,
+			);
+		}
+
+		// Drivers with document URLs
+		const drivers = driversData.map((d, index) => {
+			const licenseFile = files.find(
+				(f) => f.fieldname === `driverLicense_${index}`,
+			);
+			const insuranceFile = files.find(
+				(f) => f.fieldname === `driverInsurance_${index}`,
+			);
+			return {
+				fullName: d.fullName,
+				contactNumber: d.contactNumber,
+				...(licenseFile && {
+					driverLicenseUrl: `/uploads/${licenseFile.filename}`,
+				}),
+				...(insuranceFile && {
+					driverInsuranceUrl: `/uploads/${insuranceFile.filename}`,
+				}),
+			};
+		});
 
 		const partner = await Partner.create({
 			email,
@@ -152,12 +212,34 @@ export const registerPartner = async (req, res) => {
 			contactPersonName,
 			phone,
 			address,
-			latitude,
-			longitude,
+			latitude: latitude || undefined,
+			longitude: longitude || undefined,
 			description,
-			serviceRadius,
+			serviceRadius: serviceRadius || 10,
+			businessRegistrationUrl: getFileUrl("businessRegistration"),
+			businessInsuranceUrl: getFileUrl("businessInsurance"),
+			motorTradeInsuranceUrl: getFileUrl("motorTradeInsurance"),
+			logo: getFileUrl("logo"),
+			coverPhoto: getFileUrl("coverPhoto"),
+			workPhotos,
+			drivers,
 			status: "pending",
 			appliedAt: new Date(),
+		});
+
+		// Create PartnerAvailability with schedule data
+		await PartnerAvailability.create({
+			partnerId: partner._id,
+			schedule,
+			bufferTimeMinutes: bufferTime,
+		});
+
+		// Create PartnerCapacity with capacity data
+		await PartnerCapacity.create({
+			partnerId: partner._id,
+			capacityByCategory,
+			bufferTimeMinutes: bufferTime,
+			bays: [], // Initially empty, can be managed later
 		});
 
 		return success(
@@ -239,7 +321,10 @@ export const refreshToken = async (req, res) => {
 			return error(res, "Refresh token is required", 400);
 		}
 
-		const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET);
+		const decoded = jwt.verify(
+			token,
+			process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
+		);
 		const tokens = generateTokens(decoded.id, decoded.role);
 
 		return success(res, {

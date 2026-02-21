@@ -35,10 +35,10 @@ const registerPartner = (data: FormData) =>
 	});
 
 const getApplicationStatus = (email: string) =>
-	apiClient.get<PartnerApplication>({
+	apiClient.get<{ application: PartnerApplication }>({
 		url: PartnerAuthApi.ApplicationStatus,
 		params: { email },
-	});
+	}).then((data) => data.application);
 
 const checkEmailAvailability = (email: string) =>
 	apiClient.get<{ available: boolean }>({

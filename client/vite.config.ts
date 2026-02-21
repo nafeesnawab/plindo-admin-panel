@@ -35,9 +35,13 @@ export default defineConfig(({ mode }) => {
 			port: 3001,
 			proxy: {
 				"/api": {
-					target: "http://localhost:3000",
+					target: "http://localhost:5001",
 					changeOrigin: true,
-					rewrite: (path) => path.replace(/^\/api/, ""),
+					secure: false,
+				},
+				"/uploads": {
+					target: "http://localhost:5001",
+					changeOrigin: true,
 					secure: false,
 				},
 			},
@@ -54,7 +58,13 @@ export default defineConfig(({ mode }) => {
 					manualChunks: {
 						"vendor-core": ["react", "react-dom", "react-router"],
 						"vendor-ui": ["antd", "@ant-design/cssinjs", "styled-components"],
-						"vendor-utils": ["axios", "dayjs", "i18next", "zustand", "@iconify/react"],
+						"vendor-utils": [
+							"axios",
+							"dayjs",
+							"i18next",
+							"zustand",
+							"@iconify/react",
+						],
 						"vendor-charts": ["apexcharts", "react-apexcharts"],
 					},
 				},

@@ -1,4 +1,4 @@
-import { Loader2, Store, UserCog } from "lucide-react";
+import { Eye, EyeOff, Loader2, Store, UserCog } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
@@ -6,7 +6,14 @@ import { toast } from "sonner";
 import type { UnifiedSignInReq } from "@/api/services/authService";
 import { useUnifiedSignIn } from "@/store/authStore";
 import { Button } from "@/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/ui/form";
+import {
+	Form,
+	FormControl,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from "@/ui/form";
 import { Input } from "@/ui/input";
 import { cn } from "@/utils";
 
@@ -18,15 +25,19 @@ const DEMO_CREDENTIALS = {
 		icon: UserCog,
 	},
 	partner: {
-		email: "approved@demo.com",
-		password: "demo123",
+		email: "partner@plindo.com",
+		password: "partner123",
 		label: "Partner Account",
 		icon: Store,
 	},
 };
 
-export function UnifiedLoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"form">) {
+export function UnifiedLoginForm({
+	className,
+	...props
+}: React.ComponentPropsWithoutRef<"form">) {
 	const [loading, setLoading] = useState(false);
+	const [showPassword, setShowPassword] = useState(false);
 	const navigate = useNavigate();
 	const signIn = useUnifiedSignIn();
 
@@ -71,7 +82,9 @@ export function UnifiedLoginForm({ className, ...props }: React.ComponentPropsWi
 				<form onSubmit={form.handleSubmit(handleFinish)} className="space-y-4">
 					<div className="flex flex-col items-center gap-2 text-center">
 						<h1 className="text-2xl font-bold">Sign In</h1>
-						<p className="text-balance text-sm text-muted-foreground">Enter your credentials to access your account</p>
+						<p className="text-balance text-sm text-muted-foreground">
+							Enter your credentials to access your account
+						</p>
 					</div>
 
 					<div className="grid grid-cols-2 gap-2">
@@ -126,7 +139,16 @@ export function UnifiedLoginForm({ className, ...props }: React.ComponentPropsWi
 							<FormItem>
 								<FormLabel>Password</FormLabel>
 								<FormControl>
-									<Input type="password" placeholder="••••••••" {...field} />
+									<div className="relative">
+										<Input type={showPassword ? "text" : "password"} placeholder="••••••••" className="pr-10" {...field} />
+										<button
+											type="button"
+											className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+											onClick={() => setShowPassword(!showPassword)}
+										>
+											{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+										</button>
+									</div>
 								</FormControl>
 								<FormMessage />
 							</FormItem>
@@ -145,19 +167,27 @@ export function UnifiedLoginForm({ className, ...props }: React.ComponentPropsWi
 					<span className="w-full border-t border-border" />
 				</div>
 				<div className="relative flex justify-center text-xs uppercase">
-					<span className="bg-background px-2 text-muted-foreground">Partner Portal</span>
+					<span className="bg-background px-2 text-muted-foreground">
+						Partner Portal
+					</span>
 				</div>
 			</div>
 
 			<div className="text-center text-sm text-muted-foreground space-y-2">
 				<div>
 					Don't have a partner account?{" "}
-					<a href="/partner/register" className="text-foreground font-medium hover:underline">
+					<a
+						href="/partner/register"
+						className="text-foreground font-medium hover:underline"
+					>
 						Register now
 					</a>
 				</div>
 				<div>
-					<a href="/partner/application-status" className="text-muted-foreground hover:text-foreground hover:underline">
+					<a
+						href="/partner/application-status"
+						className="text-muted-foreground hover:text-foreground hover:underline"
+					>
 						Check application status
 					</a>
 				</div>

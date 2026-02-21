@@ -1,5 +1,4 @@
-import { QueryClientProvider } from "@tanstack/react-query";
-import { QueryClient } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Analytics as VercelAnalytics } from "@vercel/analytics/react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import { MotionLazy } from "./components/animate/motion-lazy";
@@ -13,7 +12,7 @@ if (import.meta.env.DEV) {
 	import("react-scan").then(({ scan }) => {
 		scan({
 			enabled: false,
-			showToolbar: true,
+			showToolbar: false,
 			log: false,
 			animationSpeed: "fast",
 		});

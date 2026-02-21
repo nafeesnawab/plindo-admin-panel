@@ -2,7 +2,7 @@ import { Bell, LogOut, User } from "lucide-react";
 import { useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 import SettingButton from "@/layouts/components/setting-button";
-import { useAuthActions } from "@/store/authStore";
+import { useAuthActions, usePartnerInfo } from "@/store/authStore";
 import { Button } from "@/ui/button";
 import {
 	DropdownMenu,
@@ -46,8 +46,7 @@ export default function PartnerHeader({ leftSlot }: PartnerHeaderProps) {
 	const navigate = useNavigate();
 	const { pathname } = useLocation();
 	const { clearAuth } = useAuthActions();
-
-	const partnerInfo = JSON.parse(localStorage.getItem("partnerInfo") || "{}");
+	const partnerInfo = usePartnerInfo();
 	const pageMeta = getPageMeta(pathname);
 
 	const handleLogout = () => {
@@ -69,7 +68,7 @@ export default function PartnerHeader({ leftSlot }: PartnerHeaderProps) {
 			</div>
 
 			<div className="flex items-center gap-1">
-				<Button variant="ghost" size="icon" className="relative h-9 w-9">
+				<Button variant="ghost" size="icon" className="relative h-9 w-9" onClick={() => navigate("/partner/messages")}>
 					<Bell className="h-4 w-4" />
 					<span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-destructive" />
 				</Button>

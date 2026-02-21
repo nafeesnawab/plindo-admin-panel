@@ -27,8 +27,8 @@ export interface SubscriptionPlan {
 	name: string;
 	price: number;
 	washesIncluded: number;
-	features: string[];
 	enabled: boolean;
+	features: string[];
 }
 
 export interface SubscriptionPlans {
@@ -88,7 +88,10 @@ const getSubscriptionPlans = () =>
 	apiClient.get<SubscriptionPlans>({ url: SettingsApi.SubscriptionPlans });
 
 const updateSubscriptionPlans = (data: Partial<SubscriptionPlans>) =>
-	apiClient.put<SubscriptionPlans>({ url: SettingsApi.SubscriptionPlans, data });
+	apiClient.put<SubscriptionPlans>({
+		url: SettingsApi.SubscriptionPlans,
+		data,
+	});
 
 const getPaymentSettings = () =>
 	apiClient.get<PaymentSettings>({ url: SettingsApi.Payment });
@@ -97,16 +100,29 @@ const updatePaymentSettings = (data: Partial<PaymentSettings>) =>
 	apiClient.put<PaymentSettings>({ url: SettingsApi.Payment, data });
 
 const getNotificationSettings = () =>
-	apiClient.get<NotificationSettings>({ url: SettingsApi.NotificationSettings });
+	apiClient.get<NotificationSettings>({
+		url: SettingsApi.NotificationSettings,
+	});
 
 const updateNotificationSettings = (data: Partial<NotificationSettings>) =>
-	apiClient.put<NotificationSettings>({ url: SettingsApi.NotificationSettings, data });
+	apiClient.put<NotificationSettings>({
+		url: SettingsApi.NotificationSettings,
+		data,
+	});
 
 const getNotificationTemplates = () =>
-	apiClient.get<NotificationTemplate[]>({ url: SettingsApi.NotificationTemplates });
+	apiClient.get<NotificationTemplate[]>({
+		url: SettingsApi.NotificationTemplates,
+	});
 
-const updateNotificationTemplate = (id: string, data: { subject: string; body: string }) =>
-	apiClient.put<NotificationTemplate>({ url: `${SettingsApi.NotificationTemplates}/${id}`, data });
+const updateNotificationTemplate = (
+	id: string,
+	data: { subject: string; body: string },
+) =>
+	apiClient.put<NotificationTemplate>({
+		url: `${SettingsApi.NotificationTemplates}/${id}`,
+		data,
+	});
 
 export default {
 	getCommissionSettings,

@@ -1,30 +1,39 @@
-import { Building2, Car, CheckCircle, Clock, FileText, Image, Loader2, Mail, MapPin, Phone, User } from "lucide-react";
+import {
+	Building2,
+	Car,
+	CheckCircle,
+	Clock,
+	FileText,
+	Image,
+	Loader2,
+	Mail,
+	MapPin,
+	Phone,
+	User,
+} from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import partnerAuthService from "@/api/services/partnerAuthService";
-import type { WeeklyWorkingHours } from "@/types/partner";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 import { Separator } from "@/ui/separator";
 import { usePartnerRegistration } from "../context/registration-context";
 
-const DAY_LABELS: Record<keyof WeeklyWorkingHours, string> = {
-	monday: "Mon",
-	tuesday: "Tue",
-	wednesday: "Wed",
-	thursday: "Thu",
-	friday: "Fri",
-	saturday: "Sat",
-	sunday: "Sun",
-};
-
 export function ReviewStep() {
 	const navigate = useNavigate();
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const { businessInfo, documents, drivers, businessDetails, getFormData, prevStep, setCurrentStep } =
-		usePartnerRegistration();
+	const {
+		businessInfo,
+		documents,
+		drivers,
+		businessDetails,
+		schedule,
+		getFormData,
+		prevStep,
+		setCurrentStep,
+	} = usePartnerRegistration();
 
 	const handleSubmit = async () => {
 		setIsSubmitting(true);
@@ -47,7 +56,9 @@ export function ReviewStep() {
 		<div className="space-y-6">
 			<div>
 				<h2 className="text-2xl font-semibold">Review Your Application</h2>
-				<p className="text-muted-foreground">Please review all information before submitting</p>
+				<p className="text-muted-foreground">
+					Please review all information before submitting
+				</p>
 			</div>
 
 			{/* Business Information */}
@@ -71,7 +82,9 @@ export function ReviewStep() {
 						</div>
 						<div>
 							<p className="text-sm text-muted-foreground">License Number</p>
-							<p className="font-medium">{businessInfo.businessLicenseNumber}</p>
+							<p className="font-medium">
+								{businessInfo.businessLicenseNumber}
+							</p>
 						</div>
 						<div>
 							<p className="text-sm text-muted-foreground">Contact Person</p>
@@ -101,6 +114,13 @@ export function ReviewStep() {
 								{businessInfo.address}
 							</p>
 						</div>
+						<div className="md:col-span-2">
+							<p className="text-sm text-muted-foreground">Password</p>
+							<p className="font-medium flex items-center gap-1 text-green-600">
+								<CheckCircle className="h-4 w-4" />
+								Password set
+							</p>
+						</div>
 					</div>
 				</CardContent>
 			</Card>
@@ -124,21 +144,27 @@ export function ReviewStep() {
 							<CheckCircle className="h-5 w-5 text-green-500" />
 							<div className="min-w-0 flex-1">
 								<p className="text-sm font-medium">Business Registration</p>
-								<p className="text-xs text-muted-foreground truncate">{documents.businessRegistration?.name}</p>
+								<p className="text-xs text-muted-foreground truncate">
+									{documents.businessRegistration?.name}
+								</p>
 							</div>
 						</div>
 						<div className="flex items-center gap-2 rounded-lg border p-3">
 							<CheckCircle className="h-5 w-5 text-green-500" />
 							<div className="min-w-0 flex-1">
 								<p className="text-sm font-medium">Business Insurance</p>
-								<p className="text-xs text-muted-foreground truncate">{documents.businessInsurance?.name}</p>
+								<p className="text-xs text-muted-foreground truncate">
+									{documents.businessInsurance?.name}
+								</p>
 							</div>
 						</div>
 						<div className="flex items-center gap-2 rounded-lg border p-3">
 							<CheckCircle className="h-5 w-5 text-green-500" />
 							<div className="min-w-0 flex-1">
 								<p className="text-sm font-medium">Motor Trade Insurance</p>
-								<p className="text-xs text-muted-foreground truncate">{documents.motorTradeInsurance?.name}</p>
+								<p className="text-xs text-muted-foreground truncate">
+									{documents.motorTradeInsurance?.name}
+								</p>
 							</div>
 						</div>
 					</div>
@@ -161,13 +187,18 @@ export function ReviewStep() {
 				<CardContent>
 					<div className="grid gap-3 md:grid-cols-2">
 						{drivers.map((driver, index) => (
-							<div key={driver.id} className="flex items-center gap-3 rounded-lg border p-3">
+							<div
+								key={driver.id}
+								className="flex items-center gap-3 rounded-lg border p-3"
+							>
 								<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary">
 									{index + 1}
 								</div>
 								<div className="flex-1">
 									<p className="font-medium">{driver.fullName}</p>
-									<p className="text-sm text-muted-foreground">{driver.contactNumber}</p>
+									<p className="text-sm text-muted-foreground">
+										{driver.contactNumber}
+									</p>
 								</div>
 								<div className="flex gap-1">
 									{driver.driverLicense && (
@@ -215,7 +246,9 @@ export function ReviewStep() {
 						)}
 						{businessDetails.coverPhotoPreview && (
 							<div className="flex-1">
-								<p className="text-sm text-muted-foreground mb-2">Cover Photo</p>
+								<p className="text-sm text-muted-foreground mb-2">
+									Cover Photo
+								</p>
 								<img
 									src={businessDetails.coverPhotoPreview}
 									alt="Business cover"
@@ -228,7 +261,9 @@ export function ReviewStep() {
 					{/* Work Photos Count */}
 					<div>
 						<p className="text-sm text-muted-foreground">Work Photos</p>
-						<p className="font-medium">{businessDetails.workPhotos.length} photos uploaded</p>
+						<p className="font-medium">
+							{businessDetails.workPhotos.length} photos uploaded
+						</p>
 					</div>
 
 					{/* Description */}
@@ -242,25 +277,37 @@ export function ReviewStep() {
 					{/* Service Radius */}
 					<div className="flex items-center gap-2">
 						<MapPin className="h-4 w-4 text-primary" />
-						<span className="text-sm text-muted-foreground">Service Radius:</span>
-						<span className="font-medium">{businessDetails.serviceRadius} km</span>
+						<span className="text-sm text-muted-foreground">
+							Service Radius:
+						</span>
+						<span className="font-medium">
+							{businessDetails.serviceRadius} km
+						</span>
 					</div>
 
 					{/* Working Hours Summary */}
 					<div>
 						<div className="flex items-center gap-2 mb-2">
 							<Clock className="h-4 w-4 text-primary" />
-							<span className="text-sm text-muted-foreground">Working Hours</span>
+							<span className="text-sm text-muted-foreground">
+								Working Hours
+							</span>
 						</div>
 						<div className="flex flex-wrap gap-2">
-							{(Object.keys(businessDetails.workingHours) as (keyof WeeklyWorkingHours)[]).map((day) => {
-								const hours = businessDetails.workingHours[day];
-								return (
-									<Badge key={day} variant={hours.isOpen ? "default" : "secondary"} className="text-xs">
-										{DAY_LABELS[day]}: {hours.isOpen ? `${hours.openTime}-${hours.closeTime}` : "Closed"}
-									</Badge>
-								);
-							})}
+							{schedule.map((day) => (
+								<Badge
+									key={day.dayOfWeek}
+									variant={day.isEnabled ? "default" : "secondary"}
+									className="text-xs"
+								>
+									{day.dayName.slice(0, 3)}:{" "}
+									{day.isEnabled && day.timeBlocks.length > 0
+										? day.timeBlocks
+												.map((b) => `${b.start}-${b.end}`)
+												.join(", ")
+										: "Closed"}
+								</Badge>
+							))}
 						</div>
 					</div>
 				</CardContent>
@@ -277,12 +324,18 @@ export function ReviewStep() {
 					<a href="/legal/privacy" className="text-primary underline">
 						Privacy Policy
 					</a>
-					. You confirm that all information provided is accurate and all documents are authentic.
+					. You confirm that all information provided is accurate and all
+					documents are authentic.
 				</p>
 			</div>
 
 			<div className="flex justify-between pt-4">
-				<Button type="button" variant="outline" onClick={prevStep} disabled={isSubmitting}>
+				<Button
+					type="button"
+					variant="outline"
+					onClick={prevStep}
+					disabled={isSubmitting}
+				>
 					Back
 				</Button>
 				<Button type="button" onClick={handleSubmit} disabled={isSubmitting}>

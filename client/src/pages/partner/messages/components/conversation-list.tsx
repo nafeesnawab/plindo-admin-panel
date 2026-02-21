@@ -1,4 +1,4 @@
-import { Search, User } from "lucide-react";
+import { Search, User, X } from "lucide-react";
 
 import { Badge } from "@/ui/badge";
 import { Card, CardContent, CardHeader } from "@/ui/card";
@@ -23,10 +23,19 @@ export function ConversationList({ conversations, selectedId, searchQuery, onSea
 					<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 					<Input
 						placeholder="Search conversations..."
-						className="pl-10"
+						className="pl-10 pr-9"
 						value={searchQuery}
 						onChange={(e) => onSearchChange(e.target.value)}
 					/>
+					{searchQuery && (
+						<button
+							type="button"
+							className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+							onClick={() => onSearchChange("")}
+						>
+							<X className="h-4 w-4" />
+						</button>
+					)}
 				</div>
 			</CardHeader>
 			<CardContent className="flex-1 overflow-y-auto p-0">

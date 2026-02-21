@@ -5,7 +5,13 @@ import { toast } from "sonner";
 import type { Product } from "@/types/product";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/tabs";
 
 import { DeleteDialog } from "./components/delete-dialog";
@@ -48,7 +54,10 @@ export default function PartnerProductsPage() {
 		updateOrderStatusMutation,
 	} = useOrders({ orderStatusFilter, enabled: activeTab === "orders" });
 
-	const activeFiltersCount = [statusFilter !== "all", categoryFilter !== "all"].filter(Boolean).length;
+	const activeFiltersCount = [
+		statusFilter !== "all",
+		categoryFilter !== "all",
+	].filter(Boolean).length;
 
 	const handleFormSave = (e: React.FormEvent) => {
 		e.preventDefault();
@@ -57,7 +66,10 @@ export default function PartnerProductsPage() {
 
 		if (form.editingProduct) {
 			updateMutation.mutate(
-				{ id: form.editingProduct.id, data: payload as Record<string, unknown> },
+				{
+					id: form.editingProduct.id,
+					data: payload as Record<string, unknown>,
+				},
 				{
 					onSuccess: () => form.closeForm(),
 				},
@@ -119,7 +131,11 @@ export default function PartnerProductsPage() {
 					activeFiltersCount={activeFiltersCount}
 					onClearFilters={clearFilters}
 				/>
-				<Button onClick={() => form.openForm()} size="sm" className="gap-1.5 h-9 shrink-0">
+				<Button
+					onClick={() => form.openForm()}
+					size="sm"
+					className="gap-1.5 h-9 shrink-0"
+				>
 					<Plus className="h-3.5 w-3.5" />
 					Add Product
 				</Button>
@@ -142,13 +158,18 @@ export default function PartnerProductsPage() {
 							className="bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800"
 						>
 							<Package className="h-3 w-3 mr-1" />
-							{outOfStockCount} product{outOfStockCount > 1 ? "s" : ""} out of stock
+							{outOfStockCount} product{outOfStockCount > 1 ? "s" : ""} out of
+							stock
 						</Badge>
 					)}
 				</div>
 			)}
 
-			<Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col flex-1 min-h-0">
+			<Tabs
+				value={activeTab}
+				onValueChange={setActiveTab}
+				className="flex flex-col flex-1 min-h-0"
+			>
 				<TabsList className="w-fit">
 					<TabsTrigger value="products" className="gap-1.5">
 						<Package className="h-3.5 w-3.5" />
@@ -183,7 +204,10 @@ export default function PartnerProductsPage() {
 				<TabsContent value="orders" className="flex-1 min-h-0 mt-4">
 					<div className="flex items-center justify-between mb-4">
 						<h3 className="font-semibold text-base">Product Orders</h3>
-						<Select value={orderStatusFilter} onValueChange={setOrderStatusFilter}>
+						<Select
+							value={orderStatusFilter}
+							onValueChange={setOrderStatusFilter}
+						>
 							<SelectTrigger className="h-9 w-[150px] text-xs">
 								<SelectValue placeholder="All Status" />
 							</SelectTrigger>
@@ -199,7 +223,9 @@ export default function PartnerProductsPage() {
 					<OrdersTable
 						orders={orders}
 						loading={ordersLoading}
-						onUpdateStatus={(id, status) => updateOrderStatusMutation.mutate({ id, status })}
+						onUpdateStatus={(id, status) =>
+							updateOrderStatusMutation.mutate({ id, status })
+						}
 					/>
 				</TabsContent>
 			</Tabs>
@@ -213,7 +239,11 @@ export default function PartnerProductsPage() {
 				imageInputRef={form.imageInputRef}
 				onImageChange={form.handleImageChange}
 				onSave={handleFormSave}
-				isPending={createMutation.isPending || updateMutation.isPending}
+				isPending={
+					createMutation.isPending ||
+					updateMutation.isPending ||
+					form.imageUploading
+				}
 			/>
 
 			<DeleteDialog

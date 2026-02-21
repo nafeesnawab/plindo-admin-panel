@@ -35,6 +35,7 @@ export interface BusinessInfo {
 	address: string;
 	latitude: number | null;
 	longitude: number | null;
+	password: string;
 }
 
 export interface BusinessDocuments {
@@ -55,7 +56,6 @@ export interface BusinessDetails {
 	workPhotosPreview: string[];
 	description: string;
 	serviceRadius: number;
-	workingHours: WeeklyWorkingHours;
 }
 
 export interface PartnerRegistrationData {
@@ -65,7 +65,11 @@ export interface PartnerRegistrationData {
 	businessDetails: BusinessDetails;
 }
 
-export type PartnerApplicationStatus = "pending" | "approved" | "rejected";
+export type PartnerApplicationStatus =
+	| "pending"
+	| "approved"
+	| "active"
+	| "rejected";
 
 export interface PartnerApplication {
 	id: string;
@@ -96,6 +100,7 @@ export const INITIAL_BUSINESS_INFO: BusinessInfo = {
 	address: "",
 	latitude: null,
 	longitude: null,
+	password: "",
 };
 
 export const INITIAL_DOCUMENTS: BusinessDocuments = {
@@ -111,7 +116,6 @@ export const INITIAL_BUSINESS_DETAILS: BusinessDetails = {
 	workPhotosPreview: [],
 	description: "",
 	serviceRadius: 10,
-	workingHours: DEFAULT_WORKING_HOURS,
 };
 
 export const createEmptyDriver = (): Driver => ({

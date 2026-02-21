@@ -1,16 +1,26 @@
+import { useQuery } from "@tanstack/react-query";
+
+import earningsService from "@/api/services/earningsService";
+import type { ChartPeriod } from "@/api/services/earningsService";
 import Chart from "@/components/chart/chart";
 import { Button } from "@/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 
-import { CHART_PERIODS, generateChartData } from "../types";
+import { CHART_PERIODS } from "../types";
 
 interface EarningsChartProps {
 	chartPeriod: string;
 	onPeriodChange: (period: string) => void;
 }
 
-export function EarningsChart({ chartPeriod, onPeriodChange }: EarningsChartProps) {
-	const chartData = generateChartData(chartPeriod);
+export function EarningsChart({
+	chartPeriod,
+	onPeriodChange,
+}: EarningsChartProps) {
+	const { data: chartData } = useQuery({
+		queryKey: ["partner-earnings-chart", chartPeriod],
+		queryFn: () => earningsService.getChart(chartPeriod as ChartPeriod),
+	});
 
 	const chartOptions = {
 		chart: {
@@ -25,7 +35,7 @@ export function EarningsChart({ chartPeriod, onPeriodChange }: EarningsChartProp
 		},
 		dataLabels: { enabled: false },
 		xaxis: {
-			categories: chartData.labels,
+			categories: chartData?.labels ?? [],
 		},
 		yaxis: {
 			labels: {
@@ -40,7 +50,7 @@ export function EarningsChart({ chartPeriod, onPeriodChange }: EarningsChartProp
 		},
 	};
 
-	const chartSeries = [{ name: "Earnings", data: chartData.data }];
+	const chartSeries = [{ name: "Earnings", data: chartData?.values ?? [] }];
 
 	return (
 		<Card>
@@ -61,7 +71,12 @@ export function EarningsChart({ chartPeriod, onPeriodChange }: EarningsChartProp
 				</div>
 			</CardHeader>
 			<CardContent>
-				<Chart type="bar" series={chartSeries} options={chartOptions} height={280} />
+				<Chart
+					type="bar"
+					series={chartSeries}
+					options={chartOptions}
+					height={280}
+				/>
 			</CardContent>
 		</Card>
 	);

@@ -17,7 +17,7 @@ export function useServices() {
 				setLoading(true);
 				const [servicesData, carsData] = await Promise.all([
 					partnerServicesService.getAll(),
-					apiClient.get<{ cars: AdminCar[] }>({ url: "/admin/cars" }),
+					apiClient.get<{ cars: AdminCar[] }>({ url: "/partner/cars" }),
 				]);
 				setServices(servicesData.services as unknown as Service[]);
 				setAdminCars(carsData.cars);
@@ -43,7 +43,11 @@ export function useServices() {
 	const toggleStatus = async (serviceId: string) => {
 		try {
 			const data = await partnerServicesService.toggleStatus(serviceId);
-			setServices((prev) => prev.map((s) => (s.id === serviceId ? (data.service as unknown as Service) : s)));
+			setServices((prev) =>
+				prev.map((s) =>
+					s.id === serviceId ? (data.service as unknown as Service) : s,
+				),
+			);
 			toast.success("Status updated");
 		} catch {
 			toast.error("Failed to update status");
@@ -62,11 +66,21 @@ export function useServices() {
 		return false;
 	};
 
-	const saveService = async (payload: Record<string, unknown>, editingId?: string) => {
+	const saveService = async (
+		payload: Record<string, unknown>,
+		editingId?: string,
+	) => {
 		try {
 			if (editingId) {
-				const data = await partnerServicesService.update(editingId, payload as any);
-				setServices((prev) => prev.map((s) => (s.id === editingId ? (data.service as unknown as Service) : s)));
+				const data = await partnerServicesService.update(
+					editingId,
+					payload as any,
+				);
+				setServices((prev) =>
+					prev.map((s) =>
+						s.id === editingId ? (data.service as unknown as Service) : s,
+					),
+				);
 				toast.success("Service updated");
 				return true;
 			}

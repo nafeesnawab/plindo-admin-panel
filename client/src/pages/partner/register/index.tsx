@@ -11,14 +11,16 @@ import { BusinessDetailsStep } from "./steps/business-details-step";
 import { BusinessInfoStep } from "./steps/business-info-step";
 import { DocumentsStep } from "./steps/documents-step";
 import { DriversStep } from "./steps/drivers-step";
+import { ScheduleCapacityStep } from "./steps/schedule-capacity-step";
 import { ReviewStep } from "./steps/review-step";
 
 const STEPS = [
 	{ id: 1, title: "Business Information", description: "Basic details about your business" },
 	{ id: 2, title: "Documents", description: "Upload required documents" },
 	{ id: 3, title: "Drivers", description: "Add your drivers" },
-	{ id: 4, title: "Business Details", description: "Logo, photos & working hours" },
-	{ id: 5, title: "Review & Submit", description: "Review your application" },
+	{ id: 4, title: "Schedule & Capacity", description: "Working hours & service capacity" },
+	{ id: 5, title: "Business Details", description: "Logo, photos & description" },
+	{ id: 6, title: "Review & Submit", description: "Review your application" },
 ];
 
 function RegistrationContent() {
@@ -31,7 +33,7 @@ function RegistrationContent() {
 				<div className="container flex h-16 items-center justify-between px-4">
 					<Link to="/" className="flex items-center gap-2">
 						<Logo size={32} />
-						<span className="text-xl font-semibold">{GLOBAL_CONFIG.appName.replace("Admin", "Partner")}</span>
+						<span className="text-xl font-semibold text-foreground">{GLOBAL_CONFIG.appName.replace("Admin", "Partner")}</span>
 					</Link>
 					<div className="flex items-center gap-4">
 						<Link to="/partner/login">
@@ -101,8 +103,9 @@ function RegistrationContent() {
 							{currentStep === 1 && <BusinessInfoStep />}
 							{currentStep === 2 && <DocumentsStep />}
 							{currentStep === 3 && <DriversStep />}
-							{currentStep === 4 && <BusinessDetailsStep />}
-							{currentStep === 5 && <ReviewStep />}
+							{currentStep === 4 && <ScheduleCapacityStep />}
+							{currentStep === 5 && <BusinessDetailsStep />}
+							{currentStep === 6 && <ReviewStep />}
 						</CardContent>
 					</Card>
 				</div>

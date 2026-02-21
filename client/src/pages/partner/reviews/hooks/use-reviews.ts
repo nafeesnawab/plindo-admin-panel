@@ -1,12 +1,16 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import reviewsService from "@/api/services/reviewsService";
+
 import type { Review, ReviewStats } from "../types";
-import { calculateReviewStats, mockReviews } from "../types";
+import { calculateReviewStats } from "../types";
 
 interface UseReviewsReturn {
 	filteredReviews: Review[];
 	stats: ReviewStats;
+	isLoading: boolean;
 	searchQuery: string;
 	setSearchQuery: (value: string) => void;
 	ratingFilter: string;
@@ -27,7 +31,7 @@ interface UseReviewsReturn {
 }
 
 export function useReviews(): UseReviewsReturn {
-	const [reviews, setReviews] = useState<Review[]>(mockReviews);
+	const queryClient = useQueryClient();
 	const [searchQuery, setSearchQuery] = useState("");
 	const [ratingFilter, setRatingFilter] = useState("all");
 	const [showFilters, setShowFilters] = useState(false);
@@ -36,14 +40,24 @@ export function useReviews(): UseReviewsReturn {
 	const [responseText, setResponseText] = useState("");
 	const [isEditing, setIsEditing] = useState(false);
 
-	const stats = useMemo(() => calculateReviewStats(reviews), [reviews]);
+	const { data, isLoading } = useQuery({
+		queryKey: ["partner-reviews"],
+		queryFn: () => reviewsService.getReviews(),
+	});
 
+	const reviews: Review[] = (data?.reviews ?? []) as Review[];
+
+	const stats = useMemo(() => calculateReviewStats(reviews), [reviews]);
 	const activeFiltersCount = [ratingFilter !== "all"].filter(Boolean).length;
 
 	const filteredReviews = useMemo(() => {
 		return reviews
 			.filter((review) => {
-				if (ratingFilter !== "all" && review.rating !== parseInt(ratingFilter)) return false;
+				if (
+					ratingFilter !== "all" &&
+					review.rating !== Number.parseInt(ratingFilter)
+				)
+					return false;
 				if (searchQuery) {
 					const query = searchQuery.toLowerCase();
 					return (
@@ -65,41 +79,50 @@ export function useReviews(): UseReviewsReturn {
 	const openResponseDialog = (review: Review, editing = false) => {
 		setSelectedReview(review);
 		setIsEditing(editing);
-		setResponseText(editing && review.partnerResponse ? review.partnerResponse.text : "");
+		setResponseText(
+			editing && review.partnerResponse ? review.partnerResponse.text : "",
+		);
 		setResponseDialogOpen(true);
 	};
 
+	const respondMutation = useMutation({
+		mutationFn: ({ id, text }: { id: string; text: string }) =>
+			reviewsService.respondToReview(id, text),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["partner-reviews"] });
+			setResponseDialogOpen(false);
+			setResponseText("");
+			setSelectedReview(null);
+			toast.success(isEditing ? "Response updated" : "Response submitted");
+		},
+		onError: () => toast.error("Failed to submit response"),
+	});
+
+	const deleteMutation = useMutation({
+		mutationFn: (id: string) => reviewsService.deleteResponse(id),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["partner-reviews"] });
+			toast.success("Response deleted");
+		},
+		onError: () => toast.error("Failed to delete response"),
+	});
+
 	const submitResponse = () => {
 		if (!selectedReview || !responseText.trim()) return;
-
-		setReviews((prev) =>
-			prev.map((r) =>
-				r.id === selectedReview.id
-					? {
-							...r,
-							partnerResponse: {
-								text: responseText.trim(),
-								date: new Date().toISOString().split("T")[0],
-							},
-						}
-					: r,
-			),
-		);
-
-		setResponseDialogOpen(false);
-		setResponseText("");
-		setSelectedReview(null);
-		toast.success(isEditing ? "Response updated" : "Response submitted");
+		respondMutation.mutate({
+			id: selectedReview.id,
+			text: responseText.trim(),
+		});
 	};
 
 	const deleteResponse = (reviewId: string) => {
-		setReviews((prev) => prev.map((r) => (r.id === reviewId ? { ...r, partnerResponse: undefined } : r)));
-		toast.success("Response deleted");
+		deleteMutation.mutate(reviewId);
 	};
 
 	return {
 		filteredReviews,
 		stats,
+		isLoading,
 		searchQuery,
 		setSearchQuery,
 		ratingFilter,

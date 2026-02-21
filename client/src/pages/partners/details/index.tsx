@@ -1,30 +1,34 @@
-import { useQuery } from "@tanstack/react-query";
-import { Pagination } from "antd";
-import { format, formatDistanceToNow } from "date-fns";
+import { useQuery } from '@tanstack/react-query';
+import { Pagination } from 'antd';
+import { format, formatDistanceToNow } from 'date-fns';
 import {
 	ArrowLeft,
 	Building2,
 	Calendar,
 	CheckCircle,
 	DollarSign,
+	ExternalLink,
+	FileText,
+	ImageIcon,
 	Mail,
 	MapPin,
 	Phone,
 	Star,
 	TrendingUp,
 	User,
-} from "lucide-react";
-import { useState } from "react";
-import { useNavigate, useParams } from "react-router";
-import partnerService from "@/api/services/partnerService";
-import { Chart } from "@/components/chart";
-import { Avatar, AvatarFallback } from "@/ui/avatar";
-import { Badge } from "@/ui/badge";
-import { Button } from "@/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
-import { Separator } from "@/ui/separator";
-import { Skeleton } from "@/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/tabs";
+	UserCheck,
+} from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate, useParams } from 'react-router';
+import partnerService from '@/api/services/partnerService';
+import { Chart } from '@/components/chart';
+import { Avatar, AvatarFallback, AvatarImage } from '@/ui/avatar';
+import { Badge } from '@/ui/badge';
+import { Button } from '@/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/ui/card';
+import { Separator } from '@/ui/separator';
+import { Skeleton } from '@/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/tabs';
 
 export default function PartnerDetails() {
 	const { id } = useParams<{ id: string }>();
@@ -33,18 +37,18 @@ export default function PartnerDetails() {
 	const reviewPageSize = 3;
 
 	const { data: partner, isLoading } = useQuery({
-		queryKey: ["partner-details", id],
+		queryKey: ['partner-details', id],
 		queryFn: () => partnerService.getPartnerDetails(id!),
 		enabled: !!id,
 	});
 
 	if (isLoading) {
 		return (
-			<div className="space-y-6">
-				<Skeleton className="h-10 w-32" />
-				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-					<Skeleton className="h-[400px] lg:col-span-1" />
-					<Skeleton className="h-[400px] lg:col-span-2" />
+			<div className='space-y-6'>
+				<Skeleton className='h-10 w-32' />
+				<div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+					<Skeleton className='h-[400px] lg:col-span-1' />
+					<Skeleton className='h-[400px] lg:col-span-2' />
 				</div>
 			</div>
 		);
@@ -52,9 +56,9 @@ export default function PartnerDetails() {
 
 	if (!partner) {
 		return (
-			<div className="text-center py-12">
-				<p className="text-muted-foreground">Partner not found</p>
-				<Button variant="outline" onClick={() => navigate(-1)} className="mt-4">
+			<div className='text-center py-12'>
+				<p className='text-muted-foreground'>Partner not found</p>
+				<Button variant='outline' onClick={() => navigate(-1)} className='mt-4'>
 					Go Back
 				</Button>
 			</div>
@@ -62,21 +66,23 @@ export default function PartnerDetails() {
 	}
 
 	const statusColors: Record<string, string> = {
-		pending: "bg-yellow-500/10 text-yellow-600",
-		active: "bg-green-500/10 text-green-600",
-		suspended: "bg-red-500/10 text-red-600",
+		pending: 'bg-yellow-500/10 text-yellow-600',
+		active: 'bg-green-500/10 text-green-600',
+		suspended: 'bg-red-500/10 text-red-600',
 	};
 
 	const earningsChartOptions: ApexCharts.ApexOptions = {
-		chart: { type: "bar", toolbar: { show: false } },
+		chart: { type: 'bar', toolbar: { show: false } },
 		xaxis: { categories: partner.earningsHistory.map((e) => e.month) },
-		colors: ["#10b981"],
+		colors: ['#10b981'],
 		plotOptions: { bar: { borderRadius: 4 } },
 		dataLabels: { enabled: false },
 		yaxis: { labels: { formatter: (v) => `€${v.toFixed(0)}` } },
 	};
 
-	const earningsSeries = [{ name: "Earnings", data: partner.earningsHistory.map((e) => e.earnings) }];
+	const earningsSeries = [
+		{ name: 'Earnings', data: partner.earningsHistory.map((e) => e.earnings) },
+	];
 
 	return (
 		<div className="h-full flex flex-col overflow-hidden">
@@ -105,12 +111,11 @@ export default function PartnerDetails() {
 						<CardContent className="space-y-4">
 							<div className="flex items-center gap-4">
 								<Avatar className="h-16 w-16">
+									{partner.logo && (
+										<AvatarImage src={partner.logo} alt={partner.businessName} />
+									)}
 									<AvatarFallback className="bg-primary/10 text-primary text-lg">
-										{partner.businessName
-											.split(" ")
-											.slice(0, 2)
-											.map((n) => n[0])
-											.join("")}
+										{partner.businessName.split(" ").slice(0, 2).map((n) => n[0]).join("")}
 									</AvatarFallback>
 								</Avatar>
 								<div>
@@ -118,6 +123,16 @@ export default function PartnerDetails() {
 									<p className="text-sm text-muted-foreground">License: {partner.businessLicense}</p>
 								</div>
 							</div>
+
+							{partner.description && (
+								<>
+									<Separator />
+									<div>
+										<p className="text-sm font-medium mb-1">About</p>
+										<p className="text-sm text-muted-foreground leading-relaxed">{partner.description}</p>
+									</div>
+								</>
+							)}
 
 							<Separator />
 
@@ -153,11 +168,13 @@ export default function PartnerDetails() {
 							<div>
 								<p className="text-sm font-medium mb-2">Working Hours</p>
 								<div className="space-y-1 text-sm">
-									{Object.entries(partner.workingHours).map(([day, hours]) => (
-										<div key={day} className="flex justify-between">
-											<span className="capitalize text-muted-foreground">{day}</span>
+									{(partner.schedule ?? []).map((day) => (
+										<div key={day.dayOfWeek} className="flex justify-between">
+											<span className="text-muted-foreground">{day.dayName}</span>
 											<span>
-												{hours.open} - {hours.close}
+												{day.isEnabled && day.timeBlocks.length > 0
+													? day.timeBlocks.map((b) => `${b.start}-${b.end}`).join(", ")
+													: "Closed"}
 											</span>
 										</div>
 									))}
@@ -171,11 +188,11 @@ export default function PartnerDetails() {
 								<div className="space-y-2 text-sm">
 									<div className="flex justify-between">
 										<span className="text-muted-foreground">Car Wash Booths/Bays</span>
-										<span className="font-medium">{partner.carWashBays || 3}</span>
+										<span className="font-medium">{partner.capacityByCategory?.wash ?? 0}</span>
 									</div>
 									<div className="flex justify-between">
 										<span className="text-muted-foreground">Car Detailing Booths/Bays</span>
-										<span className="font-medium">{partner.detailingBays || 2}</span>
+										<span className="font-medium">{partner.capacityByCategory?.detailing ?? 0}</span>
 									</div>
 								</div>
 							</div>
@@ -222,24 +239,169 @@ export default function PartnerDetails() {
 							</Card>
 						</div>
 
-						<Tabs defaultValue="services">
-							<TabsList>
-								<TabsTrigger value="services">Services & Pricing</TabsTrigger>
+						<Tabs defaultValue="documents">
+							<TabsList className="flex-wrap h-auto">
+								<TabsTrigger value="documents">Documents</TabsTrigger>
+								<TabsTrigger value="drivers">Drivers ({partner.drivers?.length ?? 0})</TabsTrigger>
+								<TabsTrigger value="photos">Photos ({partner.photos?.length ?? 0})</TabsTrigger>
+								<TabsTrigger value="services">Services</TabsTrigger>
 								<TabsTrigger value="reviews">Reviews ({partner.reviews.length})</TabsTrigger>
-								<TabsTrigger value="earnings">Earnings History</TabsTrigger>
+								<TabsTrigger value="earnings">Earnings</TabsTrigger>
 							</TabsList>
+
+							<TabsContent value="documents" className="mt-4">
+								<Card>
+									<CardHeader>
+										<CardTitle className="text-base flex items-center gap-2">
+											<FileText className="h-4 w-4" />
+											Business Documents
+										</CardTitle>
+									</CardHeader>
+									<CardContent className="space-y-3">
+										{partner.documents.length === 0 ? (
+											<p className="text-sm text-muted-foreground text-center py-4">No documents uploaded</p>
+										) : (
+											partner.documents.map((doc) => (
+												<div key={doc.name} className="flex items-center justify-between p-3 border rounded-lg">
+													<div className="flex items-center gap-3">
+														<FileText className="h-5 w-5 text-muted-foreground" />
+														<div>
+															<p className="text-sm font-medium">{doc.name}</p>
+															<Badge
+																variant={doc.verified ? "default" : "secondary"}
+																className={`text-xs mt-1 ${doc.verified ? "bg-green-500/10 text-green-600" : "bg-yellow-500/10 text-yellow-600"}`}
+															>
+																{doc.verified ? "Verified" : "Pending Review"}
+															</Badge>
+														</div>
+													</div>
+													{doc.url && doc.url !== "#" && (
+														<a href={doc.url} target="_blank" rel="noopener noreferrer">
+															<Button variant="outline" size="sm" className="gap-1">
+																<ExternalLink className="h-3 w-3" />
+																View
+															</Button>
+														</a>
+													)}
+												</div>
+											))
+										)}
+									</CardContent>
+								</Card>
+							</TabsContent>
+
+							<TabsContent value="drivers" className="mt-4">
+								<Card>
+									<CardHeader>
+										<CardTitle className="text-base flex items-center gap-2">
+											<UserCheck className="h-4 w-4" />
+											Registered Drivers
+										</CardTitle>
+									</CardHeader>
+									<CardContent className="space-y-4">
+										{!partner.drivers || partner.drivers.length === 0 ? (
+											<p className="text-sm text-muted-foreground text-center py-4">No drivers registered</p>
+										) : (
+											partner.drivers.map((driver) => (
+												<div key={driver.id} className="border rounded-lg p-4 space-y-3">
+													<div className="flex items-center gap-3">
+														<Avatar className="h-10 w-10">
+															<AvatarFallback className="bg-primary/10 text-primary text-sm">
+																{driver.fullName.split(" ").slice(0, 2).map((n) => n[0]).join("")}
+															</AvatarFallback>
+														</Avatar>
+														<div>
+															<p className="font-medium text-sm">{driver.fullName}</p>
+															<p className="text-xs text-muted-foreground flex items-center gap-1">
+																<Phone className="h-3 w-3" />
+																{driver.contactNumber}
+															</p>
+														</div>
+													</div>
+													<div className="grid grid-cols-2 gap-2">
+														<div className="flex items-center justify-between p-2 bg-muted/50 rounded text-xs">
+															<span className="text-muted-foreground">Driver License</span>
+															{driver.driverLicenseUrl ? (
+																<a href={driver.driverLicenseUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1">
+																	<ExternalLink className="h-3 w-3" />View
+																</a>
+															) : (
+																<span className="text-muted-foreground">Not uploaded</span>
+															)}
+														</div>
+														<div className="flex items-center justify-between p-2 bg-muted/50 rounded text-xs">
+															<span className="text-muted-foreground">Insurance</span>
+															{driver.driverInsuranceUrl ? (
+																<a href={driver.driverInsuranceUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1">
+																	<ExternalLink className="h-3 w-3" />View
+																</a>
+															) : (
+																<span className="text-muted-foreground">Not uploaded</span>
+															)}
+														</div>
+													</div>
+												</div>
+											))
+										)}
+									</CardContent>
+								</Card>
+							</TabsContent>
+
+							<TabsContent value="photos" className="mt-4">
+								<Card>
+									<CardHeader>
+										<CardTitle className="text-base flex items-center gap-2">
+											<ImageIcon className="h-4 w-4" />
+											Work Photos
+										</CardTitle>
+									</CardHeader>
+									<CardContent>
+										{partner.photos.length === 0 ? (
+											<p className="text-sm text-muted-foreground text-center py-4">No photos uploaded</p>
+										) : (
+											<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+												{partner.photos.map((url, idx) => (
+													<a
+														key={url || String(idx)}
+														href={url}
+														target="_blank"
+														rel="noopener noreferrer"
+														className="group relative aspect-square rounded-lg overflow-hidden border bg-muted"
+													>
+														<img
+															src={url}
+															alt={`Business work sample ${idx + 1}`}
+															className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+														/>
+														<div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+															<ExternalLink className="h-5 w-5 text-white" />
+														</div>
+													</a>
+												))}
+											</div>
+										)}
+									</CardContent>
+								</Card>
+							</TabsContent>
 
 							<TabsContent value="services" className="mt-4">
 								<Card>
 									<CardContent className="pt-6">
-										<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-											{partner.services.map((service) => (
-												<div key={service.name} className="flex items-center justify-between p-4 border rounded-lg">
-													<span className="font-medium">{service.name}</span>
-													<Badge variant="secondary">€{service.price.toFixed(2)}</Badge>
-												</div>
-											))}
-										</div>
+										{partner.services.length === 0 ? (
+											<p className="text-sm text-muted-foreground text-center py-4">No services listed</p>
+										) : (
+											<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+												{partner.services.map((service) => (
+													<div
+														key={service.name}
+														className="flex items-center justify-between p-4 border rounded-lg"
+													>
+														<span className="font-medium">{service.name}</span>
+														<Badge variant="secondary">€{service.price.toFixed(2)}</Badge>
+													</div>
+												))}
+											</div>
+										)}
 									</CardContent>
 								</Card>
 							</TabsContent>
@@ -253,17 +415,17 @@ export default function PartnerDetails() {
 											<>
 												<div className="flex-1 min-h-0 overflow-auto space-y-4">
 													{partner.reviews
-														.slice((reviewPage - 1) * reviewPageSize, reviewPage * reviewPageSize)
+														.slice(
+															(reviewPage - 1) * reviewPageSize,
+															reviewPage * reviewPageSize,
+														)
 														.map((review) => (
 															<div key={review.id} className="border-b last:border-0 pb-4 last:pb-0">
 																<div className="flex items-center justify-between mb-2">
 																	<div className="flex items-center gap-2">
 																		<Avatar className="h-8 w-8">
 																			<AvatarFallback className="text-xs">
-																				{review.customerName
-																					.split(" ")
-																					.map((n) => n[0])
-																					.join("")}
+																				{review.customerName.split(" ").map((n) => n[0]).join("")}
 																			</AvatarFallback>
 																		</Avatar>
 																		<span className="font-medium text-sm">{review.customerName}</span>
@@ -272,9 +434,7 @@ export default function PartnerDetails() {
 																		{Array.from({ length: 5 }).map((_, i) => (
 																			<Star
 																				key={i}
-																				className={`h-4 w-4 ${
-																					i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
-																				}`}
+																				className={`h-4 w-4 ${i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
 																			/>
 																		))}
 																	</div>
@@ -309,7 +469,12 @@ export default function PartnerDetails() {
 										<CardTitle className="text-base">Earnings History (Last 6 Months)</CardTitle>
 									</CardHeader>
 									<CardContent>
-										<Chart type="bar" height={300} options={earningsChartOptions} series={earningsSeries} />
+										<Chart
+											type="bar"
+											height={300}
+											options={earningsChartOptions}
+											series={earningsSeries}
+										/>
 									</CardContent>
 								</Card>
 							</TabsContent>

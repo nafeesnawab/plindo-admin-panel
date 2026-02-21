@@ -32,10 +32,19 @@ export function DriversToolbar({
 				<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 				<Input
 					placeholder="Search drivers..."
-					className="pl-9 h-9"
+					className="pl-9 pr-9 h-9"
 					value={searchQuery}
 					onChange={(e) => onSearchChange(e.target.value)}
 				/>
+				{searchQuery && (
+					<button
+						type="button"
+						className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+						onClick={() => onSearchChange("")}
+					>
+						<X className="h-4 w-4" />
+					</button>
+				)}
 			</div>
 
 			{showFilters && (

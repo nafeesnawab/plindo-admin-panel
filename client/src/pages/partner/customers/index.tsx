@@ -1,7 +1,6 @@
 import { useState } from "react";
 
 import type { Customer } from "@/api/services/customerService";
-import { Skeleton } from "@/ui/skeleton";
 
 import { CustomerDetailsDialog } from "./components/customer-details-dialog";
 import { CustomerStats } from "./components/customer-stats";
@@ -35,16 +34,6 @@ export default function PartnerCustomersPage() {
 		setStatusFilter("all");
 		setSearch("");
 	};
-
-	if (isLoading) {
-		return (
-			<div className="flex flex-col gap-4 h-full">
-				<Skeleton className="h-8 w-48" />
-				<Skeleton className="h-10 w-full" />
-				<Skeleton className="h-[400px] w-full" />
-			</div>
-		);
-	}
 
 	const stats = getStatCards(total, withSubscriptions, vehicleCount);
 

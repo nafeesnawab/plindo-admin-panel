@@ -1,11 +1,27 @@
 import { Pagination } from "antd";
-import { Edit, Filter, MoreHorizontal, Plus, Search, Trash2 } from "lucide-react";
+import {
+	Edit,
+	Filter,
+	MoreHorizontal,
+	Plus,
+	Search,
+	Trash2,
+	X,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import authStore from "@/store/authStore";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Card, CardContent } from "@/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/ui/dialog";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/ui/dialog";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -15,8 +31,30 @@ import {
 } from "@/ui/dropdown-menu";
 import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/ui/select";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/ui/table";
+
+const getAuthHeaders = (): Record<string, string> => {
+	const state = authStore.getState();
+	const token =
+		state.currentRole === "partner"
+			? state.partnerToken?.accessToken
+			: state.userToken?.accessToken;
+	return token ? { Authorization: `Bearer ${token}` } : {};
+};
 
 // Types
 interface CarData {
@@ -64,7 +102,10 @@ const COMMON_MAKES = [
 ];
 
 // Initial form state
-const getInitialFormState = (): Omit<CarData, "id" | "createdAt" | "updatedAt"> => ({
+const getInitialFormState = (): Omit<
+	CarData,
+	"id" | "createdAt" | "updatedAt"
+> => ({
 	make: "",
 	model: "",
 	bodyType: "",
@@ -79,7 +120,9 @@ export default function CarsManagementPage() {
 	const [formDialogOpen, setFormDialogOpen] = useState(false);
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const [selectedCar, setSelectedCar] = useState<CarData | null>(null);
-	const [formData, setFormData] = useState<Omit<CarData, "id" | "createdAt" | "updatedAt">>(getInitialFormState());
+	const [formData, setFormData] = useState<
+		Omit<CarData, "id" | "createdAt" | "updatedAt">
+	>(getInitialFormState());
 	const [isEditing, setIsEditing] = useState(false);
 	const [showFilters, setShowFilters] = useState(false);
 	const [customMake, setCustomMake] = useState("");
@@ -91,7 +134,9 @@ export default function CarsManagementPage() {
 		const loadCars = async () => {
 			try {
 				setLoading(true);
-				const response = await fetch("/api/admin/cars");
+				const response = await fetch("/api/admin/cars", {
+					headers: getAuthHeaders(),
+				});
 				const data = await response.json();
 				if (data.status === 0) {
 					setCars(data.data.cars);
@@ -117,7 +162,8 @@ export default function CarsManagementPage() {
 			car.bodyType.toLowerCase().includes(searchQuery.toLowerCase());
 
 		const matchesMake = filterMake === "all" || car.make === filterMake;
-		const matchesBodyType = filterBodyType === "all" || car.bodyType === filterBodyType;
+		const matchesBodyType =
+			filterBodyType === "all" || car.bodyType === filterBodyType;
 
 		return matchesSearch && matchesMake && matchesBodyType;
 	});
@@ -153,6 +199,7 @@ export default function CarsManagementPage() {
 			try {
 				const response = await fetch(`/api/admin/cars/${selectedCar.id}`, {
 					method: "DELETE",
+					headers: getAuthHeaders(),
 				});
 				const data = await response.json();
 				if (data.status === 0) {
@@ -185,12 +232,14 @@ export default function CarsManagementPage() {
 			if (isEditing && selectedCar) {
 				const response = await fetch(`/api/admin/cars/${selectedCar.id}`, {
 					method: "PUT",
-					headers: { "Content-Type": "application/json" },
+					headers: { "Content-Type": "application/json", ...getAuthHeaders() },
 					body: JSON.stringify(payload),
 				});
 				const data = await response.json();
 				if (data.status === 0) {
-					setCars((prev) => prev.map((c) => (c.id === selectedCar.id ? data.data.car : c)));
+					setCars((prev) =>
+						prev.map((c) => (c.id === selectedCar.id ? data.data.car : c)),
+					);
 					toast.success("Car updated successfully");
 				} else {
 					toast.error(data.message || "Failed to update car");
@@ -199,7 +248,7 @@ export default function CarsManagementPage() {
 			} else {
 				const response = await fetch("/api/admin/cars", {
 					method: "POST",
-					headers: { "Content-Type": "application/json" },
+					headers: { "Content-Type": "application/json", ...getAuthHeaders() },
 					body: JSON.stringify(payload),
 				});
 				const data = await response.json();
@@ -225,18 +274,29 @@ export default function CarsManagementPage() {
 
 	const getBodyTypeColor = (bodyType: string) => {
 		const colors: Record<string, string> = {
-			Hatchback: "bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400",
-			Sedan: "bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400",
+			Hatchback:
+				"bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400",
+			Sedan:
+				"bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400",
 			SUV: "bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400",
-			Coupe: "bg-orange-500/10 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400",
-			Convertible: "bg-pink-500/10 text-pink-600 dark:bg-pink-500/20 dark:text-pink-400",
+			Coupe:
+				"bg-orange-500/10 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400",
+			Convertible:
+				"bg-pink-500/10 text-pink-600 dark:bg-pink-500/20 dark:text-pink-400",
 			Van: "bg-yellow-500/10 text-yellow-600 dark:bg-yellow-500/20 dark:text-yellow-400",
-			"Pickup Truck": "bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400",
-			"MPV/Minivan": "bg-teal-500/10 text-teal-600 dark:bg-teal-500/20 dark:text-teal-400",
-			"Station Wagon": "bg-indigo-500/10 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400",
-			Crossover: "bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/20 dark:text-cyan-400",
+			"Pickup Truck":
+				"bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400",
+			"MPV/Minivan":
+				"bg-teal-500/10 text-teal-600 dark:bg-teal-500/20 dark:text-teal-400",
+			"Station Wagon":
+				"bg-indigo-500/10 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400",
+			Crossover:
+				"bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/20 dark:text-cyan-400",
 		};
-		return colors[bodyType] || "bg-gray-500/10 text-gray-600 dark:bg-gray-500/20 dark:text-gray-400";
+		return (
+			colors[bodyType] ||
+			"bg-gray-500/10 text-gray-600 dark:bg-gray-500/20 dark:text-gray-400"
+		);
 	};
 
 	return (
@@ -249,10 +309,19 @@ export default function CarsManagementPage() {
 								<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 								<Input
 									placeholder="Search cars by make, model, or body type..."
-									className="pl-10"
+									className="pl-10 pr-9"
 									value={searchQuery}
-									onChange={(e) => setSearchQuery(e.target.value)}
+									onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
 								/>
+								{searchQuery && (
+									<button
+										type="button"
+										className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+										onClick={() => { setSearchQuery(""); setCurrentPage(1); }}
+									>
+										<X className="h-4 w-4" />
+									</button>
+								)}
 							</div>
 							<Button
 								variant={showFilters ? "secondary" : "outline"}
@@ -263,7 +332,11 @@ export default function CarsManagementPage() {
 								Filters
 								{(filterMake !== "all" || filterBodyType !== "all") && (
 									<Badge variant="secondary" className="ml-1">
-										{[filterMake !== "all", filterBodyType !== "all"].filter(Boolean).length}
+										{
+											[filterMake !== "all", filterBodyType !== "all"].filter(
+												Boolean,
+											).length
+										}
 									</Badge>
 								)}
 							</Button>
@@ -276,8 +349,10 @@ export default function CarsManagementPage() {
 						{showFilters && (
 							<div className="flex flex-wrap gap-4 pt-2 border-t">
 								<div className="flex-1 min-w-[200px]">
-									<Label className="text-sm text-muted-foreground mb-2 block">Filter by Make</Label>
-									<Select value={filterMake} onValueChange={setFilterMake}>
+									<Label className="text-sm text-muted-foreground mb-2 block">
+										Filter by Make
+									</Label>
+									<Select value={filterMake} onValueChange={(v) => { setFilterMake(v); setCurrentPage(1); }}>
 										<SelectTrigger>
 											<SelectValue placeholder="All Makes" />
 										</SelectTrigger>
@@ -292,8 +367,13 @@ export default function CarsManagementPage() {
 									</Select>
 								</div>
 								<div className="flex-1 min-w-[200px]">
-									<Label className="text-sm text-muted-foreground mb-2 block">Filter by Body Type</Label>
-									<Select value={filterBodyType} onValueChange={setFilterBodyType}>
+									<Label className="text-sm text-muted-foreground mb-2 block">
+										Filter by Body Type
+									</Label>
+									<Select
+										value={filterBodyType}
+										onValueChange={(v) => { setFilterBodyType(v); setCurrentPage(1); }}
+									>
 										<SelectTrigger>
 											<SelectValue placeholder="All Body Types" />
 										</SelectTrigger>
@@ -335,42 +415,61 @@ export default function CarsManagementPage() {
 							<div className="flex-1 min-h-0 overflow-auto">
 								<Table>
 									<TableBody>
-										{filteredCars.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((car) => (
-											<TableRow key={car.id}>
-												<TableCell className="font-medium">{car.make}</TableCell>
-												<TableCell>{car.model}</TableCell>
-												<TableCell>
-													<Badge className={getBodyTypeColor(car.bodyType)}>{car.bodyType}</Badge>
-												</TableCell>
-												<TableCell className="text-muted-foreground">
-													{new Date(car.createdAt).toLocaleDateString()}
-												</TableCell>
-												<TableCell className="text-right">
-													<DropdownMenu>
-														<DropdownMenuTrigger asChild>
-															<Button variant="ghost" size="icon">
-																<MoreHorizontal className="h-4 w-4" />
-															</Button>
-														</DropdownMenuTrigger>
-														<DropdownMenuContent align="end">
-															<DropdownMenuItem onClick={() => handleEdit(car)}>
-																<Edit className="mr-2 h-4 w-4" />
-																Edit
-															</DropdownMenuItem>
-															<DropdownMenuSeparator />
-															<DropdownMenuItem onClick={() => handleDeleteClick(car)} className="text-destructive">
-																<Trash2 className="mr-2 h-4 w-4" />
-																Delete
-															</DropdownMenuItem>
-														</DropdownMenuContent>
-													</DropdownMenu>
-												</TableCell>
-											</TableRow>
-										))}
+										{filteredCars
+											.slice(
+												(currentPage - 1) * pageSize,
+												currentPage * pageSize,
+											)
+											.map((car) => (
+												<TableRow key={car.id}>
+													<TableCell className="font-medium">
+														{car.make}
+													</TableCell>
+													<TableCell>{car.model}</TableCell>
+													<TableCell>
+														<Badge className={getBodyTypeColor(car.bodyType)}>
+															{car.bodyType}
+														</Badge>
+													</TableCell>
+													<TableCell className="text-muted-foreground">
+														{new Date(car.createdAt).toLocaleDateString()}
+													</TableCell>
+													<TableCell className="text-right">
+														<DropdownMenu>
+															<DropdownMenuTrigger asChild>
+																<Button variant="ghost" size="icon">
+																	<MoreHorizontal className="h-4 w-4" />
+																</Button>
+															</DropdownMenuTrigger>
+															<DropdownMenuContent align="end">
+																<DropdownMenuItem
+																	onClick={() => handleEdit(car)}
+																>
+																	<Edit className="mr-2 h-4 w-4" />
+																	Edit
+																</DropdownMenuItem>
+																<DropdownMenuSeparator />
+																<DropdownMenuItem
+																	onClick={() => handleDeleteClick(car)}
+																	className="text-destructive"
+																>
+																	<Trash2 className="mr-2 h-4 w-4" />
+																	Delete
+																</DropdownMenuItem>
+															</DropdownMenuContent>
+														</DropdownMenu>
+													</TableCell>
+												</TableRow>
+											))}
 										{filteredCars.length === 0 && (
 											<TableRow>
-												<TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-													{cars.length === 0 ? "No cars added yet" : "No cars match your filters"}
+												<TableCell
+													colSpan={5}
+													className="text-center py-8 text-muted-foreground"
+												>
+													{cars.length === 0
+														? "No cars added yet"
+														: "No cars match your filters"}
 												</TableCell>
 											</TableRow>
 										)}
@@ -400,7 +499,9 @@ export default function CarsManagementPage() {
 					<DialogHeader>
 						<DialogTitle>{isEditing ? "Edit Car" : "Add New Car"}</DialogTitle>
 						<DialogDescription>
-							{isEditing ? "Update car details" : "Add a new car make and model to the system"}
+							{isEditing
+								? "Update car details"
+								: "Add a new car make and model to the system"}
 						</DialogDescription>
 					</DialogHeader>
 
@@ -408,7 +509,11 @@ export default function CarsManagementPage() {
 						<div className="space-y-2">
 							<Label htmlFor="make">Make / Company *</Label>
 							<Select
-								value={COMMON_MAKES.includes(formData.make) ? formData.make : "custom"}
+								value={
+									COMMON_MAKES.includes(formData.make)
+										? formData.make
+										: "custom"
+								}
 								onValueChange={(value) => {
 									if (value === "custom") {
 										setFormData((prev) => ({ ...prev, make: "" }));
@@ -446,7 +551,9 @@ export default function CarsManagementPage() {
 								id="model"
 								placeholder="e.g., Corolla, Civic, 3 Series"
 								value={formData.model}
-								onChange={(e) => setFormData((prev) => ({ ...prev, model: e.target.value }))}
+								onChange={(e) =>
+									setFormData((prev) => ({ ...prev, model: e.target.value }))
+								}
 							/>
 						</div>
 
@@ -454,7 +561,9 @@ export default function CarsManagementPage() {
 							<Label htmlFor="bodyType">Body Type *</Label>
 							<Select
 								value={formData.bodyType}
-								onValueChange={(value) => setFormData((prev) => ({ ...prev, bodyType: value }))}
+								onValueChange={(value) =>
+									setFormData((prev) => ({ ...prev, bodyType: value }))
+								}
 							>
 								<SelectTrigger>
 									<SelectValue placeholder="Select body type" />
@@ -474,7 +583,9 @@ export default function CarsManagementPage() {
 						<Button variant="outline" onClick={() => setFormDialogOpen(false)}>
 							Cancel
 						</Button>
-						<Button onClick={handleSave}>{isEditing ? "Update Car" : "Add Car"}</Button>
+						<Button onClick={handleSave}>
+							{isEditing ? "Update Car" : "Add Car"}
+						</Button>
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
@@ -485,15 +596,20 @@ export default function CarsManagementPage() {
 					<DialogHeader>
 						<DialogTitle>Delete Car</DialogTitle>
 						<DialogDescription>
-							Are you sure you want to delete {selectedCar?.make} {selectedCar?.model}? This action cannot be undone.
+							Are you sure you want to delete {selectedCar?.make}{" "}
+							{selectedCar?.model}? This action cannot be undone.
 							<br />
 							<span className="text-yellow-600 font-medium mt-2 block">
-								Note: This may affect partner services that have pricing set for this car.
+								Note: This may affect partner services that have pricing set for
+								this car.
 							</span>
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>
-						<Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+						<Button
+							variant="outline"
+							onClick={() => setDeleteDialogOpen(false)}
+						>
 							Cancel
 						</Button>
 						<Button variant="destructive" onClick={handleDeleteConfirm}>

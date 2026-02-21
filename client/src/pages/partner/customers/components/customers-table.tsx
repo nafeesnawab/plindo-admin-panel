@@ -124,7 +124,7 @@ export function CustomersTable({ customers, totalCount, loading, onViewCustomer 
 										{customer.totalBookings}
 									</TableCell>
 									<TableCell className="py-3 font-semibold text-sm tabular-nums">
-										&euro;{customer.totalSpent.toFixed(2)}
+										&euro;{(customer.totalSpent ?? 0).toFixed(2)}
 									</TableCell>
 									<TableCell className="py-3">
 										{customer.subscription.active ? (

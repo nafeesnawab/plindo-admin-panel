@@ -1,6 +1,8 @@
-import { ProductCategory, ProductOrderStatus, ProductStatus } from "@/types/product";
-
-export const PARTNER_ID = "demo-partner-1";
+import {
+	ProductCategory,
+	ProductOrderStatus,
+	ProductStatus,
+} from "@/types/product";
 
 export const ITEMS_PER_PAGE_OPTIONS = [10, 25, 50] as const;
 
@@ -13,11 +15,15 @@ export const CATEGORY_LABELS: Record<ProductCategory, string> = {
 	[ProductCategory.Other]: "Other",
 };
 
-export const STATUS_CONFIG: Record<ProductStatus, { label: string; color: string; darkColor: string }> = {
+export const STATUS_CONFIG: Record<
+	ProductStatus,
+	{ label: string; color: string; darkColor: string }
+> = {
 	[ProductStatus.Available]: {
 		label: "Available",
 		color: "bg-emerald-50 text-emerald-700 border-emerald-200",
-		darkColor: "dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800",
+		darkColor:
+			"dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800",
 	},
 	[ProductStatus.Unavailable]: {
 		label: "Unavailable",
@@ -31,11 +37,15 @@ export const STATUS_CONFIG: Record<ProductStatus, { label: string; color: string
 	},
 };
 
-export const ORDER_STATUS_CONFIG: Record<ProductOrderStatus, { label: string; color: string; darkColor: string }> = {
+export const ORDER_STATUS_CONFIG: Record<
+	ProductOrderStatus,
+	{ label: string; color: string; darkColor: string }
+> = {
 	[ProductOrderStatus.Pending]: {
 		label: "Pending",
 		color: "bg-yellow-50 text-yellow-700 border-yellow-200",
-		darkColor: "dark:bg-yellow-950/40 dark:text-yellow-300 dark:border-yellow-800",
+		darkColor:
+			"dark:bg-yellow-950/40 dark:text-yellow-300 dark:border-yellow-800",
 	},
 	[ProductOrderStatus.Ready]: {
 		label: "Ready",
@@ -45,7 +55,8 @@ export const ORDER_STATUS_CONFIG: Record<ProductOrderStatus, { label: string; co
 	[ProductOrderStatus.Collected]: {
 		label: "Collected",
 		color: "bg-emerald-50 text-emerald-700 border-emerald-200",
-		darkColor: "dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800",
+		darkColor:
+			"dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800",
 	},
 	[ProductOrderStatus.Cancelled]: {
 		label: "Cancelled",

@@ -1,0 +1,1304 @@
+{
+	"info": {
+		"_postman_id": "plindo-mobile-api-v1",
+		"name": "Plindo Mobile API",
+		"description": "Complete API collection for Plindo Customer Mobile App.\n\n## Base URL\n- Development: `http://localhost:5001`\n- Production: Set via environment variable\n\n## Authentication\nMost endpoints require a Bearer token. After signup/signin, use the `accessToken` in the Authorization header.\n\n## Response Format\n```json\n{\n  \"status\": 0,\n  \"message\": \"Success\",\n  \"data\": { ... }\n}\n```\n\n## Error Response\n```json\n{\n  \"status\": -1,\n  \"message\": \"Error description\"\n}\n```",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5001",
+			"type": "string"
+		},
+		{
+			"key": "accessToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refreshToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "otpId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "verificationToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "customerId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "partnerId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "serviceId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "vehicleId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "bookingId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "conversationId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "paymentMethodId",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Authentication",
+			"description": "Customer authentication endpoints including OTP-based signup and password reset.",
+			"item": [
+				{
+					"name": "1.1 Send OTP (Signup)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.status === 0 && jsonData.data.otpId) {",
+									"    pm.collectionVariables.set('otpId', jsonData.data.otpId);",
+									"    console.log('OTP ID saved:', jsonData.data.otpId);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"email\",\n    \"value\": \"customer@example.com\",\n    \"purpose\": \"signup\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/auth/send-otp",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "auth", "send-otp"]
+						},
+						"description": "Send OTP to email or phone for signup.\n\n**Request Body:**\n- `type`: `email` or `phone`\n- `value`: Email address or phone number\n- `purpose`: `signup` or `reset_password`"
+					}
+				},
+				{
+					"name": "1.2 Send OTP (Password Reset)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.status === 0 && jsonData.data.otpId) {",
+									"    pm.collectionVariables.set('otpId', jsonData.data.otpId);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"email\",\n    \"value\": \"customer@example.com\",\n    \"purpose\": \"reset_password\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/auth/send-otp",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "auth", "send-otp"]
+						}
+					}
+				},
+				{
+					"name": "1.3 Verify OTP",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.status === 0 && jsonData.data.verificationToken) {",
+									"    pm.collectionVariables.set('verificationToken', jsonData.data.verificationToken);",
+									"    console.log('Verification token saved');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"otpId\": \"{{otpId}}\",\n    \"code\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/auth/verify-otp",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "auth", "verify-otp"]
+						},
+						"description": "Verify the OTP code sent to email/phone.\n\n**Note:** Get the actual OTP code from your email/SMS or database for testing."
+					}
+				},
+				{
+					"name": "1.4 Sign Up",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.status === 0 && jsonData.data) {",
+									"    pm.collectionVariables.set('accessToken', jsonData.data.accessToken);",
+									"    pm.collectionVariables.set('refreshToken', jsonData.data.refreshToken);",
+									"    pm.collectionVariables.set('customerId', jsonData.data.customer.id);",
+									"    console.log('Tokens and customer ID saved');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"verificationToken\": \"{{verificationToken}}\",\n    \"password\": \"SecurePassword123\",\n    \"email\": \"customer@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/auth/signup",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "auth", "signup"]
+						},
+						"description": "Complete account creation after OTP verification.\n\n## Signup Flow\n\n**Option 1 — Email Signup:**\n1. User enters email + password\n2. `POST /auth/send-otp` → `{ type: 'email', value: 'user@example.com', purpose: 'signup' }`\n3. `POST /auth/verify-otp` → returns `verificationToken`\n4. `POST /auth/signup` → `{ verificationToken, password, email: 'user@example.com' }`\n\n**Option 2 — Phone Signup:**\n1. User enters phone + password\n2. `POST /auth/send-otp` → `{ type: 'phone', value: '+35799123456', purpose: 'signup' }`\n3. `POST /auth/verify-otp` → returns `verificationToken`\n4. `POST /auth/signup` → `{ verificationToken, password, phone: '+35799123456' }`\n\n## Required Fields\n- `verificationToken`: From verify-otp response\n- `password`: Min 6 characters\n- `email` OR `phone`: Must match the identifier used in send-otp (server validates this)\n\n## After Signup\nCollect name, language, avatar, and other profile info via `PUT /api/mobile/profile`."
+					}
+				},
+				{
+					"name": "1.5 Sign In",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.status === 0 && jsonData.data) {",
+									"    pm.collectionVariables.set('accessToken', jsonData.data.accessToken);",
+									"    pm.collectionVariables.set('refreshToken', jsonData.data.refreshToken);",
+									"    pm.collectionVariables.set('customerId', jsonData.data.customer.id);",
+									"    console.log('Tokens saved');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"identifier\": \"customer@example.com\",\n    \"password\": \"SecurePassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/auth/signin",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "auth", "signin"]
+						},
+						"description": "Sign in with email/phone and password.\n\n**identifier:** Can be email or phone number."
+					}
+				},
+				{
+					"name": "1.6 Forgot Password",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.status === 0 && jsonData.data.otpId) {",
+									"    pm.collectionVariables.set('otpId', jsonData.data.otpId);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"customer@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/auth/forgot-password",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "auth", "forgot-password"]
+						},
+						"description": "Request password reset OTP."
+					}
+				},
+				{
+					"name": "1.7 Reset Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"verificationToken\": \"{{verificationToken}}\",\n    \"newPassword\": \"NewSecurePassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/auth/reset-password",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "auth", "reset-password"]
+						},
+						"description": "Reset password using verification token from OTP verification."
+					}
+				},
+				{
+					"name": "1.8 Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.status === 0 && jsonData.data) {",
+									"    pm.collectionVariables.set('accessToken', jsonData.data.accessToken);",
+									"    pm.collectionVariables.set('refreshToken', jsonData.data.refreshToken);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"refreshToken\": \"{{refreshToken}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/auth/refresh-token",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "auth", "refresh-token"]
+						},
+						"description": "Get new access token using refresh token."
+					}
+				},
+				{
+					"name": "1.9 Get Current User",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/auth/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "auth", "me"]
+						},
+						"description": "Get authenticated customer's basic info."
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Profile",
+			"description": "Customer profile management endpoints.",
+			"item": [
+				{
+					"name": "2.1 Get Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/profile",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "profile"]
+						},
+						"description": "Get full customer profile including vehicles and payment methods."
+					}
+				},
+				{
+					"name": "2.2 Update Profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"John Smith\",\n    \"email\": \"john.smith@example.com\",\n    \"phone\": \"+35799123456\",\n    \"avatar\": \"/uploads/avatar.jpg\",\n    \"language\": \"en\",\n    \"location\": \"Nicosia, Cyprus\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/profile",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "profile"]
+						},
+						"description": "Update customer profile. All fields are optional."
+					}
+				},
+				{
+					"name": "2.3 Change Password",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"oldPassword\": \"CurrentPassword123\",\n    \"newPassword\": \"NewPassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/profile/password",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "profile", "password"]
+						},
+						"description": "Change customer password."
+					}
+				},
+				{
+					"name": "2.4 Get Bookings Summary",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/profile/bookings-summary",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "profile", "bookings-summary"]
+						},
+						"description": "Get quick stats: total bookings, pending, completed, total spent."
+					}
+				},
+				{
+					"name": "2.5 Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/profile/logout",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "profile", "logout"]
+						},
+						"description": "Logout and clear FCM token."
+					}
+				},
+				{
+					"name": "2.6 Delete Account",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/profile",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "profile"]
+						},
+						"description": "⚠️ DANGER: Permanently delete customer account and all associated data."
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Vehicles",
+			"description": "Customer vehicle management (CRUD).",
+			"item": [
+				{
+					"name": "3.1 List Vehicles",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/vehicles",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "vehicles"]
+						},
+						"description": "List all customer's vehicles."
+					}
+				},
+				{
+					"name": "3.2 Add Vehicle",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.status === 0 && jsonData.data.vehicle) {",
+									"    pm.collectionVariables.set('vehicleId', jsonData.data.vehicle.id);",
+									"    console.log('Vehicle ID saved:', jsonData.data.vehicle.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"make\": \"Toyota\",\n    \"model\": \"Camry\",\n    \"year\": 2022,\n    \"color\": \"Silver\",\n    \"plateNumber\": \"ABC123\",\n    \"bodyType\": \"Sedan\",\n    \"type\": \"sedan\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/vehicles",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "vehicles"]
+						},
+						"description": "Add a new vehicle.\n\n**bodyType:** Use values from `/api/mobile/cars/body-types`"
+					}
+				},
+				{
+					"name": "3.3 Update Vehicle",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"color\": \"Blue\",\n    \"plateNumber\": \"XYZ789\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/vehicles/{{vehicleId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "vehicles", "{{vehicleId}}"]
+						},
+						"description": "Update vehicle details. All fields optional."
+					}
+				},
+				{
+					"name": "3.4 Delete Vehicle",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/vehicles/{{vehicleId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "vehicles", "{{vehicleId}}"]
+						},
+						"description": "Delete a vehicle."
+					}
+				}
+			]
+		},
+		{
+			"name": "4. Car Registry (Public)",
+			"description": "Public endpoints for car makes, models, and body types.",
+			"item": [
+				{
+					"name": "4.1 Get Car Makes",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/cars/makes",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "cars", "makes"]
+						},
+						"description": "Get all available car makes (Toyota, BMW, etc.).\n\n**No authentication required.**"
+					}
+				},
+				{
+					"name": "4.2 Get Models by Make",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/cars/models/Toyota",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "cars", "models", "Toyota"]
+						},
+						"description": "Get car models for a specific make.\n\n**No authentication required.**"
+					}
+				},
+				{
+					"name": "4.3 Get Body Types",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/cars/body-types",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "cars", "body-types"]
+						},
+						"description": "Get all body types (Sedan, SUV, Hatchback, etc.).\n\n**No authentication required.**"
+					}
+				}
+			]
+		},
+		{
+			"name": "5. Payment Methods",
+			"description": "Customer payment method management.",
+			"item": [
+				{
+					"name": "5.1 List Payment Methods",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/payment-methods",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "payment-methods"]
+						},
+						"description": "List all saved payment methods."
+					}
+				},
+				{
+					"name": "5.2 Add Payment Method",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.status === 0 && jsonData.data.paymentMethod) {",
+									"    pm.collectionVariables.set('paymentMethodId', jsonData.data.paymentMethod.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"card\",\n    \"brand\": \"Visa\",\n    \"last4\": \"4242\",\n    \"expiryDate\": \"12/25\",\n    \"stripePaymentMethodId\": \"pm_xxx\",\n    \"isDefault\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/payment-methods",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "payment-methods"]
+						},
+						"description": "Add a payment method.\n\n**stripePaymentMethodId:** From Stripe SDK after card tokenization."
+					}
+				},
+				{
+					"name": "5.3 Delete Payment Method",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/payment-methods/{{paymentMethodId}}",
+							"host": ["{{baseUrl}}"],
+							"path": [
+								"api",
+								"mobile",
+								"payment-methods",
+								"{{paymentMethodId}}"
+							]
+						},
+						"description": "Delete a saved payment method."
+					}
+				}
+			]
+		},
+		{
+			"name": "6. Partners Discovery",
+			"description": "Find and explore car wash partners.",
+			"item": [
+				{
+					"name": "6.1 List Partners",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.status === 0 && jsonData.data.items && jsonData.data.items.length > 0) {",
+									"    pm.collectionVariables.set('partnerId', jsonData.data.items[0].id);",
+									"    console.log('Partner ID saved:', jsonData.data.items[0].id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/partners?page=1&limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "partners"],
+							"query": [
+								{ "key": "page", "value": "1" },
+								{ "key": "limit", "value": "10" },
+								{ "key": "search", "value": "", "disabled": true },
+								{ "key": "serviceType", "value": "book_me", "disabled": true },
+								{ "key": "serviceCategory", "value": "wash", "disabled": true },
+								{ "key": "minRating", "value": "4", "disabled": true },
+								{ "key": "maxPrice", "value": "50", "disabled": true },
+								{ "key": "openNow", "value": "true", "disabled": true },
+								{ "key": "lat", "value": "35.1234", "disabled": true },
+								{ "key": "lng", "value": "33.5678", "disabled": true },
+								{ "key": "radius", "value": "10", "disabled": true },
+								{ "key": "sortBy", "value": "rating", "disabled": true }
+							]
+						},
+						"description": "List partners with filters.\n\n**Query Parameters:**\n- `search`: Search by name/service\n- `serviceType`: `book_me`, `pick_by_me`, `washing_van`\n- `serviceCategory`: `wash`, `detailing`, `other`\n- `minRating`: 1-5\n- `maxPrice`: Max service price\n- `openNow`: Only open partners (based on current time and partner's schedule)\n- `lat`, `lng`, `radius`: Geolocation filter\n- `sortBy`: `rating`, `distance`, `price`\n\n**Response includes:**\n- `schedule`: Array of weekly schedule with multiple time blocks per day\n- `isOpenNow`: Boolean based on current time and schedule\n\n**Schedule Format:**\n```json\n{\n  \"schedule\": [\n    {\n      \"dayOfWeek\": 0,\n      \"dayName\": \"Sunday\",\n      \"isEnabled\": false,\n      \"timeBlocks\": []\n    },\n    {\n      \"dayOfWeek\": 6,\n      \"dayName\": \"Saturday\",\n      \"isEnabled\": true,\n      \"timeBlocks\": [\n        { \"start\": \"01:30\", \"end\": \"05:30\" },\n        { \"start\": \"07:30\", \"end\": \"12:00\" },\n        { \"start\": \"14:00\", \"end\": \"19:30\" }\n      ]\n    }\n  ]\n}\n```"
+					}
+				},
+				{
+					"name": "6.2 Get Partner Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/partners/{{partnerId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "partners", "{{partnerId}}"]
+						},
+						"description": "Get detailed partner info including services, products, and weekly schedule.\n\n**Response includes:**\n- Full partner details with contact information\n- `schedule`: Weekly availability with multiple time blocks per day\n- Services list with pricing\n- Products list\n- Review statistics\n\n**Schedule Format:**\nPartners can have multiple time blocks per day for flexible scheduling:\n```json\n{\n  \"schedule\": [\n    {\n      \"dayOfWeek\": 0,\n      \"dayName\": \"Sunday\",\n      \"isEnabled\": false,\n      \"timeBlocks\": []\n    },\n    {\n      \"dayOfWeek\": 1,\n      \"dayName\": \"Monday\",\n      \"isEnabled\": true,\n      \"timeBlocks\": [\n        { \"start\": \"09:00\", \"end\": \"12:00\" },\n        { \"start\": \"14:00\", \"end\": \"18:00\" }\n      ]\n    }\n  ]\n}\n```"
+					}
+				},
+				{
+					"name": "6.3 Get Partner Services",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.status === 0 && jsonData.data.services && jsonData.data.services.length > 0) {",
+									"    pm.collectionVariables.set('serviceId', jsonData.data.services[0].id);",
+									"    console.log('Service ID saved:', jsonData.data.services[0].id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/partners/{{partnerId}}/services",
+							"host": ["{{baseUrl}}"],
+							"path": [
+								"api",
+								"mobile",
+								"partners",
+								"{{partnerId}}",
+								"services"
+							],
+							"query": [
+								{ "key": "serviceCategory", "value": "wash", "disabled": true },
+								{ "key": "serviceType", "value": "book_me", "disabled": true }
+							]
+						},
+						"description": "Get partner's services with pricing."
+					}
+				},
+				{
+					"name": "6.4 Get Partner Products",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/partners/{{partnerId}}/products",
+							"host": ["{{baseUrl}}"],
+							"path": [
+								"api",
+								"mobile",
+								"partners",
+								"{{partnerId}}",
+								"products"
+							],
+							"query": [{ "key": "category", "value": "", "disabled": true }]
+						},
+						"description": "Get partner's add-on products (air fresheners, etc.)."
+					}
+				},
+				{
+					"name": "6.5 Get Partner Reviews",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/partners/{{partnerId}}/reviews?page=1&limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "partners", "{{partnerId}}", "reviews"],
+							"query": [
+								{ "key": "page", "value": "1" },
+								{ "key": "limit", "value": "10" }
+							]
+						},
+						"description": "Get partner's customer reviews."
+					}
+				},
+				{
+					"name": "6.6 Get Available Slots",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/partners/{{partnerId}}/slots?date=2026-02-25&serviceCategory=wash&duration=30",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "partners", "{{partnerId}}", "slots"],
+							"query": [
+								{ "key": "date", "value": "2026-02-25" },
+								{ "key": "serviceCategory", "value": "wash" },
+								{ "key": "duration", "value": "30" }
+							]
+						},
+						"description": "Get available time slots for booking.\n\n**Response includes:**\n- `windows`: Array of available slots with bay availability\n- `capacity`: Total bays per service category\n\n**Bay Logic:** Each slot shows `availableBays`. Book only if > 0."
+					}
+				}
+			]
+		},
+		{
+			"name": "7. Bookings",
+			"description": "Booking management endpoints.",
+			"item": [
+				{
+					"name": "7.1 Calculate Price",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"serviceId\": \"{{serviceId}}\",\n    \"vehicleId\": \"{{vehicleId}}\",\n    \"products\": []\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/bookings/calculate-price",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "bookings", "calculate-price"]
+						},
+						"description": "Calculate total price before booking.\n\n**Response includes:**\n- Service price (based on vehicle body type)\n- Subscription discount (if applicable)\n- Products total\n- Platform fee\n- Grand total"
+					}
+				},
+				{
+					"name": "7.2 Create Booking",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.status === 0 && jsonData.data.booking) {",
+									"    pm.collectionVariables.set('bookingId', jsonData.data.booking.id);",
+									"    console.log('Booking ID saved:', jsonData.data.booking.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"partnerId\": \"{{partnerId}}\",\n    \"serviceId\": \"{{serviceId}}\",\n    \"vehicleId\": \"{{vehicleId}}\",\n    \"slot\": {\n        \"date\": \"2026-02-25\",\n        \"startTime\": \"10:00\",\n        \"endTime\": \"10:30\"\n    },\n    \"products\": [],\n    \"instructions\": \"Please be careful with the paint\",\n    \"paymentMethodId\": \"{{paymentMethodId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/bookings",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "bookings"]
+						},
+						"description": "Create a new booking.\n\n**Important:**\n- Select slot from available slots endpoint\n- Products array optional (add-ons)\n- Instructions optional"
+					}
+				},
+				{
+					"name": "7.3 List Bookings",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/bookings?page=1&limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "bookings"],
+							"query": [
+								{ "key": "page", "value": "1" },
+								{ "key": "limit", "value": "10" },
+								{ "key": "status", "value": "booked", "disabled": true },
+								{ "key": "search", "value": "", "disabled": true }
+							]
+						},
+						"description": "List customer's bookings.\n\n**Status values:** `booked`, `in_progress`, `completed`, `picked`, `out_for_delivery`, `delivered`, `cancelled`"
+					}
+				},
+				{
+					"name": "7.4 Get Booking Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/bookings/{{bookingId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "bookings", "{{bookingId}}"]
+						},
+						"description": "Get booking details with tracking info.\n\n**Response includes:**\n- Booking details\n- Service steps with timestamps\n- Status images (uploaded by partner)"
+					}
+				},
+				{
+					"name": "7.5 Cancel Booking",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"reason\": \"Changed my plans\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/bookings/{{bookingId}}/cancel",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "bookings", "{{bookingId}}", "cancel"]
+						},
+						"description": "Cancel a booking.\n\n**Note:** Can only cancel bookings with status `booked`."
+					}
+				},
+				{
+					"name": "7.6 Submit Review",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"rating\": 5,\n    \"reviewText\": \"Excellent service! Very clean and professional.\",\n    \"isAnonymous\": false\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/bookings/{{bookingId}}/review",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "bookings", "{{bookingId}}", "review"]
+						},
+						"description": "Submit review for completed booking.\n\n**Note:** Can only review bookings with status `completed` or `delivered`."
+					}
+				}
+			]
+		},
+		{
+			"name": "8. Subscriptions",
+			"description": "Subscription plan management.",
+			"item": [
+				{
+					"name": "8.1 Get Plans (Public)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/subscriptions/plans",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "subscriptions", "plans"]
+						},
+						"description": "Get available subscription plans.\n\n**No authentication required.**\n\n**Plans:** Basic, Premium with different features and pricing."
+					}
+				},
+				{
+					"name": "8.2 Get Current Subscription",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/subscriptions/current",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "subscriptions", "current"]
+						},
+						"description": "Get customer's current subscription status."
+					}
+				},
+				{
+					"name": "8.3 Subscribe",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"tier\": \"premium\",\n    \"paymentMethodId\": \"{{paymentMethodId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/subscriptions/subscribe",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "subscriptions", "subscribe"]
+						},
+						"description": "Subscribe to a plan.\n\n**tier:** `basic` or `premium`"
+					}
+				},
+				{
+					"name": "8.4 Cancel Subscription",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/subscriptions/cancel",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "subscriptions", "cancel"]
+						},
+						"description": "Cancel subscription auto-renewal.\n\n**Note:** Subscription remains active until end date."
+					}
+				}
+			]
+		},
+		{
+			"name": "9. Messaging",
+			"description": "Chat with partners (REST endpoints). For real-time, use Socket.IO.",
+			"item": [
+				{
+					"name": "9.1 List Conversations",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/conversations",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "conversations"]
+						},
+						"description": "List all conversations with partners."
+					}
+				},
+				{
+					"name": "9.2 Start Conversation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.status === 0 && jsonData.data.conversation) {",
+									"    pm.collectionVariables.set('conversationId', jsonData.data.conversation.id);",
+									"    console.log('Conversation ID saved:', jsonData.data.conversation.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/conversations/{{partnerId}}/start",
+							"host": ["{{baseUrl}}"],
+							"path": [
+								"api",
+								"mobile",
+								"conversations",
+								"{{partnerId}}",
+								"start"
+							]
+						},
+						"description": "Start or get existing conversation with a partner."
+					}
+				},
+				{
+					"name": "9.3 Get Messages",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/conversations/{{conversationId}}/messages?page=1&limit=50",
+							"host": ["{{baseUrl}}"],
+							"path": [
+								"api",
+								"mobile",
+								"conversations",
+								"{{conversationId}}",
+								"messages"
+							],
+							"query": [
+								{ "key": "page", "value": "1" },
+								{ "key": "limit", "value": "50" }
+							]
+						},
+						"description": "Get messages in a conversation.\n\n**Note:** Also marks unread messages as read."
+					}
+				},
+				{
+					"name": "9.4 Send Message (REST)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"text\": \"Hello, I have a question about your services.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/conversations/{{conversationId}}/messages",
+							"host": ["{{baseUrl}}"],
+							"path": [
+								"api",
+								"mobile",
+								"conversations",
+								"{{conversationId}}",
+								"messages"
+							]
+						},
+						"description": "Send a message via REST.\n\n**Preferred:** Use Socket.IO for real-time messaging."
+					}
+				}
+			]
+		}
+	]
+}

@@ -22,9 +22,24 @@ export interface PartnerDocument {
 	verified: boolean;
 }
 
-export interface WorkingHours {
-	open: string;
-	close: string;
+export interface PartnerDriver {
+	id: string;
+	fullName: string;
+	contactNumber: string;
+	driverLicenseUrl: string | null;
+	driverInsuranceUrl: string | null;
+}
+
+export interface TimeBlock {
+	start: string;
+	end: string;
+}
+
+export interface ScheduleDay {
+	dayOfWeek: number;
+	dayName: string;
+	isEnabled: boolean;
+	timeBlocks: TimeBlock[];
 }
 
 export interface Partner {
@@ -43,13 +58,17 @@ export interface Partner {
 	totalEarnings: number;
 	isVerified: boolean;
 	businessLicense: string;
+	description: string;
+	logo: string | null;
+	coverPhoto: string | null;
 	createdAt: string;
 	appliedAt: string;
 	suspendedAt: string | null;
 	suspensionReason: string | null;
-	workingHours: Record<string, WorkingHours>;
+	schedule: ScheduleDay[];
 	photos: string[];
 	documents: PartnerDocument[];
+	drivers: PartnerDriver[];
 }
 
 export interface PartnerReview {
@@ -69,6 +88,7 @@ export interface EarningsHistory {
 export interface PartnerDetails extends Partner {
 	reviews: PartnerReview[];
 	earningsHistory: EarningsHistory[];
+	capacityByCategory?: Record<string, number>;
 	carWashBays?: number;
 	detailingBays?: number;
 }
@@ -91,17 +111,25 @@ export interface PartnerFilters {
 }
 
 const getPendingPartners = (params?: PartnerFilters) =>
-	apiClient.get<PaginatedResponse<Partner>>({ url: PartnerApi.Pending, params });
+	apiClient.get<PaginatedResponse<Partner>>({
+		url: PartnerApi.Pending,
+		params,
+	});
 
 const getActivePartners = (params?: PartnerFilters) =>
 	apiClient.get<PaginatedResponse<Partner>>({ url: PartnerApi.Active, params });
 
 const getSuspendedPartners = (params?: PartnerFilters) =>
-	apiClient.get<PaginatedResponse<Partner>>({ url: PartnerApi.Suspended, params });
+	apiClient.get<PaginatedResponse<Partner>>({
+		url: PartnerApi.Suspended,
+		params,
+	});
 
-const getPartnerDetails = (id: string) => apiClient.get<PartnerDetails>({ url: `${PartnerApi.Details}/${id}` });
+const getPartnerDetails = (id: string) =>
+	apiClient.get<PartnerDetails>({ url: `${PartnerApi.Details}/${id}` });
 
-const approvePartner = (id: string) => apiClient.post({ url: `/partners/${id}/approve` });
+const approvePartner = (id: string) =>
+	apiClient.post({ url: `/partners/${id}/approve` });
 
 const rejectPartner = (id: string, reason: string) =>
 	apiClient.post({ url: `/partners/${id}/reject`, data: { reason } });
@@ -109,9 +137,11 @@ const rejectPartner = (id: string, reason: string) =>
 const suspendPartner = (id: string, reason: string) =>
 	apiClient.post({ url: `/partners/${id}/suspend`, data: { reason } });
 
-const reactivatePartner = (id: string) => apiClient.post({ url: `/partners/${id}/reactivate` });
+const reactivatePartner = (id: string) =>
+	apiClient.post({ url: `/partners/${id}/reactivate` });
 
-const removePartner = (id: string) => apiClient.delete({ url: `${PartnerApi.Details}/${id}` });
+const removePartner = (id: string) =>
+	apiClient.delete({ url: `${PartnerApi.Details}/${id}` });
 
 export default {
 	getPendingPartners,

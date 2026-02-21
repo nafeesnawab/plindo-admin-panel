@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 
+import apiClient from "@/api/apiClient";
 import type { Product } from "@/types/product";
 import { ProductStatus } from "@/types/product";
 
@@ -8,17 +9,31 @@ import type { ProductFormData } from "../types";
 import { getInitialFormData } from "../types";
 
 export function useProductForm() {
-	const [formData, setFormData] = useState<ProductFormData>(getInitialFormData());
+	const [formData, setFormData] = useState<ProductFormData>(
+		getInitialFormData(),
+	);
 	const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 	const [showForm, setShowForm] = useState(false);
+	const [imageUploading, setImageUploading] = useState(false);
 	const imageInputRef = useRef<HTMLInputElement>(null);
 
-	const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+	const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
-		if (file) {
-			const url = URL.createObjectURL(file);
-			setFormData((prev) => ({ ...prev, imageUrl: url }));
-			e.target.value = "";
+		if (!file) return;
+		e.target.value = "";
+		setImageUploading(true);
+		try {
+			const body = new FormData();
+			body.append("file", file);
+			const data = await apiClient.postForm<{ url: string }>({
+				url: "/upload",
+				data: body,
+			});
+			setFormData((prev) => ({ ...prev, imageUrl: data.url }));
+		} catch {
+			toast.error("Image upload failed");
+		} finally {
+			setImageUploading(false);
 		}
 	};
 
@@ -32,7 +47,10 @@ export function useProductForm() {
 				price: product.price.toString(),
 				stock: product.stock.toString(),
 				imageUrl: product.imageUrl,
-				status: product.status === ProductStatus.OutOfStock ? ProductStatus.Available : product.status,
+				status:
+					product.status === ProductStatus.OutOfStock
+						? ProductStatus.Available
+						: product.status,
 			});
 		} else {
 			setEditingProduct(null);
@@ -73,7 +91,10 @@ export function useProductForm() {
 		price: Number.parseFloat(formData.price),
 		stock: Number.parseInt(formData.stock),
 		imageUrl: formData.imageUrl,
-		status: Number.parseInt(formData.stock) === 0 ? ProductStatus.OutOfStock : formData.status,
+		status:
+			Number.parseInt(formData.stock) === 0
+				? ProductStatus.OutOfStock
+				: formData.status,
 	});
 
 	return {
@@ -83,6 +104,7 @@ export function useProductForm() {
 		showForm,
 		setShowForm,
 		imageInputRef,
+		imageUploading,
 		handleImageChange,
 		openForm,
 		closeForm,

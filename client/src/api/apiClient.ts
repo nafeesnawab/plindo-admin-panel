@@ -1,4 +1,8 @@
-import axios, { type AxiosError, type AxiosRequestConfig, type AxiosResponse } from "axios";
+import axios, {
+	type AxiosError,
+	type AxiosRequestConfig,
+	type AxiosResponse,
+} from "axios";
 import { toast } from "sonner";
 import type { Result } from "#/api";
 import { ResultStatus } from "#/enum";
@@ -14,7 +18,14 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
 	(config) => {
-		config.headers.Authorization = "Bearer Token";
+		const state = authStore.getState();
+		const token =
+			state.currentRole === "partner"
+				? state.partnerToken?.accessToken
+				: state.userToken?.accessToken;
+		if (token) {
+			config.headers.Authorization = `Bearer ${token}`;
+		}
 		return config;
 	},
 	(error) => Promise.reject(error),
@@ -31,7 +42,8 @@ axiosInstance.interceptors.response.use(
 	},
 	(error: AxiosError<Result>) => {
 		const { response, message } = error || {};
-		const errMsg = response?.data?.message || message || t("sys.api.errorMessage");
+		const errMsg =
+			response?.data?.message || message || t("sys.api.errorMessage");
 		toast.error(errMsg, { position: "top-center" });
 		if (response?.status === 401) {
 			authStore.getState().actions.clearAuth();
@@ -55,6 +67,13 @@ class APIClient {
 	}
 	delete<T = unknown>(config: AxiosRequestConfig): Promise<T> {
 		return this.request<T>({ ...config, method: "DELETE" });
+	}
+	postForm<T = unknown>(config: AxiosRequestConfig): Promise<T> {
+		return axiosInstance.request<unknown, T>({
+			...config,
+			method: "POST",
+			headers: { ...config.headers, "Content-Type": "multipart/form-data" },
+		});
 	}
 	request<T = unknown>(config: AxiosRequestConfig): Promise<T> {
 		return axiosInstance.request<any, T>(config);

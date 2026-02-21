@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pagination } from "antd";
 import { format } from "date-fns";
-import { Eye, Pause, Play, Search, Trash2 } from "lucide-react";
+import { Eye, Pause, Play, Search, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -140,17 +140,24 @@ export default function CustomersPage() {
 			<Card className="flex-1 min-h-0 flex flex-col">
 				<CardContent className="pt-6 flex-1 min-h-0 flex flex-col">
 					<div className="shrink-0 flex flex-wrap gap-4 mb-4">
-						<div className="flex gap-2 flex-1 min-w-[200px]">
+						<div className="relative flex-1 min-w-[200px] max-w-sm">
+							<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 							<Input
 								placeholder="Search by name, email, or phone..."
 								value={searchInput}
 								onChange={(e) => setSearchInput(e.target.value)}
 								onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-								className="max-w-sm"
+								className="pl-9 pr-9"
 							/>
-							<Button variant="outline" size="icon" onClick={handleSearch}>
-								<Search className="h-4 w-4" />
-							</Button>
+							{searchInput && (
+								<button
+									type="button"
+									className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+									onClick={() => { setSearchInput(""); setSearch(""); setPage(1); }}
+								>
+									<X className="h-4 w-4" />
+								</button>
+							)}
 						</div>
 						<Select
 							value={statusFilter}

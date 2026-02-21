@@ -3,7 +3,13 @@ import { Filter, PoundSterling } from "lucide-react";
 import { useMemo } from "react";
 
 import type { SlotBooking } from "@/types/booking";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/ui/select";
 import { Skeleton } from "@/ui/skeleton";
 
 import { BookingDetailsDialog } from "./components/booking-details-dialog";
@@ -37,10 +43,13 @@ export default function PartnerBookingsPage() {
 		cancelMutation,
 		rescheduleMutation,
 		handleEventClick,
+		handleEventAdd,
 		handleStartService,
 		handleCompleteService,
 		handleCancelConfirm,
 		handleRescheduleConfirm,
+		handleViewChange,
+		handleDateChange,
 	} = useBookings();
 
 	// Counts per status + revenue
@@ -53,7 +62,9 @@ export default function PartnerBookingsPage() {
 				revenue += b.pricing.finalPrice;
 			}
 		}
-		const total = allBookings.filter((b: SlotBooking) => b.status !== "cancelled").length;
+		const total = allBookings.filter(
+			(b: SlotBooking) => b.status !== "cancelled",
+		).length;
 		return { counts, total, revenue };
 	}, [allBookings]);
 
@@ -73,7 +84,9 @@ export default function PartnerBookingsPage() {
 				<div className="flex items-center gap-1">
 					{/* Total count */}
 					<div className="flex items-center gap-1.5 pr-3 mr-3 border-r border-border">
-						<span className="text-xl font-bold text-foreground">{stats.total}</span>
+						<span className="text-xl font-bold text-foreground">
+							{stats.total}
+						</span>
 						<span className="text-xs text-muted-foreground">bookings</span>
 					</div>
 
@@ -84,9 +97,16 @@ export default function PartnerBookingsPage() {
 							const color = STATUS_COLORS[key]?.bg ?? "#6b7280";
 							return (
 								<div key={key} className="flex items-center gap-1.5">
-									<span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
+									<span
+										className="h-2.5 w-2.5 rounded-full shrink-0"
+										style={{ backgroundColor: color }}
+									/>
 									<span className="text-xs text-muted-foreground">{label}</span>
-									{count > 0 && <span className="text-xs font-semibold text-foreground">{count}</span>}
+									{count > 0 && (
+										<span className="text-xs font-semibold text-foreground">
+											{count}
+										</span>
+									)}
 								</div>
 							);
 						})}
@@ -98,7 +118,9 @@ export default function PartnerBookingsPage() {
 					{stats.revenue > 0 && (
 						<div className="flex items-center gap-1 text-xs text-muted-foreground pr-3 mr-1 border-r border-border">
 							<PoundSterling className="h-3 w-3" />
-							<span className="font-semibold text-emerald-600 dark:text-emerald-400">{stats.revenue.toFixed(0)}</span>
+							<span className="font-semibold text-emerald-600 dark:text-emerald-400">
+								{stats.revenue.toFixed(0)}
+							</span>
 							<span>earned</span>
 						</div>
 					)}
@@ -128,10 +150,21 @@ export default function PartnerBookingsPage() {
 					firstDayOfWeek="monday"
 					timeFormat="24-hour"
 					onEventClick={handleEventClick}
+					onEventAdd={handleEventAdd}
+					onViewChange={handleViewChange}
+					onDateChange={handleDateChange}
 					disableDragAndDrop
 					disableCellClick
 					businessHours={{
-						daysOfWeek: ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"],
+						daysOfWeek: [
+							"monday",
+							"tuesday",
+							"wednesday",
+							"thursday",
+							"friday",
+							"saturday",
+							"sunday",
+						],
 						startTime: 7,
 						endTime: 22,
 					}}
@@ -145,8 +178,12 @@ export default function PartnerBookingsPage() {
 				onOpenChange={setShowDetails}
 				onCancel={() => setShowCancelDialog(true)}
 				onReschedule={() => setShowRescheduleDialog(true)}
-				onStartService={() => selectedBooking && handleStartService(selectedBooking)}
-				onComplete={() => selectedBooking && handleCompleteService(selectedBooking)}
+				onStartService={() =>
+					selectedBooking && handleStartService(selectedBooking)
+				}
+				onComplete={() =>
+					selectedBooking && handleCompleteService(selectedBooking)
+				}
 			/>
 
 			<CancelDialog

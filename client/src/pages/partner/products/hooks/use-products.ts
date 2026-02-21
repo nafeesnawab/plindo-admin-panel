@@ -2,9 +2,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import productService from "@/api/services/productService";
+import { usePartnerInfo } from "@/store/authStore";
 import { ProductStatus } from "@/types/product";
-
-import { PARTNER_ID } from "../types";
 
 interface UseProductsOptions {
 	searchTerm: string;
@@ -17,22 +16,39 @@ interface UseOrdersOptions {
 	enabled: boolean;
 }
 
-export function useProducts({ searchTerm, statusFilter, categoryFilter }: UseProductsOptions) {
+export function useProducts({
+	searchTerm,
+	statusFilter,
+	categoryFilter,
+}: UseProductsOptions) {
 	const queryClient = useQueryClient();
+	const partnerInfo = usePartnerInfo();
+	const partnerId = partnerInfo.id ?? "";
 
 	const { data: productsData, isLoading } = useQuery({
-		queryKey: ["partner-products", PARTNER_ID, searchTerm, statusFilter, categoryFilter],
+		queryKey: [
+			"partner-products",
+			partnerId,
+			searchTerm,
+			statusFilter,
+			categoryFilter,
+		],
 		queryFn: () =>
-			productService.getProducts(PARTNER_ID, {
+			productService.getProducts(partnerId, {
 				search: searchTerm || undefined,
 				status: statusFilter !== "all" ? statusFilter : undefined,
 				category: categoryFilter !== "all" ? categoryFilter : undefined,
 			}),
+		enabled: !!partnerId,
 	});
 
 	const products = productsData?.items || [];
-	const lowStockCount = products.filter((p) => p.stock > 0 && p.stock <= 5).length;
-	const outOfStockCount = products.filter((p) => p.status === ProductStatus.OutOfStock).length;
+	const lowStockCount = products.filter(
+		(p) => p.stock > 0 && p.stock <= 5,
+	).length;
+	const outOfStockCount = products.filter(
+		(p) => p.status === ProductStatus.OutOfStock,
+	).length;
 
 	const createMutation = useMutation({
 		mutationFn: (data: {
@@ -43,7 +59,7 @@ export function useProducts({ searchTerm, statusFilter, categoryFilter }: UsePro
 			stock: number;
 			imageUrl: string;
 			status: string;
-		}) => productService.createProduct(PARTNER_ID, data as any),
+		}) => productService.createProduct(partnerId, data as any),
 		onSuccess: () => {
 			toast.success("Product created successfully");
 			queryClient.invalidateQueries({ queryKey: ["partner-products"] });
@@ -77,7 +93,8 @@ export function useProducts({ searchTerm, statusFilter, categoryFilter }: UsePro
 	});
 
 	const updateStockMutation = useMutation({
-		mutationFn: ({ id, stock }: { id: string; stock: number }) => productService.updateStock(id, stock),
+		mutationFn: ({ id, stock }: { id: string; stock: number }) =>
+			productService.updateStock(id, stock),
 		onSuccess: () => {
 			toast.success("Stock updated successfully");
 			queryClient.invalidateQueries({ queryKey: ["partner-products"] });
@@ -113,18 +130,21 @@ export function useProducts({ searchTerm, statusFilter, categoryFilter }: UsePro
 
 export function useOrders({ orderStatusFilter, enabled }: UseOrdersOptions) {
 	const queryClient = useQueryClient();
+	const partnerInfo = usePartnerInfo();
+	const partnerId = partnerInfo.id ?? "";
 
 	const { data: ordersData, isLoading } = useQuery({
-		queryKey: ["partner-product-orders", PARTNER_ID, orderStatusFilter],
+		queryKey: ["partner-product-orders", partnerId, orderStatusFilter],
 		queryFn: () =>
-			productService.getProductOrders(PARTNER_ID, {
+			productService.getProductOrders(partnerId, {
 				status: orderStatusFilter !== "all" ? orderStatusFilter : undefined,
 			}),
-		enabled,
+		enabled: enabled && !!partnerId,
 	});
 
 	const updateOrderStatusMutation = useMutation({
-		mutationFn: ({ id, status }: { id: string; status: string }) => productService.updateOrderStatus(id, status),
+		mutationFn: ({ id, status }: { id: string; status: string }) =>
+			productService.updateOrderStatus(id, status),
 		onSuccess: () => {
 			toast.success("Order status updated");
 			queryClient.invalidateQueries({ queryKey: ["partner-product-orders"] });

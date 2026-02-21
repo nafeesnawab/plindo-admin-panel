@@ -2,15 +2,36 @@
 
 ## Source of Truth Priority
 
-**CRITICAL:** This plan is derived from the actual frontend API service files in `client/src/api/services/`. These are the definitive source of truth for what endpoints the backend must implement.
+### Primary Source: Frontend UI Code
 
-The MSW mock handlers in `client/src/_mock/handlers/` are a **secondary reference only**. They may contain:
+**CRITICAL:** The **frontend API service files** in `client/src/api/services/` are the **ONLY** source of truth for what endpoints the backend must implement.
+
+### Secondary Reference: MSW Mock Handlers
+
+The MSW mock handlers in `client/src/_mock/handlers/` are a **secondary reference only** for understanding response shapes. They may contain:
 
 - Extra endpoints not connected to any frontend page
 - Endpoints with different URL patterns than the actual service files
 - Data shapes that differ from what the real service files expect
 
-**Always verify against the frontend service files first. If a service file calls a URL, that URL must exist in the backend. If only an MSW handler covers it but no service file calls it, skip it.**
+### Pages Using Local Mock Data (NO API calls yet)
+
+The following partner portal pages use **local mock data in hooks** and do NOT have corresponding API service files. These features will need API service files created BEFORE backend implementation:
+
+| Page             | Hook File                                      | Mock Data Source                                  |
+| ---------------- | ---------------------------------------------- | ------------------------------------------------- |
+| Partner Earnings | `pages/partner/earnings/hooks/use-earnings.ts` | `mockEarnings`, `mockPayouts`, `mockTransactions` |
+| Partner Reviews  | `pages/partner/reviews/hooks/use-reviews.ts`   | `mockReviews`                                     |
+| Partner Messages | `pages/partner/messages/hooks/use-messages.ts` | `mockConversations`                               |
+| Partner Drivers  | `pages/partner/drivers/hooks/use-drivers.ts`   | `MOCK_DRIVERS`                                    |
+| Partner Settings | `pages/partner/settings/hooks/use-settings.ts` | `defaultSettings` (local state)                   |
+
+**Action Required:** Before implementing backend APIs for these features, first create frontend API service files, then update the hooks to use them.
+
+### Development Rule
+
+**If a frontend service file calls a URL → that URL MUST exist in the backend.**
+**If only an MSW handler covers it but no service file calls it → SKIP IT.**
 
 ## Overview
 
@@ -148,325 +169,420 @@ The MSW mock handlers in `client/src/_mock/handlers/` are a **secondary referenc
 
 ---
 
-## API Routes (Consolidated - No Duplication)
+## API Routes - Based on Frontend Service Files
 
-### Auth `/api/auth`
+**IMPORTANT:** Only implement endpoints that are called from `client/src/api/services/*.ts` files.
 
-| Method | Path                        | Description                   | Auth      |
-| ------ | --------------------------- | ----------------------------- | --------- |
-| POST   | /unified-signin             | Sign in (admin or partner)    | Public    |
-| POST   | /partner/register           | Register partner application  | Public    |
-| GET    | /partner/application-status | Check application status      | Public    |
-| GET    | /partner/check-email        | Check email availability      | Public    |
-| POST   | /refresh-token              | Refresh access token          | Public    |
-| GET    | /me                         | Get current user/partner info | Protected |
+---
 
-### Dashboard `/api/dashboard` (Admin only)
+### Auth `/api/auth` (from `authService.ts`, `userService.ts`, `partnerAuthService.ts`)
 
-| Method | Path                         | Description                                                                    |
-| ------ | ---------------------------- | ------------------------------------------------------------------------------ |
-| GET    | /stats                       | Platform stats (activeUsers, bookingsToday, revenueToday, pendingApplications) |
-| GET    | /bookings-trend              | Bookings trend data (query: days)                                              |
-| GET    | /revenue-trend               | Revenue trend data (query: days)                                               |
-| GET    | /user-growth                 | User growth data                                                               |
-| GET    | /recent-bookings             | Recent 10 bookings                                                             |
-| GET    | /recent-partner-applications | Recent 5 partner apps                                                          |
-| GET    | /recent-users                | Recent 5 users                                                                 |
+| Method | Path            | Description                | Service File     |
+| ------ | --------------- | -------------------------- | ---------------- |
+| POST   | /unified-signin | Sign in (admin or partner) | `authService.ts` |
+| POST   | /signin         | Admin sign in (legacy)     | `userService.ts` |
+| POST   | /signup         | Admin sign up              | `userService.ts` |
+| GET    | /logout         | Logout                     | `userService.ts` |
+| POST   | /refresh        | Refresh token              | `userService.ts` |
 
-### Partners `/api/partners` (Admin only)
+### Partner Auth `/api/partner` (from `partnerAuthService.ts`)
 
-| Method | Path            | Description                                                                    |
-| ------ | --------------- | ------------------------------------------------------------------------------ |
-| GET    | /               | List partners (query: status, page, limit, search, rating, location, verified) |
-| GET    | /:id            | Partner details (includes reviews, earningsHistory)                            |
-| POST   | /:id/approve    | Approve partner                                                                |
-| POST   | /:id/reject     | Reject partner (body: reason)                                                  |
-| POST   | /:id/suspend    | Suspend partner (body: reason)                                                 |
-| POST   | /:id/reactivate | Reactivate partner                                                             |
-| DELETE | /:id            | Remove partner                                                                 |
+| Method | Path                | Description                  | Service File            |
+| ------ | ------------------- | ---------------------------- | ----------------------- |
+| POST   | /register           | Register partner application | `partnerAuthService.ts` |
+| GET    | /application-status | Check application status     | `partnerAuthService.ts` |
+| POST   | /login              | Partner login                | `partnerAuthService.ts` |
+| GET    | /check-email        | Check email availability     | `partnerAuthService.ts` |
 
-### Customers `/api/customers` (Admin only)
+### User `/api/user` (from `userService.ts`)
 
-| Method | Path            | Description                                                           |
-| ------ | --------------- | --------------------------------------------------------------------- |
-| GET    | /               | List customers (query: page, limit, search, status, dateFrom, dateTo) |
-| GET    | /:id            | Customer details (includes bookingHistory)                            |
-| POST   | /:id/suspend    | Suspend customer (body: reason)                                       |
-| POST   | /:id/reactivate | Reactivate customer                                                   |
-| DELETE | /:id            | Delete customer                                                       |
-| POST   | /:id/notify     | Send notification to customer                                         |
+| Method | Path | Description    | Service File     |
+| ------ | ---- | -------------- | ---------------- |
+| GET    | /:id | Get user by ID | `userService.ts` |
 
-### Bookings `/api/bookings` (Admin + Partner)
+### Menu `/api/menu` (from `menuService.ts`)
 
-| Method | Path                 | Description                                                                  |
-| ------ | -------------------- | ---------------------------------------------------------------------------- |
-| GET    | /                    | List all bookings (admin view, paginated + filtered)                         |
-| GET    | /slots               | Get available time slots (query: partnerId, date, serviceCategory, duration) |
-| POST   | /slot                | Create a new booking                                                         |
-| GET    | /slot/:id            | Get booking details                                                          |
-| GET    | /timeline            | Partner timeline view (query: partnerId, weekStart)                          |
-| POST   | /:id/cancel          | Cancel booking                                                               |
-| POST   | /:id/reschedule      | Reschedule booking                                                           |
-| PATCH  | /:id/status          | Update booking status                                                        |
-| PATCH  | /:id/step/advance    | Advance service step                                                         |
-| POST   | /:id/refund          | Issue refund                                                                 |
-| GET    | /disputes            | List disputed bookings                                                       |
-| POST   | /:id/resolve-dispute | Resolve dispute                                                              |
-| POST   | /calculate-price     | Price preview                                                                |
+| Method | Path | Description   | Service File     |
+| ------ | ---- | ------------- | ---------------- |
+| GET    | /    | Get menu list | `menuService.ts` |
 
-### Finance `/api/finance` (Admin only)
+### Dashboard `/api/dashboard` (from `dashboardService.ts`)
 
-| Method | Path                   | Description                                            |
-| ------ | ---------------------- | ------------------------------------------------------ |
-| GET    | /revenue-overview      | Revenue overview (allTime, thisMonth, thisWeek, today) |
-| GET    | /revenue-trend         | 12-month revenue trend                                 |
-| GET    | /revenue-by-partner    | Top partners by revenue                                |
-| GET    | /commissions           | Commission breakdown (query: period)                   |
-| GET    | /payouts               | Partner payouts (query: page, limit, status)           |
-| POST   | /payouts/:id/mark-paid | Mark payout as paid                                    |
-| GET    | /subscriptions         | Subscription revenue data                              |
+| Method | Path                         | Description           | Service File          |
+| ------ | ---------------------------- | --------------------- | --------------------- |
+| GET    | /stats                       | Platform stats        | `dashboardService.ts` |
+| GET    | /bookings-trend              | Bookings trend (days) | `dashboardService.ts` |
+| GET    | /revenue-trend               | Revenue trend (days)  | `dashboardService.ts` |
+| GET    | /user-growth                 | User growth data      | `dashboardService.ts` |
+| GET    | /recent-bookings             | Recent 10 bookings    | `dashboardService.ts` |
+| GET    | /recent-partner-applications | Recent 5 partner apps | `dashboardService.ts` |
+| GET    | /recent-users                | Recent 5 users        | `dashboardService.ts` |
 
-### Settings `/api/settings` (Admin only)
+### Partners `/api/partners` (from `partnerService.ts`)
 
-| Method  | Path                        | Description                  |
-| ------- | --------------------------- | ---------------------------- |
-| GET/PUT | /commission                 | Commission settings          |
-| GET/PUT | /booking-rules              | Booking rules                |
-| GET/PUT | /subscription-plans         | Subscription plans           |
-| GET/PUT | /payment                    | Payment settings             |
-| GET/PUT | /notifications              | Notification toggle settings |
-| GET     | /notification-templates     | List templates               |
-| PUT     | /notification-templates/:id | Update a template            |
+| Method | Path            | Description                    | Service File        |
+| ------ | --------------- | ------------------------------ | ------------------- |
+| GET    | /pending        | List pending partners          | `partnerService.ts` |
+| GET    | /active         | List active partners           | `partnerService.ts` |
+| GET    | /suspended      | List suspended partners        | `partnerService.ts` |
+| GET    | /:id            | Partner details                | `partnerService.ts` |
+| POST   | /:id/approve    | Approve partner                | `partnerService.ts` |
+| POST   | /:id/reject     | Reject partner (body: reason)  | `partnerService.ts` |
+| POST   | /:id/suspend    | Suspend partner (body: reason) | `partnerService.ts` |
+| POST   | /:id/reactivate | Reactivate partner             | `partnerService.ts` |
+| DELETE | /:id            | Remove partner                 | `partnerService.ts` |
 
-### Legal `/api/legal` (Admin write, public read)
+### Customers `/api/customers` (from `customerService.ts`)
 
-| Method   | Path             | Description                        |
-| -------- | ---------------- | ---------------------------------- |
-| GET/PUT  | /terms           | Current terms & conditions         |
-| GET      | /terms/history   | Terms version history              |
-| GET/PUT  | /privacy         | Current privacy policy             |
-| GET      | /privacy/history | Privacy version history            |
-| GET/PUT  | /refund          | Refund policy                      |
-| GET/PUT  | /about           | About us                           |
-| GET/POST | /faqs            | List/Create FAQs (query: category) |
-| PUT      | /faqs/:id        | Update FAQ                         |
-| DELETE   | /faqs/:id        | Delete FAQ                         |
-| PUT      | /faqs/reorder    | Reorder FAQs                       |
+| Method | Path            | Description                | Service File         |
+| ------ | --------------- | -------------------------- | -------------------- |
+| GET    | /               | List customers (paginated) | `customerService.ts` |
+| GET    | /:id            | Customer details           | `customerService.ts` |
+| POST   | /:id/suspend    | Suspend customer           | `customerService.ts` |
+| POST   | /:id/reactivate | Reactivate customer        | `customerService.ts` |
+| DELETE | /:id            | Delete customer            | `customerService.ts` |
+| POST   | /:id/notify     | Send notification          | `customerService.ts` |
 
-### Logs `/api/logs` (Admin only)
+### Bookings `/api/bookings` (from `bookingService.ts`, `slotBookingService.ts`)
 
-| Method | Path        | Description                               |
-| ------ | ----------- | ----------------------------------------- |
-| GET    | /activity   | Activity logs (query: page, limit, admin) |
-| GET    | /errors     | System errors (query: page, limit, level) |
-| GET    | /payments   | Payment failures (query: page, limit)     |
-| GET    | /api-errors | API errors (query: page, limit)           |
+| Method | Path                 | Description              | Service File            |
+| ------ | -------------------- | ------------------------ | ----------------------- |
+| GET    | /                    | List bookings (admin)    | `bookingService.ts`     |
+| GET    | /:id                 | Booking details          | `bookingService.ts`     |
+| POST   | /:id/cancel          | Cancel booking           | `bookingService.ts`     |
+| POST   | /:id/refund          | Issue refund             | `bookingService.ts`     |
+| GET    | /disputes            | List disputed bookings   | `bookingService.ts`     |
+| POST   | /:id/resolve-dispute | Resolve dispute          | `bookingService.ts`     |
+| GET    | /slots               | Get available slots      | `slotBookingService.ts` |
+| POST   | /slot                | Create booking           | `slotBookingService.ts` |
+| GET    | /slot/:id            | Get slot booking details | `slotBookingService.ts` |
+| POST   | /:id/reschedule      | Reschedule booking       | `slotBookingService.ts` |
+| PATCH  | /:id/status          | Update booking status    | `slotBookingService.ts` |
+| PATCH  | /:id/step/advance    | Advance service step     | `slotBookingService.ts` |
+| POST   | /calculate-price     | Calculate price          | `slotBookingService.ts` |
 
-### Partner Portal `/api/partner` (Partner only)
+### Admin Bookings `/api/admin/bookings` (from `slotBookingService.ts`)
 
-#### Services
+| Method | Path | Description                | Service File            |
+| ------ | ---- | -------------------------- | ----------------------- |
+| GET    | /    | Admin bookings (paginated) | `slotBookingService.ts` |
 
-| Method | Path                    | Description             |
-| ------ | ----------------------- | ----------------------- |
-| GET    | /services               | List partner's services |
-| POST   | /services               | Create service          |
-| GET    | /services/:id           | Get service             |
-| PUT    | /services/:id           | Update service          |
-| DELETE | /services/:id           | Delete service          |
-| PATCH  | /services/:id/status    | Toggle active/inactive  |
-| POST   | /services/:id/duplicate | Duplicate service       |
+### Finance `/api/finance` (from `financeService.ts`)
 
-#### Schedule & Availability
+| Method | Path                   | Description             | Service File        |
+| ------ | ---------------------- | ----------------------- | ------------------- |
+| GET    | /revenue-overview      | Revenue overview        | `financeService.ts` |
+| GET    | /revenue-trend         | 12-month revenue trend  | `financeService.ts` |
+| GET    | /revenue-by-partner    | Top partners by revenue | `financeService.ts` |
+| GET    | /commissions           | Commission breakdown    | `financeService.ts` |
+| GET    | /payouts               | Partner payouts         | `financeService.ts` |
+| POST   | /payouts/:id/mark-paid | Mark payout as paid     | `financeService.ts` |
+| GET    | /subscriptions         | Subscription revenue    | `financeService.ts` |
 
-| Method | Path                            | Description                            |
-| ------ | ------------------------------- | -------------------------------------- |
-| GET    | /calendar/bookings              | Calendar bookings (query: month, year) |
-| GET    | /availability                   | Availability settings                  |
-| PUT    | /availability                   | Save all settings                      |
-| PUT    | /availability/working-hours     | Update working hours                   |
-| POST   | /availability/blocked-dates     | Block a date                           |
-| DELETE | /availability/blocked-dates/:id | Unblock a date                         |
-| PUT    | /availability/capacity          | Update capacity                        |
-| PUT    | /availability/radius            | Update service radius                  |
-| GET    | /availability/weekly            | Weekly availability                    |
-| PUT    | /availability/weekly            | Update weekly availability             |
-| GET    | /capacity                       | Get capacity config                    |
-| PUT    | /capacity                       | Update capacity config                 |
+### Settings `/api/settings` (from `settingsService.ts`)
 
-#### Bookings (Partner view)
+| Method | Path                        | Description               | Service File         |
+| ------ | --------------------------- | ------------------------- | -------------------- |
+| GET    | /commission                 | Get commission settings   | `settingsService.ts` |
+| PUT    | /commission                 | Update commission         | `settingsService.ts` |
+| GET    | /booking-rules              | Get booking rules         | `settingsService.ts` |
+| PUT    | /booking-rules              | Update booking rules      | `settingsService.ts` |
+| GET    | /subscription-plans         | Get subscription plans    | `settingsService.ts` |
+| PUT    | /subscription-plans         | Update subscription plans | `settingsService.ts` |
+| GET    | /payment                    | Get payment settings      | `settingsService.ts` |
+| PUT    | /payment                    | Update payment settings   | `settingsService.ts` |
+| GET    | /notifications              | Get notification settings | `settingsService.ts` |
+| PUT    | /notifications              | Update notifications      | `settingsService.ts` |
+| GET    | /notification-templates     | List templates            | `settingsService.ts` |
+| PUT    | /notification-templates/:id | Update template           | `settingsService.ts` |
 
-| Method | Path                               | Description                                                                          |
-| ------ | ---------------------------------- | ------------------------------------------------------------------------------------ |
-| GET    | /bookings                          | Partner's bookings (query: startDate, endDate, status, serviceCategory, page, limit) |
-| GET    | /bookings/timeline                 | Timeline view (query: weekStart)                                                     |
-| POST   | /bookings/:bookingId/assign-driver | Assign driver to booking                                                             |
+### Legal `/api/legal` (from `legalService.ts`)
 
-#### Earnings
+| Method | Path             | Description             | Service File      |
+| ------ | ---------------- | ----------------------- | ----------------- |
+| GET    | /terms           | Get terms & conditions  | `legalService.ts` |
+| PUT    | /terms           | Update terms            | `legalService.ts` |
+| GET    | /terms/history   | Terms version history   | `legalService.ts` |
+| GET    | /privacy         | Get privacy policy      | `legalService.ts` |
+| PUT    | /privacy         | Update privacy policy   | `legalService.ts` |
+| GET    | /privacy/history | Privacy version history | `legalService.ts` |
+| GET    | /refund          | Get refund policy       | `legalService.ts` |
+| PUT    | /refund          | Update refund policy    | `legalService.ts` |
+| GET    | /about           | Get about us            | `legalService.ts` |
+| PUT    | /about           | Update about us         | `legalService.ts` |
+| GET    | /faqs            | List FAQs               | `legalService.ts` |
+| POST   | /faqs            | Create FAQ              | `legalService.ts` |
+| PUT    | /faqs/:id        | Update FAQ              | `legalService.ts` |
+| DELETE | /faqs/:id        | Delete FAQ              | `legalService.ts` |
+| PUT    | /faqs/reorder    | Reorder FAQs            | `legalService.ts` |
 
-| Method | Path                   | Description                         |
-| ------ | ---------------------- | ----------------------------------- |
-| GET    | /earnings/overview     | Earnings summary                    |
-| GET    | /earnings/transactions | Transaction list (paginated)        |
-| GET    | /earnings/payouts      | Payout history                      |
-| GET    | /earnings/chart        | Earnings chart data (query: period) |
+### Logs `/api/logs` (from `logsService.ts`)
 
-#### Reviews
+| Method | Path      | Description      | Service File     |
+| ------ | --------- | ---------------- | ---------------- |
+| GET    | /activity | Activity logs    | `logsService.ts` |
+| GET    | /errors   | System errors    | `logsService.ts` |
+| GET    | /payments | Payment failures | `logsService.ts` |
+| GET    | /api      | API errors       | `logsService.ts` |
 
-| Method | Path                 | Description                          |
-| ------ | -------------------- | ------------------------------------ |
-| GET    | /reviews             | List reviews (query: rating, search) |
-| POST   | /reviews/:id/respond | Respond to review                    |
-| DELETE | /reviews/:id/respond | Delete response                      |
+### Analytics `/api/analytics` (from `analyticsService.ts`)
 
-#### Messages
+| Method | Path           | Description            | Service File          |
+| ------ | -------------- | ---------------------- | --------------------- |
+| GET    | /users         | User analytics         | `analyticsService.ts` |
+| GET    | /bookings      | Booking analytics      | `analyticsService.ts` |
+| GET    | /partners      | Partner analytics      | `analyticsService.ts` |
+| GET    | /subscriptions | Subscription analytics | `analyticsService.ts` |
 
-| Method | Path                             | Description                        |
-| ------ | -------------------------------- | ---------------------------------- |
-| GET    | /messages/conversations          | List conversations (query: search) |
-| GET    | /messages/conversations/:id      | Get conversation                   |
-| POST   | /messages/conversations/:id/send | Send message                       |
-| POST   | /messages/conversations/:id/read | Mark as read                       |
+### Notifications `/api/notifications` (from `notificationService.ts`)
 
-#### Drivers
+| Method | Path     | Description          | Service File             |
+| ------ | -------- | -------------------- | ------------------------ |
+| POST   | /send    | Send notification    | `notificationService.ts` |
+| GET    | /history | Notification history | `notificationService.ts` |
+| GET    | /:id     | Notification details | `notificationService.ts` |
 
-| Method | Path              | Description                          |
-| ------ | ----------------- | ------------------------------------ |
-| GET    | /drivers          | List drivers (query: status, search) |
-| GET    | /drivers/active   | Active drivers only                  |
-| GET    | /drivers/expiring | Expiring documents (query: days)     |
-| POST   | /drivers          | Create driver                        |
-| GET    | /drivers/:id      | Get driver                           |
-| PUT    | /drivers/:id      | Update driver                        |
-| DELETE | /drivers/:id      | Delete driver                        |
+### Support `/api/support` (from `supportService.ts`)
 
-#### Products
+| Method | Path                | Description     | Service File        |
+| ------ | ------------------- | --------------- | ------------------- |
+| GET    | /tickets            | List tickets    | `supportService.ts` |
+| GET    | /tickets/:id        | Ticket details  | `supportService.ts` |
+| POST   | /tickets/:id/reply  | Reply to ticket | `supportService.ts` |
+| POST   | /tickets/:id/assign | Assign ticket   | `supportService.ts` |
+| POST   | /tickets/:id/close  | Close ticket    | `supportService.ts` |
 
-| Method | Path                 | Description                                                  |
-| ------ | -------------------- | ------------------------------------------------------------ |
-| GET    | /products            | List products (query: page, limit, search, status, category) |
-| POST   | /products            | Create product                                               |
-| GET    | /products/:id        | Get product                                                  |
-| PUT    | /products/:id        | Update product                                               |
-| DELETE | /products/:id        | Delete product                                               |
-| PATCH  | /products/:id/stock  | Update stock                                                 |
-| PATCH  | /products/:id/toggle | Toggle availability                                          |
+### Partner Portal `/api/partner` (from various service files)
 
-#### Product Orders
+#### Services (from `partnerServicesService.ts`)
 
-| Method | Path                       | Description                              |
-| ------ | -------------------------- | ---------------------------------------- |
-| GET    | /product-orders            | List orders (query: page, limit, status) |
-| GET    | /product-orders/:id        | Get order details                        |
-| PATCH  | /product-orders/:id/status | Update order status                      |
-| POST   | /product-orders/:id/cancel | Cancel order                             |
+| Method | Path                    | Description             | Service File                |
+| ------ | ----------------------- | ----------------------- | --------------------------- |
+| GET    | /services               | List partner's services | `partnerServicesService.ts` |
+| POST   | /services               | Create service          | `partnerServicesService.ts` |
+| GET    | /services/:id           | Get service             | `partnerServicesService.ts` |
+| PUT    | /services/:id           | Update service          | `partnerServicesService.ts` |
+| DELETE | /services/:id           | Delete service          | `partnerServicesService.ts` |
+| PATCH  | /services/:id/status    | Toggle status           | `partnerServicesService.ts` |
+| POST   | /services/:id/duplicate | Duplicate service       | `partnerServicesService.ts` |
 
-#### Settings
+#### Availability & Capacity (from `slotBookingService.ts`)
 
-| Method | Path               | Description             |
-| ------ | ------------------ | ----------------------- |
-| GET    | /settings          | Get partner settings    |
-| PUT    | /settings          | Update partner settings |
-| POST   | /settings/password | Change password         |
+| Method | Path                 | Description            | Service File            |
+| ------ | -------------------- | ---------------------- | ----------------------- |
+| GET    | /availability/weekly | Weekly availability    | `slotBookingService.ts` |
+| PUT    | /availability/weekly | Update weekly avail    | `slotBookingService.ts` |
+| GET    | /capacity            | Get capacity config    | `slotBookingService.ts` |
+| PUT    | /capacity            | Update capacity config | `slotBookingService.ts` |
 
-### Cars `/api/admin/cars` (Admin only)
+#### Bookings (from `slotBookingService.ts`)
 
-| Method | Path          | Description                                          |
-| ------ | ------------- | ---------------------------------------------------- |
-| GET    | /             | List all cars (query: make, model, bodyType, search) |
-| POST   | /             | Create car                                           |
-| GET    | /makes        | Get unique makes                                     |
-| GET    | /body-types   | Get body types                                       |
-| GET    | /grouped      | Cars grouped by make                                 |
-| GET    | /models/:make | Models for a make                                    |
-| GET    | /:id          | Get car                                              |
-| PUT    | /:id          | Update car                                           |
-| DELETE | /:id          | Delete car                                           |
+| Method | Path               | Description        | Service File            |
+| ------ | ------------------ | ------------------ | ----------------------- |
+| GET    | /bookings          | Partner's bookings | `slotBookingService.ts` |
+| GET    | /bookings/timeline | Timeline view      | `slotBookingService.ts` |
 
-### Subscriptions `/api/subscriptions`
+#### Products (from `productService.ts`)
 
-| Method | Path   | Description            |
-| ------ | ------ | ---------------------- |
-| GET    | /plans | Get subscription plans |
+| Method | Path                 | Description         | Service File        |
+| ------ | -------------------- | ------------------- | ------------------- |
+| GET    | /products            | List products       | `productService.ts` |
+| POST   | /products            | Create product      | `productService.ts` |
+| GET    | /products/:id        | Get product         | `productService.ts` |
+| PUT    | /products/:id        | Update product      | `productService.ts` |
+| DELETE | /products/:id        | Delete product      | `productService.ts` |
+| PATCH  | /products/:id/stock  | Update stock        | `productService.ts` |
+| PATCH  | /products/:id/toggle | Toggle availability | `productService.ts` |
 
-### Services `/api/services`
+#### Product Orders (from `productService.ts`)
 
-| Method | Path | Description         |
-| ------ | ---- | ------------------- |
-| GET    | /    | Public service list |
+| Method | Path                       | Description         | Service File        |
+| ------ | -------------------------- | ------------------- | ------------------- |
+| GET    | /product-orders            | List orders         | `productService.ts` |
+| GET    | /product-orders/:id        | Order details       | `productService.ts` |
+| PATCH  | /product-orders/:id/status | Update order status | `productService.ts` |
+| POST   | /product-orders/:id/cancel | Cancel order        | `productService.ts` |
 
-### Upload `/api/upload` (Global)
+#### Earnings (from `earningsService.ts`)
 
-| Method | Path | Description                                     |
-| ------ | ---- | ----------------------------------------------- |
-| POST   | /    | Upload image to local storage, returns full URL |
+| Method | Path                   | Description              | Service File         |
+| ------ | ---------------------- | ------------------------ | -------------------- |
+| GET    | /earnings/overview     | Earnings summary         | `earningsService.ts` |
+| GET    | /earnings/transactions | Transactions (paginated) | `earningsService.ts` |
+| GET    | /earnings/payouts      | Payout history           | `earningsService.ts` |
+| GET    | /earnings/chart        | Chart data (period)      | `earningsService.ts` |
+
+#### Reviews (from `reviewsService.ts`)
+
+| Method | Path                 | Description       | Service File        |
+| ------ | -------------------- | ----------------- | ------------------- |
+| GET    | /reviews             | List reviews      | `reviewsService.ts` |
+| POST   | /reviews/:id/respond | Respond to review | `reviewsService.ts` |
+| DELETE | /reviews/:id/respond | Delete response   | `reviewsService.ts` |
+
+#### Messages (from `messagesService.ts`)
+
+| Method | Path                             | Description        | Service File         |
+| ------ | -------------------------------- | ------------------ | -------------------- |
+| GET    | /messages/conversations          | List conversations | `messagesService.ts` |
+| GET    | /messages/conversations/:id      | Get conversation   | `messagesService.ts` |
+| POST   | /messages/conversations/:id/send | Send message       | `messagesService.ts` |
+| POST   | /messages/conversations/:id/read | Mark as read       | `messagesService.ts` |
+
+#### Drivers (from `driversService.ts`)
+
+| Method | Path              | Description         | Service File        |
+| ------ | ----------------- | ------------------- | ------------------- |
+| GET    | /drivers          | List drivers        | `driversService.ts` |
+| GET    | /drivers/active   | Active drivers only | `driversService.ts` |
+| GET    | /drivers/expiring | Expiring documents  | `driversService.ts` |
+| POST   | /drivers          | Create driver       | `driversService.ts` |
+| GET    | /drivers/:id      | Get driver          | `driversService.ts` |
+| PUT    | /drivers/:id      | Update driver       | `driversService.ts` |
+| DELETE | /drivers/:id      | Delete driver       | `driversService.ts` |
+
+#### Settings (from `partnerSettingsService.ts`)
+
+| Method | Path               | Description             | Service File                |
+| ------ | ------------------ | ----------------------- | --------------------------- |
+| GET    | /settings          | Get partner settings    | `partnerSettingsService.ts` |
+| PUT    | /settings          | Update partner settings | `partnerSettingsService.ts` |
+| POST   | /settings/password | Change password         | `partnerSettingsService.ts` |
+
+### Cars Registry `/api/admin/cars` (from `carsService.ts`)
+
+| Method | Path          | Description          | Service File     |
+| ------ | ------------- | -------------------- | ---------------- |
+| GET    | /             | List cars (filtered) | `carsService.ts` |
+| POST   | /             | Create car           | `carsService.ts` |
+| GET    | /makes        | Get unique makes     | `carsService.ts` |
+| GET    | /body-types   | Get body types       | `carsService.ts` |
+| GET    | /grouped      | Cars grouped by make | `carsService.ts` |
+| GET    | /models/:make | Models for a make    | `carsService.ts` |
+| GET    | /:id          | Get car by ID        | `carsService.ts` |
+| PUT    | /:id          | Update car           | `carsService.ts` |
+| DELETE | /:id          | Delete car           | `carsService.ts` |
+
+### Services `/api/services` (from `slotBookingService.ts`)
+
+| Method | Path | Description         | Service File            |
+| ------ | ---- | ------------------- | ----------------------- |
+| GET    | /    | Public service list | `slotBookingService.ts` |
+
+### Subscriptions `/api/subscriptions` (from `slotBookingService.ts`)
+
+| Method | Path   | Description            | Service File            |
+| ------ | ------ | ---------------------- | ----------------------- |
+| GET    | /plans | Get subscription plans | `slotBookingService.ts` |
+
+### Upload `/api/upload` (Global - needed for image uploads)
+
+| Method | Path | Description              | Notes                     |
+| ------ | ---- | ------------------------ | ------------------------- |
+| POST   | /    | Upload image, return URL | Used by multiple features |
 
 ---
 
 ## Implementation Phases
 
-### Phase 1: Foundation
+### Phase 1: Foundation ✅ COMPLETE
 
 - [x] Project structure, Express setup, MongoDB connection
-- [ ] Response helper (match frontend format: status 0/error codes)
-- [ ] Pagination helper
-- [ ] Auth middleware (JWT with dual role support: admin + partner)
-- [ ] Error handling middleware
-- [ ] Image upload middleware (Multer → local storage)
-- [ ] Email service (Nodemailer + SendGrid SMTP)
-- [ ] Seed script (create default admin + demo partner)
+- [x] Response helper (match frontend format: status 0/error codes)
+- [x] Pagination helper
+- [x] Auth middleware (JWT with dual role support: admin + partner)
+- [x] Error handling middleware
+- [x] Image upload middleware (Multer → local storage)
+- [x] Email service (Nodemailer + SendGrid SMTP)
+- [x] Seed script (create default admin + demo partner)
 
-### Phase 2: Auth & Users
+### Phase 2: Auth & Core Models ✅ COMPLETE
 
-- [ ] User model (admin)
-- [ ] Partner model
-- [ ] Unified sign-in endpoint
-- [ ] Partner registration (multipart form)
-- [ ] Application status check
-- [ ] Token refresh
-- [ ] Password hashing (bcrypt)
+- [x] User model (admin)
+- [x] Partner model
+- [x] Customer model + all 16 Mongoose models
+- [x] Unified sign-in endpoint (`authService.ts`)
+- [x] Partner registration (`partnerAuthService.ts`)
+- [x] Application status check (`partnerAuthService.ts`)
+- [x] Token refresh (`userService.ts`)
+- [x] Menu endpoint (`menuService.ts`)
 
-### Phase 3: Admin APIs
+### Phase 3: Admin Dashboard & Management APIs ✅ COMPLETE
 
-- [ ] Dashboard stats (aggregation queries)
-- [ ] Partners CRUD + approve/reject/suspend/reactivate
-- [ ] Customers CRUD + suspend/reactivate/notify
-- [ ] Bookings list + cancel/refund/disputes
-- [ ] Finance (revenue overview, trends, payouts, commissions)
-- [ ] Settings (commission, booking rules, subscriptions, payment, notifications)
-- [ ] Legal (terms, privacy, refund, about, FAQs with versioning)
-- [ ] Logs (activity, errors, payments, api-errors)
-- [ ] Cars CRUD (make/model/bodyType registry)
+**From existing frontend service files:**
 
-### Phase 4: Partner APIs
+- [x] Dashboard stats & trends (`dashboardService.ts` - 7 endpoints)
+- [x] Partners management (`partnerService.ts` - 9 endpoints)
+- [x] Customers management (`customerService.ts` - 6 endpoints)
+- [x] Analytics (`analyticsService.ts` - 4 endpoints)
 
-- [ ] Partner services CRUD
-- [ ] Schedule/availability management
-- [ ] Slot booking system (capacity-aware)
-- [ ] Earnings & transactions
-- [ ] Reviews + responses
-- [ ] Messages/conversations
-- [ ] Drivers CRUD
-- [ ] Products CRUD + stock management
-- [ ] Product orders management
-- [ ] Partner settings + password change
+### Phase 4: Bookings & Finance APIs ✅ COMPLETE
 
-### Phase 5: Testing & Integration
+**From existing frontend service files:**
 
-- [ ] Test all endpoints with cURL
-- [ ] Fix response format mismatches
-- [ ] Update frontend API client baseURL
-- [ ] Remove MSW handlers, point to real backend
-- [ ] End-to-end flow testing
+- [x] Bookings (`bookingService.ts` - 6 endpoints)
+- [x] Slot bookings (`slotBookingService.ts` - 13 endpoints) — `slotBooking.controller.js`
+- [x] Admin bookings (`slotBookingService.ts` - 1 endpoint) — `GET /api/admin/bookings`
+- [x] Finance (`financeService.ts` - 7 endpoints)
+
+### Phase 5: Settings & Content APIs ✅ COMPLETE
+
+**From existing frontend service files:**
+
+- [x] Settings (`settingsService.ts` - 12 endpoints)
+- [x] Legal content (`legalService.ts` - 15 endpoints)
+- [x] Logs (`logsService.ts` - 4 endpoints) — response format fixed: `{logs/errors/failures, pagination}`
+- [x] Notifications (`notificationService.ts` - 3 endpoints) — `notification.controller.js`
+- [x] Support tickets (`supportService.ts` - 5 endpoints)
+
+### Phase 6: Partner Portal APIs ✅ COMPLETE
+
+**All frontend service files now exist:**
+
+- [x] Partner services (`partnerServicesService.ts` - 7 endpoints)
+- [x] Partner availability/capacity (`slotBookingService.ts` - 4 endpoints) — `partner/schedule.controller.js`
+- [x] Partner bookings (`slotBookingService.ts` - 2 endpoints) — `GET /partner/bookings` + `/timeline`
+- [x] Partner products (`productService.ts` - 7 endpoints)
+- [x] Partner product orders (`productService.ts` - 4 endpoints)
+- [x] Partner earnings (`earningsService.ts` - 4 endpoints)
+- [x] Partner reviews (`reviewsService.ts` - 3 endpoints)
+- [x] Partner messages (`messagesService.ts` - 4 endpoints)
+- [x] Partner drivers (`driversService.ts` - 7 endpoints)
+- [x] Partner settings (`partnerSettingsService.ts` - 3 endpoints)
+
+### Phase 7: Cars Registry & Admin Extras ✅ COMPLETE
+
+- [x] Cars CRUD (`carsService.ts` - 9 endpoints)
+
+### Phase 8: Testing & Integration ✅ COMPLETE — INTEGRATED
+
+- [x] Start MongoDB + run seed script (`node src/seeds/seed.js`)
+- [x] Create `.env` file from `.env.example`
+- [x] Test all endpoints with cURL — **81 tests passing (45 read + 36 write)**
+- [x] Fix response format mismatches (logs, auth aliases, partner auth prefix)
+- [x] Implemented `slotBookingService.ts` endpoints (availability, capacity, bookings, slots, reschedule, status, step advance, calculate-price)
+- [x] Implemented `notificationService.ts` endpoints
+- [x] **DONE:** Updated `vite.config.ts` proxy → `http://localhost:5001` (no path rewrite needed since backend has `/api` prefix)
+- [x] **DONE:** Fixed `apiClient.ts` — replaced hardcoded `"Bearer Token"` with real JWT from `authStore` (role-aware: admin vs partner token)
+- [x] **DONE:** Disabled MSW in `client/src/main.tsx` (`USE_MOCK = false`)
+- [x] **DONE:** Added `/status` alias route in `partner/service.routes.js` (frontend calls `/status`, backend had `/toggle`)
+- [x] **DONE:** 62/62 read endpoint tests pass through Vite proxy (localhost:3001 → localhost:5001)
+
+> **Server runs on port 5001** (port 5000 is taken by macOS AirPlay on dev machine). Use `PORT=5001 node src/server.js`.
+> **Frontend runs on port 3001** via `npm run dev` in the `client/` directory.
+> **Re-enable MSW**: set `USE_MOCK = true` in `client/src/main.tsx`.
 
 ---
 
 ## Key Design Decisions
 
-1. **Response format matches frontend exactly** — `{ status: 0, message: "", data: {} }`
-2. **Single unified auth endpoint** — tries admin first, then partner
-3. **Pagination on all list endpoints** — `{ items, total, page, limit, totalPages }`
-4. **Image upload → local storage** — `/uploads/` directory, returns full URL
-5. **No extra endpoints** — only what frontend actually calls
-6. **Partner data scoped by JWT** — partner endpoints auto-filter by `req.user.partnerId`
-7. **Admin role-based access** — `authorize('admin')` middleware on admin-only routes
-8. **Activity logging** — auto-log admin actions to ActivityLog collection
+1. **UI-first development** — Only implement endpoints called from `client/src/api/services/*.ts`
+2. **Response format matches frontend exactly** — `{ status: 0, message: "", data: {} }`
+3. **Single unified auth endpoint** — tries admin first, then partner
+4. **Pagination on all list endpoints** — `{ items, total, page, limit, totalPages }`
+5. **Image upload → local storage** — `/uploads/` directory, returns full URL
+6. **No extra endpoints** — skip MSW handlers that have no corresponding service file
+7. **Partner data scoped by JWT** — partner endpoints auto-filter by `req.user.partnerId`
+8. **Admin role-based access** — `authorize('admin')` middleware on admin-only routes
+9. **Activity logging** — auto-log admin actions to ActivityLog collection
+10. **Frontend service files first** — for features using mock data, create service files before backend

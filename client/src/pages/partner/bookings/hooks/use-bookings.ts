@@ -1,43 +1,128 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { addDays, format, startOfWeek } from "date-fns";
+import {
+	endOfMonth,
+	endOfWeek,
+	endOfYear,
+	format,
+	startOfDay,
+	startOfMonth,
+	startOfWeek,
+	startOfYear,
+} from "date-fns";
+import type { Dayjs } from "dayjs";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import apiClient from "@/api/apiClient";
 import slotBookingService from "@/api/services/slotBookingService";
+import { usePartnerInfo } from "@/store/authStore";
 import type { BookingStatus, SlotBooking } from "@/types/booking";
 
-import { CATEGORY_COLORS, PARTNER_ID, STATUS_COLORS } from "../types";
+import { CATEGORY_COLORS, STATUS_COLORS } from "../types";
+
+type CalendarView = "day" | "week" | "month" | "year";
+
+interface CalendarEventPayload {
+	title: string;
+	description?: string;
+	start: string;
+	end: string;
+	color?: string;
+	backgroundColor?: string;
+}
 
 export function useBookings() {
 	const queryClient = useQueryClient();
-	const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
-	const [selectedBooking, setSelectedBooking] = useState<SlotBooking | null>(null);
+	const partnerInfo = usePartnerInfo();
+	const partnerId = partnerInfo.id ?? "";
+	const [currentView, setCurrentView] = useState<CalendarView>("week");
+	const [currentDate, setCurrentDate] = useState<Date>(new Date());
+	const [selectedBooking, setSelectedBooking] = useState<SlotBooking | null>(
+		null,
+	);
 	const [showDetails, setShowDetails] = useState(false);
 	const [showCancelDialog, setShowCancelDialog] = useState(false);
 	const [showRescheduleDialog, setShowRescheduleDialog] = useState(false);
 	const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
+	// Calculate date range based on current view and date
+	const dateRange = useMemo(() => {
+		const date = currentDate;
+		let start: Date;
+		let end: Date;
+
+		switch (currentView) {
+			case "day":
+				start = startOfDay(date);
+				end = startOfDay(date);
+				break;
+			case "week":
+				start = startOfWeek(date, { weekStartsOn: 1 });
+				end = endOfWeek(date, { weekStartsOn: 1 });
+				break;
+			case "month":
+				start = startOfMonth(date);
+				end = endOfMonth(date);
+				break;
+			case "year":
+				start = startOfYear(date);
+				end = endOfYear(date);
+				break;
+			default:
+				start = startOfWeek(date, { weekStartsOn: 1 });
+				end = endOfWeek(date, { weekStartsOn: 1 });
+		}
+
+		return {
+			startDate: format(start, "yyyy-MM-dd"),
+			endDate: format(end, "yyyy-MM-dd"),
+		};
+	}, [currentView, currentDate]);
+
 	// Fetch bookings
 	const { data: bookingsData, isLoading } = useQuery({
-		queryKey: ["partner-bookings", PARTNER_ID, format(weekStart, "yyyy-MM-dd")],
+		queryKey: ["partner-bookings", partnerId, dateRange.startDate, dateRange.endDate],
 		queryFn: () =>
 			slotBookingService.getPartnerBookings({
-				partnerId: PARTNER_ID,
-				startDate: format(weekStart, "yyyy-MM-dd"),
-				endDate: format(addDays(weekStart, 6), "yyyy-MM-dd"),
+				partnerId: partnerId,
+				startDate: dateRange.startDate,
+				endDate: dateRange.endDate,
 			}),
+		enabled: !!partnerId,
 	});
 
 	const allBookings = bookingsData?.items ?? [];
 
 	const filteredBookings = useMemo(() => {
 		if (categoryFilter === "all") return allBookings;
-		return allBookings.filter((b) => b.service.serviceCategory === categoryFilter);
+		return allBookings.filter(
+			(b) => b.service.serviceCategory === categoryFilter,
+		);
 	}, [allBookings, categoryFilter]);
+
+	// Fetch persisted partner calendar events
+	const { data: savedEventsData } = useQuery({
+		queryKey: ["partner-calendar-events", partnerId],
+		queryFn: () =>
+			apiClient.get<{
+				events: Array<{
+					id: string;
+					title: string;
+					description: string;
+					start: string;
+					end: string;
+					color: string;
+					backgroundColor: string;
+				}>;
+			}>({
+				url: "/partner/calendar-events",
+			}),
+		enabled: !!partnerId,
+	});
 
 	// Map SlotBooking[] → CalendarEvent[] for IlamyCalendar
 	const calendarEvents = useMemo(() => {
-		return filteredBookings.map((b) => {
+		const bookingEvents = filteredBookings.map((b) => {
 			const dateStr = b.slot.date;
 			const [sh, sm] = b.slot.startTime.split(":").map(Number);
 			const [eh, em] = b.slot.endTime.split(":").map(Number);
@@ -55,12 +140,26 @@ export function useBookings() {
 				description: `${b.customer.name} • ${b.vehicle.make} ${b.vehicle.model}`,
 				start,
 				end,
-				backgroundColor: statusColor?.bg ?? CATEGORY_COLORS[cat]?.bg ?? "#6b7280",
+				backgroundColor:
+					statusColor?.bg ?? CATEGORY_COLORS[cat]?.bg ?? "#6b7280",
 				color: statusColor?.text ?? CATEGORY_COLORS[cat]?.text ?? "#ffffff",
 				data: { booking: b },
 			};
 		});
-	}, [filteredBookings]);
+
+		const customEvents = (savedEventsData?.events ?? []).map((e) => ({
+			id: e.id,
+			title: e.title,
+			description: e.description,
+			start: new Date(e.start),
+			end: new Date(e.end),
+			backgroundColor: e.backgroundColor ?? e.color ?? "#6b7280",
+			color: e.color ?? "#ffffff",
+			data: {},
+		}));
+
+		return [...bookingEvents, ...customEvents];
+	}, [filteredBookings, savedEventsData]);
 
 	// Lookup map for finding original booking from event id
 	const bookingsMap = useMemo(() => {
@@ -84,8 +183,13 @@ export function useBookings() {
 	});
 
 	const rescheduleMutation = useMutation({
-		mutationFn: ({ id, newSlot }: { id: string; newSlot: { date: string; startTime: string; endTime: string } }) =>
-			slotBookingService.rescheduleBooking(id, newSlot, "partner"),
+		mutationFn: ({
+			id,
+			newSlot,
+		}: {
+			id: string;
+			newSlot: { date: string; startTime: string; endTime: string };
+		}) => slotBookingService.rescheduleBooking(id, newSlot, "partner"),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["partner-bookings"] });
 			toast.success("Booking rescheduled");
@@ -101,12 +205,46 @@ export function useBookings() {
 			slotBookingService.updateBookingStatus(id, status),
 		onSuccess: (_, variables) => {
 			queryClient.invalidateQueries({ queryKey: ["partner-bookings"] });
-			toast.success(`Service ${variables.status === "in_progress" ? "started" : "completed"}`);
+			toast.success(
+				`Service ${variables.status === "in_progress" ? "started" : "completed"}`,
+			);
 			setShowDetails(false);
 			setSelectedBooking(null);
 		},
 		onError: () => toast.error("Failed to update status"),
 	});
+
+	const handleEventAdd = useCallback(
+		async (event: {
+			title: string;
+			start: Date;
+			end: Date;
+			backgroundColor?: string;
+			color?: string;
+			description?: string;
+		}) => {
+			try {
+				const payload: CalendarEventPayload = {
+					title: event.title,
+					description: event.description ?? "",
+					start: event.start.toISOString(),
+					end: event.end.toISOString(),
+					color: event.color ?? event.backgroundColor ?? "#6b7280",
+					backgroundColor: event.backgroundColor ?? "#6b7280",
+				};
+				await apiClient.post({
+					url: "/partner/calendar-events",
+					data: payload,
+				});
+				queryClient.invalidateQueries({
+					queryKey: ["partner-calendar-events"],
+				});
+			} catch {
+				// silently ignore — calendar already shows the event optimistically
+			}
+		},
+		[queryClient],
+	);
 
 	// Handlers
 	const handleEventClick = useCallback(
@@ -121,18 +259,21 @@ export function useBookings() {
 	);
 
 	const handleStartService = useCallback(
-		(booking: SlotBooking) => updateStatusMutation.mutate({ id: booking.id, status: "in_progress" }),
+		(booking: SlotBooking) =>
+			updateStatusMutation.mutate({ id: booking.id, status: "in_progress" }),
 		[updateStatusMutation],
 	);
 
 	const handleCompleteService = useCallback(
-		(booking: SlotBooking) => updateStatusMutation.mutate({ id: booking.id, status: "completed" }),
+		(booking: SlotBooking) =>
+			updateStatusMutation.mutate({ id: booking.id, status: "completed" }),
 		[updateStatusMutation],
 	);
 
 	const handleCancelConfirm = useCallback(
 		(reason: string) => {
-			if (selectedBooking) cancelMutation.mutate({ id: selectedBooking.id, reason });
+			if (selectedBooking)
+				cancelMutation.mutate({ id: selectedBooking.id, reason });
 		},
 		[selectedBooking, cancelMutation],
 	);
@@ -140,15 +281,26 @@ export function useBookings() {
 	const handleRescheduleConfirm = useCallback(
 		(date: string, startTime: string, endTime: string) => {
 			if (selectedBooking) {
-				rescheduleMutation.mutate({ id: selectedBooking.id, newSlot: { date, startTime, endTime } });
+				rescheduleMutation.mutate({
+					id: selectedBooking.id,
+					newSlot: { date, startTime, endTime },
+				});
 			}
 		},
 		[selectedBooking, rescheduleMutation],
 	);
 
+	// Calendar view change handler
+	const handleViewChange = useCallback((view: string) => {
+		setCurrentView(view as CalendarView);
+	}, []);
+
+	// Calendar date navigation handler
+	const handleDateChange = useCallback((date: Dayjs) => {
+		setCurrentDate(date.toDate());
+	}, []);
+
 	return {
-		weekStart,
-		setWeekStart,
 		selectedBooking,
 		showDetails,
 		setShowDetails,
@@ -164,9 +316,12 @@ export function useBookings() {
 		cancelMutation,
 		rescheduleMutation,
 		handleEventClick,
+		handleEventAdd,
 		handleStartService,
 		handleCompleteService,
 		handleCancelConfirm,
 		handleRescheduleConfirm,
+		handleViewChange,
+		handleDateChange,
 	};
 }

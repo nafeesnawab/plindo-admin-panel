@@ -115,5 +115,3 @@ export const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
 	detailing: { bg: "#8b5cf6", text: "#ffffff" },
 	other: { bg: "#6b7280", text: "#ffffff" },
 };
-
-export const PARTNER_ID = "demo-partner-1";

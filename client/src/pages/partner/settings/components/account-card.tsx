@@ -10,10 +10,16 @@ import type { AccountSettings } from "../types";
 interface AccountCardProps {
 	account: AccountSettings;
 	onUpdate: (field: keyof AccountSettings, value: string) => void;
+	onSave: () => void;
 	onChangePassword: () => void;
 }
 
-export function AccountCard({ account, onUpdate, onChangePassword }: AccountCardProps) {
+export function AccountCard({
+	account,
+	onUpdate,
+	onSave,
+	onChangePassword,
+}: AccountCardProps) {
 	return (
 		<Card>
 			<CardHeader>
@@ -46,6 +52,9 @@ export function AccountCard({ account, onUpdate, onChangePassword }: AccountCard
 						placeholder="+353 86 123 4567"
 					/>
 				</div>
+				<Button className="w-full" onClick={onSave}>
+					Save Changes
+				</Button>
 				<Button variant="outline" className="w-full" onClick={onChangePassword}>
 					<Key className="mr-2 h-4 w-4" />
 					Change Password

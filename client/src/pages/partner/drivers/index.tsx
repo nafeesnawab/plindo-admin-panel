@@ -18,7 +18,15 @@ export default function PartnerDriversPage() {
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const [driverToDelete, setDriverToDelete] = useState<Driver | null>(null);
 
-	const { drivers, totalCount, isSubmitting, addDriver, updateDriver, deleteDriver, toggleStatus } = useDrivers({
+	const {
+		drivers,
+		totalCount,
+		isSubmitting,
+		addDriver,
+		updateDriver,
+		deleteDriver,
+		toggleStatus,
+	} = useDrivers({
 		searchTerm,
 		statusFilter,
 	});
@@ -83,7 +91,11 @@ export default function PartnerDriversPage() {
 					activeFiltersCount={activeFiltersCount}
 					onClearFilters={clearFilters}
 				/>
-				<Button onClick={handleCreateNew} size="sm" className="gap-1.5 h-9 shrink-0">
+				<Button
+					onClick={handleCreateNew}
+					size="sm"
+					className="gap-1.5 h-9 shrink-0"
+				>
 					<Plus className="h-3.5 w-3.5" />
 					Add Driver
 				</Button>
@@ -111,7 +123,7 @@ export default function PartnerDriversPage() {
 				onInsuranceUpload={form.handleInsuranceUpload}
 				onPhotoUpload={form.handlePhotoUpload}
 				onSave={handleFormSave}
-				isPending={isSubmitting}
+				isPending={isSubmitting || form.uploading}
 			/>
 
 			<DeleteDialog

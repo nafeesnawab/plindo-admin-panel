@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
+import apiClient from "@/api/apiClient";
 import type { Customer } from "@/api/services/customerService";
-import customerService from "@/api/services/customerService";
 
 interface UseCustomersParams {
 	search: string;
@@ -10,24 +10,35 @@ interface UseCustomersParams {
 	limit: number;
 }
 
-export function useCustomers({ search, statusFilter, page, limit }: UseCustomersParams) {
+interface PartnerCustomersResponse {
+	customers: Customer[];
+	total: number;
+}
+
+export function useCustomers({ search, statusFilter }: UseCustomersParams) {
 	const { data, isLoading } = useQuery({
-		queryKey: ["partner-customers", search, statusFilter, page],
+		queryKey: ["partner-customers", search, statusFilter],
 		queryFn: () =>
-			customerService.getCustomers({
-				search: search || undefined,
-				status: statusFilter !== "all" ? statusFilter : undefined,
-				page,
-				limit,
+			apiClient.get<PartnerCustomersResponse>({
+				url: "/partner/customers",
+				params: {
+					search: search || undefined,
+					status: statusFilter !== "all" ? statusFilter : undefined,
+				},
 			}),
 	});
 
-	const customers = data?.items ?? [];
-	const totalPages = data?.totalPages ?? 1;
+	const customers = data?.customers ?? [];
 	const total = data?.total ?? 0;
+	const totalPages = 1;
 
-	const withSubscriptions = customers.filter((c: Customer) => c.subscription.active).length;
-	const vehicleCount = customers.reduce((sum: number, c: Customer) => sum + c.vehicles.length, 0);
+	const withSubscriptions = customers.filter(
+		(c: Customer) => c.subscription?.active,
+	).length;
+	const vehicleCount = customers.reduce(
+		(sum: number, c: Customer) => sum + (c.vehicles?.length ?? 0),
+		0,
+	);
 
 	return {
 		customers,

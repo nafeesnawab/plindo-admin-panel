@@ -17,6 +17,7 @@ import {
 	Undo,
 } from "lucide-react";
 import { useEffect } from "react";
+import "./editor.css";
 import { Button } from "@/ui/button";
 import { cn } from "@/utils";
 
@@ -26,7 +27,11 @@ interface RichTextEditorProps {
 	className?: string;
 }
 
-export function RichTextEditor({ value, onChange, className }: RichTextEditorProps) {
+export function RichTextEditor({
+	value,
+	onChange,
+	className,
+}: RichTextEditorProps) {
 	const editor = useEditor({
 		extensions: [
 			StarterKit.configure({
@@ -41,7 +46,7 @@ export function RichTextEditor({ value, onChange, className }: RichTextEditorPro
 		},
 		editorProps: {
 			attributes: {
-				class: "prose prose-sm max-w-none focus:outline-none min-h-[200px] p-4",
+				class: "tiptap-editor focus:outline-none min-h-[200px] p-4",
 			},
 		},
 	});
@@ -69,7 +74,9 @@ export function RichTextEditor({ value, onChange, className }: RichTextEditorPro
 					variant="ghost"
 					size="icon"
 					className="h-8 w-8"
-					onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+					onClick={() =>
+						editor.chain().focus().toggleHeading({ level: 1 }).run()
+					}
 					data-active={editor.isActive("heading", { level: 1 })}
 				>
 					<Heading1 className="h-4 w-4" />
@@ -79,7 +86,9 @@ export function RichTextEditor({ value, onChange, className }: RichTextEditorPro
 					variant="ghost"
 					size="icon"
 					className="h-8 w-8"
-					onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+					onClick={() =>
+						editor.chain().focus().toggleHeading({ level: 2 }).run()
+					}
 					data-active={editor.isActive("heading", { level: 2 })}
 				>
 					<Heading2 className="h-4 w-4" />
@@ -89,7 +98,9 @@ export function RichTextEditor({ value, onChange, className }: RichTextEditorPro
 					variant="ghost"
 					size="icon"
 					className="h-8 w-8"
-					onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+					onClick={() =>
+						editor.chain().focus().toggleHeading({ level: 3 }).run()
+					}
 					data-active={editor.isActive("heading", { level: 3 })}
 				>
 					<Heading3 className="h-4 w-4" />

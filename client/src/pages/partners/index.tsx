@@ -243,17 +243,24 @@ export default function PartnerManagementPage() {
 		return (
 			<div className="flex-1 min-h-0 flex flex-col">
 				<div className="shrink-0 flex flex-wrap gap-4 mb-4">
-					<div className="flex gap-2 flex-1 min-w-[200px]">
+					<div className="relative flex-1 min-w-[200px] max-w-sm">
+						<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 						<Input
 							placeholder="Search by name or business..."
 							value={searchInput}
 							onChange={(e) => setSearchInput(e.target.value)}
 							onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-							className="max-w-sm"
+							className="pl-9 pr-9"
 						/>
-						<Button variant="outline" size="icon" onClick={handleSearch}>
-							<Search className="h-4 w-4" />
-						</Button>
+						{searchInput && (
+							<button
+								type="button"
+								className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+								onClick={() => { setSearchInput(""); setSearch(""); setActivePage(1); }}
+							>
+								<X className="h-4 w-4" />
+							</button>
+						)}
 					</div>
 					<Select
 						value={ratingFilter}
