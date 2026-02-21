@@ -88,11 +88,8 @@ JWT_REFRESH_EXPIRE=30d
 # CORS Configuration
 CLIENT_URL=https://admin.yourdomain.com
 
-# SendGrid SMTP Configuration
-SMTP_HOST=smtp.sendgrid.net
-SMTP_PORT=587
-SMTP_USERNAME=apikey
-SMTP_PASSWORD=your-sendgrid-api-key
+# SendGrid Web API Configuration (no SMTP ports needed)
+SENDGRID_API_KEY=your-sendgrid-api-key
 EMAIL_FROM=Plindo <noreply@yourdomain.com>
 EOF
     echo "⚠️  IMPORTANT: Edit $APP_DIR/backend/.env and update the values!"

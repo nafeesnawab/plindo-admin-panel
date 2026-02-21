@@ -208,10 +208,7 @@ JWT_REFRESH_EXPIRE=30d
 CLIENT_URL=http://localhost:5173
 UPLOAD_DIR=uploads
 BASE_URL=http://localhost:5000
-SMTP_HOST=smtp.sendgrid.net
-SMTP_PORT=587
-SMTP_USERNAME=apikey
-SMTP_PASSWORD=your_sendgrid_api_key_here
+SENDGRID_API_KEY=your_sendgrid_api_key_here
 EMAIL_FROM=assetguard@codecoytechnologies.live
 ```
 
