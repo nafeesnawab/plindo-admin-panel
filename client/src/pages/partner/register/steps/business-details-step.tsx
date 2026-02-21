@@ -1,8 +1,6 @@
 import { Camera, MapPin, Plus, X } from "lucide-react";
 import { useRef } from "react";
 import { Button } from "@/ui/button";
-import { Card, CardContent } from "@/ui/card";
-import { Input } from "@/ui/input";
 import { Label } from "@/ui/label";
 import { Slider } from "@/ui/slider";
 import { Textarea } from "@/ui/textarea";

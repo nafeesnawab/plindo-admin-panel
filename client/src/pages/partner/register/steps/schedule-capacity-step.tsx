@@ -4,6 +4,13 @@ import { WeeklyCalendar } from "@/pages/partner/schedule/components/weekly-calen
 import { Button } from "@/ui/button";
 import { usePartnerRegistration } from "../context/registration-context";
 
+interface DaySchedule {
+	dayOfWeek: number;
+	dayName: string;
+	isEnabled: boolean;
+	timeBlocks: Array<{ start: string; end: string }>;
+}
+
 export function ScheduleCapacityStep() {
 	const {
 		schedule,
@@ -16,7 +23,7 @@ export function ScheduleCapacityStep() {
 		prevStep,
 	} = usePartnerRegistration();
 
-	const handleDayChange = (updatedDay) => {
+	const handleDayChange = (updatedDay: DaySchedule) => {
 		setSchedule(
 			schedule.map((d) =>
 				d.dayOfWeek === updatedDay.dayOfWeek ? updatedDay : d,
@@ -24,7 +31,7 @@ export function ScheduleCapacityStep() {
 		);
 	};
 
-	const handleCapacityChange = (category, value) => {
+	const handleCapacityChange = (category: string, value: number) => {
 		setCapacityByCategory({ ...capacityByCategory, [category]: value });
 	};
 

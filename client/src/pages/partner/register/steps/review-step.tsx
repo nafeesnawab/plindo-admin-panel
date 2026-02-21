@@ -303,7 +303,7 @@ export function ReviewStep() {
 									{day.dayName.slice(0, 3)}:{" "}
 									{day.isEnabled && day.timeBlocks.length > 0
 										? day.timeBlocks
-												.map((b) => `${b.start}-${b.end}`)
+												.map((b: { start: string; end: string }) => `${b.start}-${b.end}`)
 												.join(", ")
 										: "Closed"}
 								</Badge>

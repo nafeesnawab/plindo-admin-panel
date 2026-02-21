@@ -215,33 +215,36 @@ export function useBookings() {
 	});
 
 	const handleEventAdd = useCallback(
-		async (event: {
+		(event: {
 			title: string;
-			start: Date;
-			end: Date;
+			start: Date | Dayjs;
+			end: Date | Dayjs;
 			backgroundColor?: string;
 			color?: string;
 			description?: string;
 		}) => {
-			try {
-				const payload: CalendarEventPayload = {
-					title: event.title,
-					description: event.description ?? "",
-					start: event.start.toISOString(),
-					end: event.end.toISOString(),
-					color: event.color ?? event.backgroundColor ?? "#6b7280",
-					backgroundColor: event.backgroundColor ?? "#6b7280",
-				};
-				await apiClient.post({
-					url: "/partner/calendar-events",
-					data: payload,
-				});
+			const startDate = event.start instanceof Date ? event.start : event.start.toDate();
+			const endDate = event.end instanceof Date ? event.end : event.end.toDate();
+
+			const payload: CalendarEventPayload = {
+				title: event.title,
+				description: event.description ?? "",
+				start: startDate.toISOString(),
+				end: endDate.toISOString(),
+				color: event.color ?? event.backgroundColor ?? "#6b7280",
+				backgroundColor: event.backgroundColor ?? "#6b7280",
+			};
+
+			apiClient.post({
+				url: "/partner/calendar-events",
+				data: payload,
+			}).then(() => {
 				queryClient.invalidateQueries({
 					queryKey: ["partner-calendar-events"],
 				});
-			} catch {
+			}).catch(() => {
 				// silently ignore — calendar already shows the event optimistically
-			}
+			});
 		},
 		[queryClient],
 	);
