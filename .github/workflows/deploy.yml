@@ -66,6 +66,16 @@ jobs:
           cd client
           npm run build
 
+      - name: Clean old frontend files
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: |
+            rm -rf /var/www/plindo/client/dist/*
+            mkdir -p /var/www/plindo/client/dist
+
       - name: Deploy to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -73,9 +83,8 @@ jobs:
           username: ${{ secrets.VPS_USERNAME }}
           password: ${{ secrets.VPS_PASSWORD }}
           source: "client/dist/*"
-          target: "/var/www/plindo/client/"
+          target: "/var/www/plindo/client/dist/"
           strip_components: 2
-          rm: true
 
       - name: Verify deployment
         uses: appleboy/ssh-action@v1.0.3
