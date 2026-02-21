@@ -53,7 +53,8 @@ export function BookingDetailsDialog({
 	const canModify = booking.status === "booked";
 	const canStart = booking.status === "booked" && !isPast;
 	const canComplete = booking.status === "in_progress";
-	const initials = booking.customer.name
+	const customerName = booking.customer?.name || 'N/A';
+	const initials = customerName
 		.split(" ")
 		.map((n) => n[0])
 		.join("")
@@ -105,11 +106,11 @@ export function BookingDetailsDialog({
 						<div className="flex-1 min-w-0">
 							<div className="flex items-center gap-1.5">
 								<User className="h-3 w-3 text-muted-foreground" />
-								<span className="text-sm font-medium text-foreground truncate">{booking.customer.name}</span>
+								<span className="text-sm font-medium text-foreground truncate">{customerName}</span>
 							</div>
 							<div className="flex items-center gap-1.5 mt-0.5">
 								<Phone className="h-3 w-3 text-muted-foreground" />
-								<span className="text-xs text-muted-foreground">{booking.customer.phone}</span>
+								<span className="text-xs text-muted-foreground">{booking.customer?.phone || 'N/A'}</span>
 							</div>
 						</div>
 					</div>
