@@ -1,29 +1,34 @@
-import sgMail from "@sendgrid/mail";
+import nodemailer from "nodemailer";
 
-// Configure SendGrid API
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const getTransporter = () =>
+	nodemailer.createTransport({
+		host: process.env.SMTP_HOST,
+		port: parseInt(process.env.SMTP_PORT),
+		secure: false,
+		auth: {
+			user: process.env.SMTP_USERNAME,
+			pass: process.env.SMTP_PASSWORD,
+		},
+	});
 
 /**
- * Send an email using SendGrid Web API (no SMTP ports needed).
+ * Send an email using SMTP transport.
  */
 export const sendEmail = async ({ to, subject, html, text }) => {
-	const msg = {
-		to,
+	const mailOptions = {
 		from: process.env.EMAIL_FROM || "Plindo <noreply@plindo.app>",
+		to,
 		subject,
 		html,
 		...(text && { text }),
 	};
 
 	try {
-		const [response] = await sgMail.send(msg);
-		console.log(`📧 Email sent: ${response.statusCode}`);
-		return response;
+		const info = await getTransporter().sendMail(mailOptions);
+		console.log(`📧 Email sent: ${info.messageId}`);
+		return info;
 	} catch (err) {
 		console.error(`❌ Email error: ${err.message}`);
-		if (err.response) {
-			console.error(err.response.body);
-		}
 		throw err;
 	}
 };

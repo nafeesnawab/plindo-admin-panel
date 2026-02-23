@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Booking from "../../models/Booking.model.js";
 import { paginate } from "../../utils/pagination.js";
 import { error, success } from "../../utils/response.js";
@@ -7,20 +8,53 @@ import { error, success } from "../../utils/response.js";
  */
 export const getOverview = async (req, res) => {
 	try {
-		const partnerId = req.user.partnerId;
+		const partnerId = new mongoose.Types.ObjectId(req.user.partnerId);
 		const now = new Date();
-		const todayStart = new Date(now); todayStart.setHours(0, 0, 0, 0);
-		const todayEnd = new Date(now); todayEnd.setHours(23, 59, 59, 999);
-		const weekStart = new Date(now); weekStart.setDate(now.getDate() - 7);
-		const monthStart = new Date(now); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
+		const todayStart = new Date(now);
+		todayStart.setHours(0, 0, 0, 0);
+		const todayEnd = new Date(now);
+		todayEnd.setHours(23, 59, 59, 999);
+		const weekStart = new Date(now);
+		weekStart.setDate(now.getDate() - 7);
+		const monthStart = new Date(now);
+		monthStart.setDate(1);
+		monthStart.setHours(0, 0, 0, 0);
 
 		const match = { partnerId, status: { $in: ["completed", "delivered"] } };
 
 		const [allTime, thisMonth, thisWeek, today] = await Promise.all([
-			Booking.aggregate([{ $match: match }, { $group: { _id: null, net: { $sum: "$pricing.partnerPayout" }, gross: { $sum: "$pricing.finalPrice" }, commission: { $sum: "$pricing.platformFee" } } }]),
-			Booking.aggregate([{ $match: { ...match, createdAt: { $gte: monthStart } } }, { $group: { _id: null, net: { $sum: "$pricing.partnerPayout" }, gross: { $sum: "$pricing.finalPrice" }, commission: { $sum: "$pricing.platformFee" } } }]),
-			Booking.aggregate([{ $match: { ...match, createdAt: { $gte: weekStart } } }, { $group: { _id: null, net: { $sum: "$pricing.partnerPayout" } } }]),
-			Booking.aggregate([{ $match: { ...match, createdAt: { $gte: todayStart, $lte: todayEnd } } }, { $group: { _id: null, net: { $sum: "$pricing.partnerPayout" } } }]),
+			Booking.aggregate([
+				{ $match: match },
+				{
+					$group: {
+						_id: null,
+						net: { $sum: "$pricing.partnerPayout" },
+						gross: { $sum: "$pricing.finalPrice" },
+						commission: { $sum: "$pricing.platformFee" },
+					},
+				},
+			]),
+			Booking.aggregate([
+				{ $match: { ...match, createdAt: { $gte: monthStart } } },
+				{
+					$group: {
+						_id: null,
+						net: { $sum: "$pricing.partnerPayout" },
+						gross: { $sum: "$pricing.finalPrice" },
+						commission: { $sum: "$pricing.platformFee" },
+					},
+				},
+			]),
+			Booking.aggregate([
+				{ $match: { ...match, createdAt: { $gte: weekStart } } },
+				{ $group: { _id: null, net: { $sum: "$pricing.partnerPayout" } } },
+			]),
+			Booking.aggregate([
+				{
+					$match: { ...match, createdAt: { $gte: todayStart, $lte: todayEnd } },
+				},
+				{ $group: { _id: null, net: { $sum: "$pricing.partnerPayout" } } },
+			]),
 		]);
 
 		return success(res, {
@@ -33,7 +67,9 @@ export const getOverview = async (req, res) => {
 				commission: thisMonth[0]?.commission || 0,
 				netEarnings: thisMonth[0]?.net || 0,
 				pendingPayout: thisMonth[0]?.net || 0,
-				nextPayoutDate: new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString().split("T")[0],
+				nextPayoutDate: new Date(now.getFullYear(), now.getMonth() + 1, 1)
+					.toISOString()
+					.split("T")[0],
 			},
 		});
 	} catch (err) {
@@ -54,8 +90,13 @@ export const getTransactions = async (req, res) => {
 				.sort({ createdAt: -1 })
 				.skip(skip)
 				.limit(limit)
-				.select("slotDate bookingNumber customerName serviceName pricing createdAt"),
-			Booking.countDocuments({ partnerId, status: { $in: ["completed", "delivered"] } }),
+				.select(
+					"slotDate bookingNumber customerName serviceName pricing createdAt",
+				),
+			Booking.countDocuments({
+				partnerId,
+				status: { $in: ["completed", "delivered"] },
+			}),
 		]);
 
 		const transactions = items.map((b) => ({
@@ -83,12 +124,15 @@ export const getTransactions = async (req, res) => {
  */
 export const getPayouts = async (req, res) => {
 	try {
-		const partnerId = req.user.partnerId;
+		const partnerId = new mongoose.Types.ObjectId(req.user.partnerId);
 		const agg = await Booking.aggregate([
 			{ $match: { partnerId, status: { $in: ["completed", "delivered"] } } },
 			{
 				$group: {
-					_id: { month: { $month: "$createdAt" }, year: { $year: "$createdAt" } },
+					_id: {
+						month: { $month: "$createdAt" },
+						year: { $year: "$createdAt" },
+					},
 					totalBookings: { $sum: 1 },
 					grossEarnings: { $sum: "$pricing.finalPrice" },
 					commission: { $sum: "$pricing.platformFee" },
@@ -98,10 +142,25 @@ export const getPayouts = async (req, res) => {
 			{ $sort: { "_id.year": -1, "_id.month": -1 } },
 		]);
 
-		const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+		const monthNames = [
+			"Jan",
+			"Feb",
+			"Mar",
+			"Apr",
+			"May",
+			"Jun",
+			"Jul",
+			"Aug",
+			"Sep",
+			"Oct",
+			"Nov",
+			"Dec",
+		];
 		const payouts = agg.map((p, i) => ({
 			id: `PAY-${partnerId}-${i + 1}`,
-			payoutDate: new Date(p._id.year, p._id.month, 0).toISOString().split("T")[0],
+			payoutDate: new Date(p._id.year, p._id.month, 0)
+				.toISOString()
+				.split("T")[0],
 			period: `${monthNames[p._id.month - 1]} ${p._id.year}`,
 			totalBookings: p.totalBookings,
 			grossEarnings: p.grossEarnings,
@@ -121,7 +180,7 @@ export const getPayouts = async (req, res) => {
  */
 export const getChart = async (req, res) => {
 	try {
-		const partnerId = req.user.partnerId;
+		const partnerId = new mongoose.Types.ObjectId(req.user.partnerId);
 		const period = req.query.period || "month";
 		const labels = [];
 		const values = [];
@@ -136,7 +195,13 @@ export const getChart = async (req, res) => {
 				nextMonth.setMonth(nextMonth.getMonth() + 1);
 
 				const agg = await Booking.aggregate([
-					{ $match: { partnerId, status: { $in: ["completed", "delivered"] }, createdAt: { $gte: date, $lt: nextMonth } } },
+					{
+						$match: {
+							partnerId,
+							status: { $in: ["completed", "delivered"] },
+							createdAt: { $gte: date, $lt: nextMonth },
+						},
+					},
 					{ $group: { _id: null, net: { $sum: "$pricing.partnerPayout" } } },
 				]);
 
@@ -152,7 +217,13 @@ export const getChart = async (req, res) => {
 				nextDay.setDate(nextDay.getDate() + 1);
 
 				const agg = await Booking.aggregate([
-					{ $match: { partnerId, status: { $in: ["completed", "delivered"] }, createdAt: { $gte: date, $lt: nextDay } } },
+					{
+						$match: {
+							partnerId,
+							status: { $in: ["completed", "delivered"] },
+							createdAt: { $gte: date, $lt: nextDay },
+						},
+					},
 					{ $group: { _id: null, net: { $sum: "$pricing.partnerPayout" } } },
 				]);
 

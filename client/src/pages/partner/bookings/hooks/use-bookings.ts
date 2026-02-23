@@ -1,5 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+	addDays,
+	addMonths,
+	addWeeks,
+	addYears,
 	endOfMonth,
 	endOfWeek,
 	endOfYear,
@@ -8,9 +12,14 @@ import {
 	startOfMonth,
 	startOfWeek,
 	startOfYear,
+	subDays,
+	subMonths,
+	subWeeks,
+	subYears,
 } from "date-fns";
 import type { Dayjs } from "dayjs";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 
 import apiClient from "@/api/apiClient";
@@ -35,6 +44,8 @@ export function useBookings() {
 	const queryClient = useQueryClient();
 	const partnerInfo = usePartnerInfo();
 	const partnerId = partnerInfo.id ?? "";
+	const location = useLocation();
+	const navigate = useNavigate();
 	const [currentView, setCurrentView] = useState<CalendarView>("week");
 	const [currentDate, setCurrentDate] = useState<Date>(new Date());
 	const [selectedBooking, setSelectedBooking] = useState<SlotBooking | null>(
@@ -44,6 +55,75 @@ export function useBookings() {
 	const [showCancelDialog, setShowCancelDialog] = useState(false);
 	const [showRescheduleDialog, setShowRescheduleDialog] = useState(false);
 	const [categoryFilter, setCategoryFilter] = useState<string>("all");
+
+	// Navigation functions - we control these instead of relying on unreliable calendar callbacks
+	const goNext = useCallback(() => {
+		setCurrentDate((prev) => {
+			switch (currentView) {
+				case "day":
+					return addDays(prev, 1);
+				case "week":
+					return addWeeks(prev, 1);
+				case "month":
+					return addMonths(prev, 1);
+				case "year":
+					return addYears(prev, 1);
+				default:
+					return addWeeks(prev, 1);
+			}
+		});
+	}, [currentView]);
+
+	const goPrev = useCallback(() => {
+		setCurrentDate((prev) => {
+			switch (currentView) {
+				case "day":
+					return subDays(prev, 1);
+				case "week":
+					return subWeeks(prev, 1);
+				case "month":
+					return subMonths(prev, 1);
+				case "year":
+					return subYears(prev, 1);
+				default:
+					return subWeeks(prev, 1);
+			}
+		});
+	}, [currentView]);
+
+	const goToday = useCallback(() => {
+		setCurrentDate(new Date());
+	}, []);
+
+	const setView = useCallback((view: CalendarView) => {
+		setCurrentView(view);
+	}, []);
+
+	// Calendar key to force remount when our state changes
+	const calendarKey = useMemo(
+		() => `${currentView}-${format(currentDate, "yyyy-MM-dd")}`,
+		[currentView, currentDate],
+	);
+
+	// Handle openBookingId from navigation state (e.g., from dashboard)
+	useEffect(() => {
+		const state = location.state as { openBookingId?: string } | null;
+		if (state?.openBookingId) {
+			// Clear the state to prevent re-opening on subsequent renders
+			navigate(location.pathname, { replace: true, state: {} });
+
+			// Fetch the booking details and open the dialog
+			slotBookingService
+				.getBookingDetails(state.openBookingId)
+				.then((booking) => {
+					setSelectedBooking(booking);
+					setShowDetails(true);
+				})
+				.catch(() => {
+					toast.error("Failed to load booking details");
+				});
+		}
+	}, [location.state, location.pathname, navigate]);
 
 	// Calculate date range based on current view and date
 	const dateRange = useMemo(() => {
@@ -81,7 +161,12 @@ export function useBookings() {
 
 	// Fetch bookings
 	const { data: bookingsData, isLoading } = useQuery({
-		queryKey: ["partner-bookings", partnerId, dateRange.startDate, dateRange.endDate],
+		queryKey: [
+			"partner-bookings",
+			partnerId,
+			dateRange.startDate,
+			dateRange.endDate,
+		],
 		queryFn: () =>
 			slotBookingService.getPartnerBookings({
 				partnerId: partnerId,
@@ -223,8 +308,10 @@ export function useBookings() {
 			color?: string;
 			description?: string;
 		}) => {
-			const startDate = event.start instanceof Date ? event.start : event.start.toDate();
-			const endDate = event.end instanceof Date ? event.end : event.end.toDate();
+			const startDate =
+				event.start instanceof Date ? event.start : event.start.toDate();
+			const endDate =
+				event.end instanceof Date ? event.end : event.end.toDate();
 
 			const payload: CalendarEventPayload = {
 				title: event.title,
@@ -235,16 +322,19 @@ export function useBookings() {
 				backgroundColor: event.backgroundColor ?? "#6b7280",
 			};
 
-			apiClient.post({
-				url: "/partner/calendar-events",
-				data: payload,
-			}).then(() => {
-				queryClient.invalidateQueries({
-					queryKey: ["partner-calendar-events"],
+			apiClient
+				.post({
+					url: "/partner/calendar-events",
+					data: payload,
+				})
+				.then(() => {
+					queryClient.invalidateQueries({
+						queryKey: ["partner-calendar-events"],
+					});
+				})
+				.catch(() => {
+					// silently ignore — calendar already shows the event optimistically
 				});
-			}).catch(() => {
-				// silently ignore — calendar already shows the event optimistically
-			});
 		},
 		[queryClient],
 	);
@@ -293,17 +383,8 @@ export function useBookings() {
 		[selectedBooking, rescheduleMutation],
 	);
 
-	// Calendar view change handler
-	const handleViewChange = useCallback((view: string) => {
-		setCurrentView(view as CalendarView);
-	}, []);
-
-	// Calendar date navigation handler
-	const handleDateChange = useCallback((date: Dayjs) => {
-		setCurrentDate(date.toDate());
-	}, []);
-
 	return {
+		// State
 		selectedBooking,
 		showDetails,
 		setShowDetails,
@@ -313,18 +394,28 @@ export function useBookings() {
 		setShowRescheduleDialog,
 		categoryFilter,
 		setCategoryFilter,
+		// Navigation
+		currentView,
+		currentDate,
+		calendarKey,
+		goNext,
+		goPrev,
+		goToday,
+		setView,
+		dateRange,
+		// Data
 		allBookings,
 		calendarEvents,
 		isLoading,
+		// Mutations
 		cancelMutation,
 		rescheduleMutation,
+		// Handlers
 		handleEventClick,
 		handleEventAdd,
 		handleStartService,
 		handleCompleteService,
 		handleCancelConfirm,
 		handleRescheduleConfirm,
-		handleViewChange,
-		handleDateChange,
 	};
 }

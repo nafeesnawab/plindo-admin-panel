@@ -11,19 +11,25 @@ const timeToMinutes = (time) => {
 
 const getDefaultAvailability = (partnerId) => ({
 	partnerId,
-	schedule: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].map(
-		(dayName, index) => ({
-			dayOfWeek: index,
-			dayName,
-			isEnabled: index !== 0,
-			timeBlocks:
-				index === 0
-					? []
-					: index === 6
-						? [{ start: "09:00", end: "14:00" }]
-						: [{ start: "08:00", end: "18:00" }],
-		}),
-	),
+	schedule: [
+		"Sunday",
+		"Monday",
+		"Tuesday",
+		"Wednesday",
+		"Thursday",
+		"Friday",
+		"Saturday",
+	].map((dayName, index) => ({
+		dayOfWeek: index,
+		dayName,
+		isEnabled: index !== 0,
+		timeBlocks:
+			index === 0
+				? []
+				: index === 6
+					? [{ start: "09:00", end: "14:00" }]
+					: [{ start: "08:00", end: "18:00" }],
+	})),
 	bufferTimeMinutes: 15,
 	maxAdvanceBookingDays: 14,
 });
@@ -31,10 +37,30 @@ const getDefaultAvailability = (partnerId) => ({
 const getDefaultCapacity = (partnerId) => ({
 	partnerId,
 	bays: [
-		{ id: "bay-w1", name: "Wash Bay 1", serviceCategory: "wash", isActive: true },
-		{ id: "bay-w2", name: "Wash Bay 2", serviceCategory: "wash", isActive: true },
-		{ id: "bay-w3", name: "Wash Bay 3", serviceCategory: "wash", isActive: true },
-		{ id: "bay-d1", name: "Detail Bay 1", serviceCategory: "detailing", isActive: true },
+		{
+			id: "bay-w1",
+			name: "Wash Bay 1",
+			serviceCategory: "wash",
+			isActive: true,
+		},
+		{
+			id: "bay-w2",
+			name: "Wash Bay 2",
+			serviceCategory: "wash",
+			isActive: true,
+		},
+		{
+			id: "bay-w3",
+			name: "Wash Bay 3",
+			serviceCategory: "wash",
+			isActive: true,
+		},
+		{
+			id: "bay-d1",
+			name: "Detail Bay 1",
+			serviceCategory: "detailing",
+			isActive: true,
+		},
 	],
 	capacityByCategory: { wash: 3, detailing: 1, other: 0 },
 	bufferTimeMinutes: 15,
@@ -60,7 +86,11 @@ const formatBooking = (b) => ({
 		basePrice: b.pricing?.basePrice || 0,
 		duration: b.serviceDuration || 0,
 	},
-	slot: { date: b.slotDate, startTime: b.slotStartTime, endTime: b.slotEndTime },
+	slot: {
+		date: b.slotDate,
+		startTime: b.slotStartTime,
+		endTime: b.slotEndTime,
+	},
 	pricing: b.pricing || {},
 	status: b.status,
 	serviceSteps: b.serviceSteps || [],
@@ -79,7 +109,7 @@ const formatBooking = (b) => ({
 
 export const getWeeklyAvailability = async (req, res) => {
 	try {
-		const partnerId = req.user.id;
+		const partnerId = req.user.partnerId;
 
 		let availability = await PartnerAvailability.findOne({ partnerId });
 		if (!availability) {
@@ -108,7 +138,7 @@ export const getWeeklyAvailability = async (req, res) => {
 
 export const updateWeeklyAvailability = async (req, res) => {
 	try {
-		const partnerId = req.user.id;
+		const partnerId = req.user.partnerId;
 		const { schedule, bufferTimeMinutes, maxAdvanceBookingDays } = req.body;
 
 		const availability = await PartnerAvailability.findOneAndUpdate(
@@ -131,7 +161,7 @@ export const updateWeeklyAvailability = async (req, res) => {
 
 export const getCapacity = async (req, res) => {
 	try {
-		const partnerId = req.user.id;
+		const partnerId = req.user.partnerId;
 		let capacity = await PartnerCapacity.findOne({ partnerId });
 		if (!capacity) {
 			capacity = await PartnerCapacity.create(getDefaultCapacity(partnerId));
@@ -146,14 +176,22 @@ export const getCapacity = async (req, res) => {
 
 export const updateCapacity = async (req, res) => {
 	try {
-		const partnerId = req.user.id;
+		const partnerId = req.user.partnerId;
 		const { capacityByCategory, bufferTimeMinutes } = req.body;
 
 		const categories = ["wash", "detailing", "other"];
-		const categoryLabels = { wash: "Wash Bay", detailing: "Detail Bay", other: "Bay" };
-		const categoryPrefixes = { wash: "bay-w", detailing: "bay-d", other: "bay-o" };
+		const categoryLabels = {
+			wash: "Wash Bay",
+			detailing: "Detail Bay",
+			other: "Bay",
+		};
+		const categoryPrefixes = {
+			wash: "bay-w",
+			detailing: "bay-d",
+			other: "bay-o",
+		};
 
-		let bays = [];
+		const bays = [];
 		if (capacityByCategory) {
 			for (const cat of categories) {
 				const count = capacityByCategory[cat] || 0;
@@ -187,14 +225,17 @@ export const updateCapacity = async (req, res) => {
 
 export const getPartnerBookings = async (req, res) => {
 	try {
-		const partnerId = req.user.id;
+		const partnerId = req.user.partnerId;
 		const { page, limit, skip } = paginate(req.query);
 
 		const filter = { partnerId };
 		if (req.query.startDate) filter.slotDate = { $gte: req.query.startDate };
-		if (req.query.endDate) filter.slotDate = { ...filter.slotDate, $lte: req.query.endDate };
-		if (req.query.status && req.query.status !== "all") filter.status = req.query.status;
-		if (req.query.serviceCategory) filter.serviceCategory = req.query.serviceCategory;
+		if (req.query.endDate)
+			filter.slotDate = { ...filter.slotDate, $lte: req.query.endDate };
+		if (req.query.status && req.query.status !== "all")
+			filter.status = req.query.status;
+		if (req.query.serviceCategory)
+			filter.serviceCategory = req.query.serviceCategory;
 
 		const [items, total] = await Promise.all([
 			Booking.find(filter)
@@ -204,7 +245,10 @@ export const getPartnerBookings = async (req, res) => {
 			Booking.countDocuments(filter),
 		]);
 
-		return success(res, paginatedResponse(items.map(formatBooking), total, page, limit));
+		return success(
+			res,
+			paginatedResponse(items.map(formatBooking), total, page, limit),
+		);
 	} catch (err) {
 		return error(res, err.message, 500);
 	}
@@ -214,7 +258,7 @@ export const getPartnerBookings = async (req, res) => {
 
 export const getBookingsTimeline = async (req, res) => {
 	try {
-		const partnerId = req.user.id;
+		const partnerId = req.user.partnerId;
 		const { weekStart } = req.query;
 
 		const startDate = weekStart ? new Date(weekStart) : new Date();
@@ -234,7 +278,15 @@ export const getBookingsTimeline = async (req, res) => {
 		const capacity = await PartnerCapacity.findOne({ partnerId });
 		const cap = capacity || getDefaultCapacity(partnerId);
 
-		const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+		const dayNames = [
+			"Sunday",
+			"Monday",
+			"Tuesday",
+			"Wednesday",
+			"Thursday",
+			"Friday",
+			"Saturday",
+		];
 		const days = [];
 
 		for (let i = 0; i < 7; i++) {
@@ -246,16 +298,27 @@ export const getBookingsTimeline = async (req, res) => {
 				.filter((b) => b.slotDate === dateStr)
 				.map(formatBooking);
 
-			const washBookings = dayBookings.filter((b) => b.service.serviceCategory === "wash" && b.status !== "cancelled");
-			const detailBookings = dayBookings.filter((b) => b.service.serviceCategory === "detailing" && b.status !== "cancelled");
+			const washBookings = dayBookings.filter(
+				(b) => b.service.serviceCategory === "wash" && b.status !== "cancelled",
+			);
+			const detailBookings = dayBookings.filter(
+				(b) =>
+					b.service.serviceCategory === "detailing" && b.status !== "cancelled",
+			);
 
 			days.push({
 				date: dateStr,
 				dayOfWeek: dayNames[currentDate.getDay()],
 				bookings: dayBookings,
 				capacityUsage: {
-					wash: { used: washBookings.length, total: cap.capacityByCategory.wash },
-					detailing: { used: detailBookings.length, total: cap.capacityByCategory.detailing },
+					wash: {
+						used: washBookings.length,
+						total: cap.capacityByCategory.wash,
+					},
+					detailing: {
+						used: detailBookings.length,
+						total: cap.capacityByCategory.detailing,
+					},
 				},
 			});
 		}

@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { format, isToday, parseISO } from "date-fns";
 import {
 	ArrowRight,
 	Calendar,
@@ -9,7 +10,7 @@ import {
 	Plus,
 	Star,
 } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 import apiClient from "@/api/apiClient";
 import { Chart } from "@/components/chart";
@@ -24,6 +25,41 @@ import {
 } from "@/ui/card";
 import { Skeleton } from "@/ui/skeleton";
 
+interface UpcomingBooking {
+	id: string;
+	bookingNumber: string;
+	date: string;
+	startTime: string;
+	endTime: string;
+	customer: string;
+	serviceName: string;
+	serviceType: string;
+	serviceCategory: string;
+	status: string;
+	vehicle: string;
+	pricing: {
+		finalPrice: number;
+	};
+}
+
+interface RecentActivity {
+	id: string;
+	bookingNumber: string;
+	type: string;
+	customerName: string;
+	serviceName: string;
+	serviceType: string;
+	serviceCategory: string;
+	slotDate: string;
+	slotStartTime: string;
+	slotEndTime: string;
+	time: string;
+	status: string;
+	pricing: {
+		finalPrice: number;
+	};
+}
+
 interface DashboardData {
 	stats: {
 		todayBookings: number;
@@ -36,21 +72,9 @@ interface DashboardData {
 	};
 	revenueChartData: { date: string; value: number }[];
 	bookingsChartData: { date: string; value: number }[];
-	todaySchedule: {
-		id: string;
-		time: string;
-		customer: string;
-		service: string;
-		status: string;
-		vehicle: string;
-	}[];
-	recentActivity: {
-		id: string;
-		type: string;
-		message: string;
-		time: string;
-		status: string;
-	}[];
+	upcomingSchedule: UpcomingBooking[];
+	hasTodayBookings: boolean;
+	recentActivity: RecentActivity[];
 }
 
 const statusColors: Record<string, string> = {
@@ -76,6 +100,7 @@ const activityIcons: Record<string, React.ReactNode> = {
 };
 
 export default function PartnerDashboard() {
+	const navigate = useNavigate();
 	const { data, isLoading } = useQuery<DashboardData>({
 		queryKey: ["partner-dashboard"],
 		queryFn: () => apiClient.get<DashboardData>({ url: "/partner/dashboard" }),
@@ -113,7 +138,8 @@ export default function PartnerDashboard() {
 		colors: ["#3b82f6"],
 	};
 
-	const todaySchedule = data?.todaySchedule ?? [];
+	const upcomingSchedule = data?.upcomingSchedule ?? [];
+	const hasTodayBookings = data?.hasTodayBookings ?? false;
 	const recentActivity = data?.recentActivity ?? [];
 
 	return (
@@ -303,13 +329,19 @@ export default function PartnerDashboard() {
 				</CardContent>
 			</Card>
 
-			{/* Today's Schedule & Recent Activity */}
+			{/* Upcoming Schedule & Recent Activity */}
 			<div className="grid gap-4 lg:grid-cols-2">
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between">
 						<div>
-							<CardTitle>Today's Schedule</CardTitle>
-							<CardDescription>Your upcoming appointments</CardDescription>
+							<CardTitle>
+								{hasTodayBookings ? "Today's Schedule" : "Upcoming Bookings"}
+							</CardTitle>
+							<CardDescription>
+								{hasTodayBookings
+									? "Your appointments for today"
+									: "Your next scheduled appointments"}
+							</CardDescription>
 						</div>
 						<Link to="/partner/bookings">
 							<Button variant="ghost" size="sm" className="gap-1">
@@ -324,39 +356,57 @@ export default function PartnerDashboard() {
 									<Skeleton key={i} className="h-16 w-full" />
 								))}
 							</div>
-						) : todaySchedule.length === 0 ? (
+						) : upcomingSchedule.length === 0 ? (
 							<p className="text-sm text-muted-foreground text-center py-8">
-								No appointments today
+								No upcoming appointments
 							</p>
 						) : (
-							<div className="space-y-4">
-								{todaySchedule.map((booking) => (
-									<div
-										key={String(booking.id)}
-										className="flex items-center justify-between rounded-lg border p-3"
-									>
-										<div className="flex items-center gap-3">
-											<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-												<Car className="h-5 w-5 text-primary" />
+							<div className="space-y-3">
+								{upcomingSchedule.map((booking) => {
+									const bookingDate = parseISO(booking.date);
+									const isBookingToday = isToday(bookingDate);
+									return (
+										<button
+											key={String(booking.id)}
+											type="button"
+											onClick={() =>
+												navigate("/partner/bookings", {
+													state: { openBookingId: booking.id },
+												})
+											}
+											className="flex w-full items-center justify-between rounded-lg border p-3 cursor-pointer hover:bg-muted/50 transition-colors text-left"
+										>
+											<div className="flex items-center gap-3">
+												<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+													<Car className="h-5 w-5 text-primary" />
+												</div>
+												<div>
+													<p className="font-medium">{booking.customer}</p>
+													<p className="text-sm text-muted-foreground">
+														{booking.serviceName}
+														{booking.vehicle ? ` • ${booking.vehicle}` : ""}
+													</p>
+												</div>
 											</div>
-											<div>
-												<p className="font-medium">{booking.customer}</p>
-												<p className="text-sm text-muted-foreground">
-													{booking.service}
-													{booking.vehicle ? ` • ${booking.vehicle}` : ""}
-												</p>
+											<div className="flex flex-col items-end gap-1">
+												<Badge className={statusColors[booking.status] ?? ""}>
+													{booking.status.replace(/_/g, " ")}
+												</Badge>
+												<div className="flex items-center gap-1 text-xs text-muted-foreground">
+													{!isBookingToday && (
+														<span className="font-medium text-foreground">
+															{format(bookingDate, "MMM d")} •
+														</span>
+													)}
+													<Clock className="h-3 w-3" />
+													<span>
+														{booking.startTime} - {booking.endTime}
+													</span>
+												</div>
 											</div>
-										</div>
-										<div className="flex items-center gap-3">
-											<Badge className={statusColors[booking.status] ?? ""}>
-												{booking.status.replace(/_/g, " ")}
-											</Badge>
-											<span className="text-sm font-medium">
-												{booking.time}
-											</span>
-										</div>
-									</div>
-								))}
+										</button>
+									);
+								})}
 							</div>
 						)}
 					</CardContent>
@@ -366,14 +416,14 @@ export default function PartnerDashboard() {
 					<CardHeader className="flex flex-row items-center justify-between">
 						<div>
 							<CardTitle>Recent Activity</CardTitle>
-							<CardDescription>Latest updates</CardDescription>
+							<CardDescription>Latest booking updates</CardDescription>
 						</div>
 					</CardHeader>
 					<CardContent>
 						{isLoading ? (
 							<div className="space-y-3">
 								{[1, 2, 3].map((i) => (
-									<Skeleton key={i} className="h-10 w-full" />
+									<Skeleton key={i} className="h-14 w-full" />
 								))}
 							</div>
 						) : recentActivity.length === 0 ? (
@@ -381,24 +431,50 @@ export default function PartnerDashboard() {
 								No recent activity
 							</p>
 						) : (
-							<div className="space-y-4">
+							<div className="space-y-3">
 								{recentActivity.map((activity) => (
-									<div
+									<button
 										key={String(activity.id)}
-										className="flex items-start gap-3"
+										type="button"
+										onClick={() =>
+											navigate("/partner/bookings", {
+												state: { openBookingId: activity.id },
+											})
+										}
+										className="flex w-full items-start gap-3 p-2 rounded-lg cursor-pointer hover:bg-muted/50 transition-colors text-left"
 									>
-										<div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
+										<div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted shrink-0">
 											{activityIcons[activity.type] ?? (
 												<Calendar className="h-4 w-4 text-blue-500" />
 											)}
 										</div>
-										<div className="flex-1">
-											<p className="text-sm">{activity.message}</p>
-											<p className="text-xs text-muted-foreground">
-												{new Date(activity.time).toLocaleString()}
+										<div className="flex-1 min-w-0">
+											<div className="flex items-center gap-2">
+												<p className="text-sm font-medium truncate">
+													{activity.customerName}
+												</p>
+												<Badge
+													variant="outline"
+													className={`text-[10px] px-1.5 py-0 ${statusColors[activity.status] ?? ""}`}
+												>
+													{activity.status.replace(/_/g, " ")}
+												</Badge>
+											</div>
+											<p className="text-xs text-muted-foreground truncate">
+												{activity.serviceName} • {activity.slotDate}{" "}
+												{activity.slotStartTime}
+											</p>
+											<p className="text-[10px] text-muted-foreground">
+												Created{" "}
+												{format(parseISO(activity.time), "MMM d, h:mm a")}
 											</p>
 										</div>
-									</div>
+										<div className="text-right shrink-0">
+											<p className="text-sm font-semibold">
+												€{(activity.pricing?.finalPrice ?? 0).toFixed(0)}
+											</p>
+										</div>
+									</button>
 								))}
 							</div>
 						)}

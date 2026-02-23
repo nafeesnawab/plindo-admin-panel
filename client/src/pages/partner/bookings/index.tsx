@@ -1,8 +1,9 @@
 import { IlamyCalendar } from "@ilamy/calendar";
-import { Filter, PoundSterling } from "lucide-react";
+import { format } from "date-fns";
+import { ChevronLeft, ChevronRight, Filter, PoundSterling } from "lucide-react";
 import { useMemo } from "react";
-
 import type { SlotBooking } from "@/types/booking";
+import { Button } from "@/ui/button";
 import {
 	Select,
 	SelectContent,
@@ -26,8 +27,16 @@ const LEGEND_ITEMS: { key: string; label: string }[] = [
 	{ key: "rescheduled", label: "Rescheduled" },
 ];
 
+const VIEW_OPTIONS = [
+	{ value: "day", label: "Day" },
+	{ value: "week", label: "Week" },
+	{ value: "month", label: "Month" },
+	{ value: "year", label: "Year" },
+] as const;
+
 export default function PartnerBookingsPage() {
 	const {
+		// State
 		selectedBooking,
 		showDetails,
 		setShowDetails,
@@ -37,20 +46,46 @@ export default function PartnerBookingsPage() {
 		setShowRescheduleDialog,
 		categoryFilter,
 		setCategoryFilter,
+		// Navigation
+		currentView,
+		currentDate,
+		calendarKey,
+		goNext,
+		goPrev,
+		goToday,
+		setView,
+		dateRange,
+		// Data
 		allBookings,
 		calendarEvents,
 		isLoading,
+		// Mutations
 		cancelMutation,
 		rescheduleMutation,
+		// Handlers
 		handleEventClick,
 		handleEventAdd,
 		handleStartService,
 		handleCompleteService,
 		handleCancelConfirm,
 		handleRescheduleConfirm,
-		handleViewChange,
-		handleDateChange,
 	} = useBookings();
+
+	// Format the current date range for display
+	const dateRangeLabel = useMemo(() => {
+		const start = new Date(dateRange.startDate);
+		const end = new Date(dateRange.endDate);
+		if (currentView === "day") {
+			return format(start, "EEEE, MMMM d, yyyy");
+		}
+		if (currentView === "week") {
+			return `${format(start, "MMM d")} - ${format(end, "MMM d, yyyy")}`;
+		}
+		if (currentView === "month") {
+			return format(start, "MMMM yyyy");
+		}
+		return format(start, "yyyy");
+	}, [dateRange, currentView]);
 
 	// Counts per status + revenue
 	const stats = useMemo(() => {
@@ -142,17 +177,46 @@ export default function PartnerBookingsPage() {
 				</div>
 			</div>
 
-			{/* IlamyCalendar */}
+			{/* Navigation Controls */}
+			<div className="flex items-center justify-between rounded-lg border border-border bg-card px-4 py-2">
+				<div className="flex items-center gap-2">
+					<Button variant="outline" size="sm" onClick={goPrev}>
+						<ChevronLeft className="h-4 w-4" />
+					</Button>
+					<Button variant="outline" size="sm" onClick={goToday}>
+						Today
+					</Button>
+					<Button variant="outline" size="sm" onClick={goNext}>
+						<ChevronRight className="h-4 w-4" />
+					</Button>
+					<span className="ml-2 text-sm font-medium">{dateRangeLabel}</span>
+				</div>
+				<div className="flex items-center gap-2">
+					{VIEW_OPTIONS.map((option) => (
+						<Button
+							key={option.value}
+							variant={currentView === option.value ? "default" : "outline"}
+							size="sm"
+							onClick={() => setView(option.value)}
+						>
+							{option.label}
+						</Button>
+					))}
+				</div>
+			</div>
+
+			{/* IlamyCalendar - hide built-in header since we have custom navigation */}
 			<div className="flex-1 min-h-0 [&_.ilamy-calendar]:h-full">
 				<IlamyCalendar
+					key={calendarKey}
 					events={calendarEvents}
-					initialView="week"
+					initialView={currentView}
+					initialDate={currentDate}
 					firstDayOfWeek="monday"
 					timeFormat="24-hour"
+					headerClassName="hidden"
 					onEventClick={handleEventClick}
 					onEventAdd={handleEventAdd}
-					onViewChange={handleViewChange}
-					onDateChange={handleDateChange}
 					disableDragAndDrop
 					disableCellClick
 					businessHours={{
