@@ -1,45 +1,67 @@
-import multer from 'multer';
-import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
-import fs from 'fs';
+import fs from "fs";
+import multer from "multer";
+import path from "path";
+import { v4 as uuidv4 } from "uuid";
 
-const uploadDir = process.env.UPLOAD_DIR || 'uploads';
+const uploadDir = process.env.UPLOAD_DIR || "uploads";
 
 // Ensure upload directory exists
 if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+	fs.mkdirSync(uploadDir, { recursive: true });
 }
 
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    const filename = `${uuidv4()}${ext}`;
-    cb(null, filename);
-  },
+	destination: (req, file, cb) => {
+		cb(null, uploadDir);
+	},
+	filename: (req, file, cb) => {
+		const ext = path.extname(file.originalname).toLowerCase();
+		const filename = `${uuidv4()}${ext}`;
+		cb(null, filename);
+	},
 });
 
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|gif|webp|pdf/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
+	const allowedTypes = /jpeg|jpg|png|gif|webp|pdf/;
+	const extname = allowedTypes.test(
+		path.extname(file.originalname).toLowerCase(),
+	);
+	const mimetype = allowedTypes.test(file.mimetype);
 
-  if (extname && mimetype) {
-    cb(null, true);
-  } else {
-    cb(new Error('Only images (jpg, jpeg, png, gif, webp) and PDF files are allowed'), false);
-  }
+	if (extname && mimetype) {
+		cb(null, true);
+	} else {
+		cb(
+			new Error(
+				"Only images (jpg, jpeg, png, gif, webp) and PDF files are allowed",
+			),
+			false,
+		);
+	}
 };
 
 export const upload = multer({
-  storage,
-  fileFilter,
-  limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB
-  },
+	storage,
+	fileFilter,
+	limits: {
+		fileSize: 10 * 1024 * 1024, // 10MB
+	},
 });
 
-export const uploadSingle = upload.single('file');
-export const uploadMultiple = upload.array('files', 10);
+export const uploadSingle = upload.single("file");
+export const uploadMultiple = upload.array("files", 10);
+
+export const uploadFlexible = (req, res, next) => {
+	const multipleUpload = upload.array("files", 10);
+	const singleUpload = upload.single("file");
+
+	multipleUpload(req, res, (err) => {
+		if (err) {
+			return next(err);
+		}
+		if (req.files && req.files.length > 0) {
+			return next();
+		}
+		singleUpload(req, res, next);
+	});
+};

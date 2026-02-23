@@ -11,7 +11,31 @@ import {
 	signup,
 	verifyOtp,
 } from "../controllers/mobile/auth.controller.js";
-
+// Bookings controller
+import {
+	calculatePrice,
+	cancelBooking,
+	createBooking,
+	getAvailableSlots,
+	getBookingDetails,
+	getBookings,
+	submitReview,
+} from "../controllers/mobile/bookings.controller.js";
+// Messaging controller
+import {
+	getConversations,
+	getMessages,
+	sendMessage,
+	startConversation,
+} from "../controllers/mobile/messaging.controller.js";
+// Partners controller
+import {
+	getPartnerDetails,
+	getPartnerProducts,
+	getPartnerReviews,
+	getPartnerServices,
+	getPartners,
+} from "../controllers/mobile/partners.controller.js";
 // Profile controller
 import {
 	addPaymentMethod,
@@ -31,27 +55,6 @@ import {
 	updateProfile,
 	updateVehicle,
 } from "../controllers/mobile/profile.controller.js";
-
-// Partners controller
-import {
-	getPartnerDetails,
-	getPartnerProducts,
-	getPartnerReviews,
-	getPartnerServices,
-	getPartners,
-} from "../controllers/mobile/partners.controller.js";
-
-// Bookings controller
-import {
-	calculatePrice,
-	cancelBooking,
-	createBooking,
-	getAvailableSlots,
-	getBookingDetails,
-	getBookings,
-	submitReview,
-} from "../controllers/mobile/bookings.controller.js";
-
 // Subscriptions controller
 import {
 	cancelSubscription,
@@ -60,15 +63,11 @@ import {
 	subscribe,
 } from "../controllers/mobile/subscriptions.controller.js";
 
-// Messaging controller
-import {
-	getConversations,
-	getMessages,
-	sendMessage,
-	startConversation,
-} from "../controllers/mobile/messaging.controller.js";
+// Upload controller
+import { uploadFiles } from "../controllers/mobile/upload.controller.js";
 
 import { protectCustomer } from "../middleware/auth.middleware.js";
+import { uploadFlexible } from "../middleware/upload.middleware.js";
 
 const router = express.Router();
 
@@ -141,5 +140,8 @@ router.get("/conversations", getConversations);
 router.get("/conversations/:id/messages", getMessages);
 router.post("/conversations/:partnerId/start", startConversation);
 router.post("/conversations/:id/messages", sendMessage);
+
+// File uploads (supports both single and multiple)
+router.post("/upload", uploadFlexible, uploadFiles);
 
 export default router;
