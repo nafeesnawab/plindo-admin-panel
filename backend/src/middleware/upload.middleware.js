@@ -51,17 +51,7 @@ export const upload = multer({
 export const uploadSingle = upload.single("file");
 export const uploadMultiple = upload.array("files", 10);
 
-export const uploadFlexible = (req, res, next) => {
-	const multipleUpload = upload.array("files", 10);
-	const singleUpload = upload.single("file");
-
-	multipleUpload(req, res, (err) => {
-		if (err) {
-			return next(err);
-		}
-		if (req.files && req.files.length > 0) {
-			return next();
-		}
-		singleUpload(req, res, next);
-	});
-};
+export const uploadFlexible = upload.fields([
+	{ name: "file", maxCount: 1 },
+	{ name: "files", maxCount: 10 },
+]);

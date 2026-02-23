@@ -7,8 +7,8 @@ import { error, success } from "../../utils/response.js";
  */
 export const uploadFiles = async (req, res) => {
 	try {
-		if (req.files && req.files.length > 0) {
-			const files = req.files.map((file) => ({
+		if (req.files && req.files.files && req.files.files.length > 0) {
+			const files = req.files.files.map((file) => ({
 				url: `/uploads/${file.filename}`,
 				filename: file.filename,
 				originalName: file.originalname,
@@ -17,17 +17,18 @@ export const uploadFiles = async (req, res) => {
 			}));
 
 			return success(res, { files }, "Files uploaded successfully");
-		} else if (req.file) {
-			const fileUrl = `/uploads/${req.file.filename}`;
+		} else if (req.files && req.files.file && req.files.file.length > 0) {
+			const fileData = req.files.file[0];
+			const fileUrl = `/uploads/${fileData.filename}`;
 
 			return success(
 				res,
 				{
 					url: fileUrl,
-					filename: req.file.filename,
-					originalName: req.file.originalname,
-					size: req.file.size,
-					mimetype: req.file.mimetype,
+					filename: fileData.filename,
+					originalName: fileData.originalname,
+					size: fileData.size,
+					mimetype: fileData.mimetype,
 				},
 				"File uploaded successfully",
 			);
