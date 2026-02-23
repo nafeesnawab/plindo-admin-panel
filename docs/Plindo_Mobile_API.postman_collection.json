@@ -1299,6 +1299,82 @@
 					}
 				}
 			]
+		},
+		{
+			"name": "10. File Upload",
+			"description": "Upload files (images, PDFs) for customer profile, vehicle photos, or booking documentation.",
+			"item": [
+				{
+					"name": "10.1 Upload Single File",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "",
+									"description": "Select a single file (image or PDF)"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/upload",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "upload"]
+						},
+						"description": "Upload a single file.\n\n## Request\n**Method:** `POST`\n**Content-Type:** `multipart/form-data`\n**Field Name:** `file`\n\n## Supported File Types\n- **Images:** jpg, jpeg, png, gif, webp\n- **Documents:** pdf\n\n## File Size Limit\n- **Maximum:** 10MB per file\n\n## Response (Success)\n```json\n{\n  \"status\": 0,\n  \"message\": \"File uploaded successfully\",\n  \"data\": {\n    \"url\": \"/uploads/abc-123-uuid.jpg\",\n    \"filename\": \"abc-123-uuid.jpg\",\n    \"originalName\": \"my-photo.jpg\",\n    \"size\": 245678,\n    \"mimetype\": \"image/jpeg\"\n  }\n}\n```\n\n## Usage Examples\n- Upload customer avatar for profile\n- Upload vehicle photos\n- Upload booking documentation\n- Upload proof of payment\n\n## Error Responses\n**No file provided:**\n```json\n{\n  \"status\": -1,\n  \"message\": \"No file uploaded\"\n}\n```\n\n**Invalid file type:**\n```json\n{\n  \"status\": -1,\n  \"message\": \"Only images (jpg, jpeg, png, gif, webp) and PDF files are allowed\"\n}\n```\n\n**File too large:**\n```json\n{\n  \"status\": -1,\n  \"message\": \"File too large. Max size is 10MB.\"\n}\n```\n\n## Notes\n- The returned `url` is relative and should be prefixed with your base URL\n- Files are stored securely on the server\n- Authentication required (customer token)"
+					}
+				},
+				{
+					"name": "10.2 Upload Multiple Files",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "files",
+									"type": "file",
+									"src": "",
+									"description": "Select first file"
+								},
+								{
+									"key": "files",
+									"type": "file",
+									"src": "",
+									"description": "Select second file"
+								},
+								{
+									"key": "files",
+									"type": "file",
+									"src": "",
+									"description": "Select third file (optional)"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/upload",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mobile", "upload"]
+						},
+						"description": "Upload multiple files in a single request.\n\n## Request\n**Method:** `POST`\n**Content-Type:** `multipart/form-data`\n**Field Name:** `files` (use same field name for all files)\n\n## Limits\n- **Maximum files:** 10 files per request\n- **Maximum size:** 10MB per file\n\n## Supported File Types\n- **Images:** jpg, jpeg, png, gif, webp\n- **Documents:** pdf\n\n## Response (Success)\n```json\n{\n  \"status\": 0,\n  \"message\": \"Files uploaded successfully\",\n  \"data\": {\n    \"files\": [\n      {\n        \"url\": \"/uploads/abc-123-uuid.jpg\",\n        \"filename\": \"abc-123-uuid.jpg\",\n        \"originalName\": \"photo1.jpg\",\n        \"size\": 245678,\n        \"mimetype\": \"image/jpeg\"\n      },\n      {\n        \"url\": \"/uploads/def-456-uuid.jpg\",\n        \"filename\": \"def-456-uuid.jpg\",\n        \"originalName\": \"photo2.jpg\",\n        \"size\": 189234,\n        \"mimetype\": \"image/jpeg\"\n      },\n      {\n        \"url\": \"/uploads/ghi-789-uuid.png\",\n        \"filename\": \"ghi-789-uuid.png\",\n        \"originalName\": \"screenshot.png\",\n        \"size\": 512345,\n        \"mimetype\": \"image/png\"\n      }\n    ]\n  }\n}\n```\n\n## Usage Examples\n- Upload multiple vehicle photos at once\n- Upload before/after photos for a booking\n- Upload multiple documents for verification\n- Batch upload gallery images\n\n## Implementation Notes\n\n### Same Endpoint for Single & Multiple\nThis endpoint intelligently handles both single and multiple file uploads:\n- Use field name `file` for single upload → returns single file object\n- Use field name `files` for multiple uploads → returns array of file objects\n\n### Mobile Implementation (React Native)\n```javascript\n// Single file upload\nconst formData = new FormData();\nformData.append('file', {\n  uri: imageUri,\n  type: 'image/jpeg',\n  name: 'photo.jpg'\n});\n\n// Multiple files upload\nconst formData = new FormData();\nimages.forEach((image, index) => {\n  formData.append('files', {\n    uri: image.uri,\n    type: 'image/jpeg',\n    name: `photo${index}.jpg`\n  });\n});\n\nfetch('{{baseUrl}}/api/mobile/upload', {\n  method: 'POST',\n  headers: {\n    'Authorization': `Bearer ${accessToken}`,\n  },\n  body: formData\n});\n```\n\n### cURL Examples\n```bash\n# Single file\ncurl -X POST https://api.plindo.com/api/mobile/upload \\\n  -H \"Authorization: Bearer YOUR_TOKEN\" \\\n  -F \"file=@/path/to/image.jpg\"\n\n# Multiple files\ncurl -X POST https://api.plindo.com/api/mobile/upload \\\n  -H \"Authorization: Bearer YOUR_TOKEN\" \\\n  -F \"files=@/path/to/image1.jpg\" \\\n  -F \"files=@/path/to/image2.jpg\" \\\n  -F \"files=@/path/to/image3.png\"\n```\n\n## Error Responses\n**No files provided:**\n```json\n{\n  \"status\": -1,\n  \"message\": \"No file uploaded\"\n}\n```\n\n**Too many files:**\n```json\n{\n  \"status\": -1,\n  \"message\": \"Too many files. Maximum 10 files allowed.\"\n}\n```"
+					}
+				}
+			]
 		}
 	]
 }
