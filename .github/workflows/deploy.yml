@@ -59,12 +59,12 @@ jobs:
       - name: Install dependencies
         run: |
           cd client
-          npm ci --legacy-peer-deps
+          npm ci --legacy-peer-deps --ignore-scripts
 
       - name: Build frontend
         run: |
           cd client
-          npm run build
+          VITE_APP_API_BASE_URL=https://plindo.codecoytechnologies.live/api VITE_APP_PUBLIC_PATH=/ npm run build
 
       - name: Clean old frontend files
         uses: appleboy/ssh-action@v1.0.3
