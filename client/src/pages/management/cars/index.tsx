@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import authStore from "@/store/authStore";
+import carsService from "@/api/services/carsService";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Card, CardContent } from "@/ui/card";
@@ -46,15 +46,6 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/ui/table";
-
-const getAuthHeaders = (): Record<string, string> => {
-	const state = authStore.getState();
-	const token =
-		state.currentRole === "partner"
-			? state.partnerToken?.accessToken
-			: state.userToken?.accessToken;
-	return token ? { Authorization: `Bearer ${token}` } : {};
-};
 
 // Types
 interface CarData {
@@ -134,13 +125,8 @@ export default function CarsManagementPage() {
 		const loadCars = async () => {
 			try {
 				setLoading(true);
-				const response = await fetch("/api/admin/cars", {
-					headers: getAuthHeaders(),
-				});
-				const data = await response.json();
-				if (data.status === 0) {
-					setCars(data.data.cars);
-				}
+				const data = await carsService.getCars();
+				setCars(data.cars);
 			} catch {
 				toast.error("Failed to fetch cars");
 			} finally {
@@ -197,17 +183,9 @@ export default function CarsManagementPage() {
 	const handleDeleteConfirm = async () => {
 		if (selectedCar) {
 			try {
-				const response = await fetch(`/api/admin/cars/${selectedCar.id}`, {
-					method: "DELETE",
-					headers: getAuthHeaders(),
-				});
-				const data = await response.json();
-				if (data.status === 0) {
-					setCars((prev) => prev.filter((c) => c.id !== selectedCar.id));
-					toast.success("Car deleted successfully");
-				} else {
-					toast.error(data.message || "Failed to delete car");
-				}
+				await carsService.deleteCar(selectedCar.id);
+				setCars((prev) => prev.filter((c) => c.id !== selectedCar.id));
+				toast.success("Car deleted successfully");
 			} catch {
 				toast.error("Failed to delete car");
 			}
@@ -223,42 +201,19 @@ export default function CarsManagementPage() {
 			return;
 		}
 
-		const payload = {
-			...formData,
-			make: make,
-		};
+		const payload = { ...formData, make };
 
 		try {
 			if (isEditing && selectedCar) {
-				const response = await fetch(`/api/admin/cars/${selectedCar.id}`, {
-					method: "PUT",
-					headers: { "Content-Type": "application/json", ...getAuthHeaders() },
-					body: JSON.stringify(payload),
-				});
-				const data = await response.json();
-				if (data.status === 0) {
-					setCars((prev) =>
-						prev.map((c) => (c.id === selectedCar.id ? data.data.car : c)),
-					);
-					toast.success("Car updated successfully");
-				} else {
-					toast.error(data.message || "Failed to update car");
-					return;
-				}
+				const data = await carsService.updateCar(selectedCar.id, payload);
+				setCars((prev) =>
+					prev.map((c) => (c.id === selectedCar.id ? data.car : c)),
+				);
+				toast.success("Car updated successfully");
 			} else {
-				const response = await fetch("/api/admin/cars", {
-					method: "POST",
-					headers: { "Content-Type": "application/json", ...getAuthHeaders() },
-					body: JSON.stringify(payload),
-				});
-				const data = await response.json();
-				if (data.status === 0) {
-					setCars((prev) => [...prev, data.data.car]);
-					toast.success("Car created successfully");
-				} else {
-					toast.error(data.message || "Failed to create car");
-					return;
-				}
+				const data = await carsService.createCar(payload);
+				setCars((prev) => [...prev, data.car]);
+				toast.success("Car created successfully");
 			}
 			setFormDialogOpen(false);
 		} catch {
