@@ -216,8 +216,11 @@ export default function CarsManagementPage() {
 				toast.success("Car created successfully");
 			}
 			setFormDialogOpen(false);
-		} catch {
-			toast.error("An error occurred");
+		} catch (err: unknown) {
+			const msg =
+				(err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+				"An error occurred";
+			toast.error(msg);
 		}
 	};
 

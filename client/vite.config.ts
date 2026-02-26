@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => {
 
 			isProduction &&
 				visualizer({
-					open: true,
+					open: false,
 					gzipSize: true,
 					brotliSize: true,
 					template: "treemap",
