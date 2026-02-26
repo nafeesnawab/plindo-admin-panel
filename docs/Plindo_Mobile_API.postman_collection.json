@@ -103,8 +103,15 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/auth/send-otp",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "auth", "send-otp"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"auth",
+								"send-otp"
+							]
 						},
 						"description": "Send OTP to email or phone for signup.\n\n**Request Body:**\n- `type`: `email` or `phone`\n- `value`: Email address or phone number\n- `purpose`: `signup` or `reset_password`"
 					}
@@ -139,8 +146,15 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/auth/send-otp",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "auth", "send-otp"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"auth",
+								"send-otp"
+							]
 						}
 					}
 				},
@@ -175,8 +189,15 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/auth/verify-otp",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "auth", "verify-otp"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"auth",
+								"verify-otp"
+							]
 						},
 						"description": "Verify the OTP code sent to email/phone.\n\n**Note:** Get the actual OTP code from your email/SMS or database for testing."
 					}
@@ -214,10 +235,17 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/auth/signup",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "auth", "signup"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"auth",
+								"signup"
+							]
 						},
-						"description": "Complete account creation after OTP verification.\n\n## Signup Flow\n\n**Option 1 — Email Signup:**\n1. User enters email + password\n2. `POST /auth/send-otp` → `{ type: 'email', value: 'user@example.com', purpose: 'signup' }`\n3. `POST /auth/verify-otp` → returns `verificationToken`\n4. `POST /auth/signup` → `{ verificationToken, password, email: 'user@example.com' }`\n\n**Option 2 — Phone Signup:**\n1. User enters phone + password\n2. `POST /auth/send-otp` → `{ type: 'phone', value: '+35799123456', purpose: 'signup' }`\n3. `POST /auth/verify-otp` → returns `verificationToken`\n4. `POST /auth/signup` → `{ verificationToken, password, phone: '+35799123456' }`\n\n## Required Fields\n- `verificationToken`: From verify-otp response\n- `password`: Min 6 characters\n- `email` OR `phone`: Must match the identifier used in send-otp (server validates this)\n\n## After Signup\nCollect name, language, avatar, and other profile info via `PUT /api/mobile/profile`."
+						"description": "Complete account creation after OTP verification.\n\n## Signup Flow\n\n**Option 1 \u2014 Email Signup:**\n1. User enters email + password\n2. `POST /auth/send-otp` \u2192 `{ type: 'email', value: 'user@example.com', purpose: 'signup' }`\n3. `POST /auth/verify-otp` \u2192 returns `verificationToken`\n4. `POST /auth/signup` \u2192 `{ verificationToken, password, email: 'user@example.com' }`\n\n**Option 2 \u2014 Phone Signup:**\n1. User enters phone + password\n2. `POST /auth/send-otp` \u2192 `{ type: 'phone', value: '+35799123456', purpose: 'signup' }`\n3. `POST /auth/verify-otp` \u2192 returns `verificationToken`\n4. `POST /auth/signup` \u2192 `{ verificationToken, password, phone: '+35799123456' }`\n\n## Required Fields\n- `verificationToken`: From verify-otp response\n- `password`: Min 6 characters\n- `email` OR `phone`: Must match the identifier used in send-otp (server validates this)\n\n## After Signup\nCollect name, language, avatar, and other profile info via `PUT /api/mobile/profile`."
 					}
 				},
 				{
@@ -253,8 +281,15 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/auth/signin",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "auth", "signin"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"auth",
+								"signin"
+							]
 						},
 						"description": "Sign in with email/phone and password.\n\n**identifier:** Can be email or phone number."
 					}
@@ -289,8 +324,15 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/auth/forgot-password",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "auth", "forgot-password"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"auth",
+								"forgot-password"
+							]
 						},
 						"description": "Request password reset OTP."
 					}
@@ -311,8 +353,15 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/auth/reset-password",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "auth", "reset-password"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"auth",
+								"reset-password"
+							]
 						},
 						"description": "Reset password using verification token from OTP verification."
 					}
@@ -348,8 +397,15 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/auth/refresh-token",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "auth", "refresh-token"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"auth",
+								"refresh-token"
+							]
 						},
 						"description": "Get new access token using refresh token."
 					}
@@ -366,8 +422,15 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/auth/me",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "auth", "me"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"auth",
+								"me"
+							]
 						},
 						"description": "Get authenticated customer's basic info."
 					}
@@ -390,8 +453,14 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/profile",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "profile"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"profile"
+							]
 						},
 						"description": "Get full customer profile including vehicles and payment methods."
 					}
@@ -416,8 +485,14 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/profile",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "profile"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"profile"
+							]
 						},
 						"description": "Update customer profile. All fields are optional."
 					}
@@ -442,8 +517,15 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/profile/password",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "profile", "password"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"profile",
+								"password"
+							]
 						},
 						"description": "Change customer password."
 					}
@@ -460,8 +542,15 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/profile/bookings-summary",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "profile", "bookings-summary"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"profile",
+								"bookings-summary"
+							]
 						},
 						"description": "Get quick stats: total bookings, pending, completed, total spent."
 					}
@@ -478,8 +567,15 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/profile/logout",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "profile", "logout"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"profile",
+								"logout"
+							]
 						},
 						"description": "Logout and clear FCM token."
 					}
@@ -496,10 +592,16 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/profile",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "profile"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"profile"
+							]
 						},
-						"description": "⚠️ DANGER: Permanently delete customer account and all associated data."
+						"description": "\u26a0\ufe0f DANGER: Permanently delete customer account and all associated data."
 					}
 				}
 			]
@@ -520,8 +622,14 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/vehicles",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "vehicles"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"vehicles"
+							]
 						},
 						"description": "List all customer's vehicles."
 					}
@@ -561,8 +669,14 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/vehicles",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "vehicles"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"vehicles"
+							]
 						},
 						"description": "Add a new vehicle.\n\n**bodyType:** Use values from `/api/mobile/cars/body-types`"
 					}
@@ -587,8 +701,15 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/vehicles/{{vehicleId}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "vehicles", "{{vehicleId}}"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"vehicles",
+								"{{vehicleId}}"
+							]
 						},
 						"description": "Update vehicle details. All fields optional."
 					}
@@ -605,8 +726,15 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/vehicles/{{vehicleId}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "vehicles", "{{vehicleId}}"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"vehicles",
+								"{{vehicleId}}"
+							]
 						},
 						"description": "Delete a vehicle."
 					}
@@ -624,8 +752,15 @@
 						"header": [],
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/cars/makes",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "cars", "makes"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"cars",
+								"makes"
+							]
 						},
 						"description": "Get all available car makes (Toyota, BMW, etc.).\n\n**No authentication required.**"
 					}
@@ -637,8 +772,16 @@
 						"header": [],
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/cars/models/Toyota",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "cars", "models", "Toyota"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"cars",
+								"models",
+								"Toyota"
+							]
 						},
 						"description": "Get car models for a specific make.\n\n**No authentication required.**"
 					}
@@ -650,10 +793,39 @@
 						"header": [],
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/cars/body-types",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "cars", "body-types"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"cars",
+								"body-types"
+							]
 						},
 						"description": "Get all body types (Sedan, SUV, Hatchback, etc.).\n\n**No authentication required.**"
+					}
+				},
+				{
+					"name": "4.4 Get Body Types by Make + Model",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/mobile/cars/body-types/Toyota/Camry",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"cars",
+								"body-types",
+								"Toyota",
+								"Camry"
+							]
+						},
+						"description": "Get body types available for a specific make and model combination.\n\n**No authentication required.**\n\n**Path Parameters:**\n- `make` \u2014 Car manufacturer (e.g., Toyota)\n- `model` \u2014 Car model name (e.g., Camry)\n\n**Response:**\n```json\n{\n  \"status\": 0,\n  \"data\": { \"bodyTypes\": [\"Sedan\", \"Hatchback\"] }\n}\n```"
 					}
 				}
 			]
@@ -674,8 +846,14 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/payment-methods",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "payment-methods"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"payment-methods"
+							]
 						},
 						"description": "List all saved payment methods."
 					}
@@ -714,8 +892,14 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/payment-methods",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "payment-methods"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"payment-methods"
+							]
 						},
 						"description": "Add a payment method.\n\n**stripePaymentMethodId:** From Stripe SDK after card tokenization."
 					}
@@ -732,7 +916,9 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/payment-methods/{{paymentMethodId}}",
-							"host": ["{{baseUrl}}"],
+							"host": [
+								"{{baseUrl}}"
+							],
 							"path": [
 								"api",
 								"mobile",
@@ -776,21 +962,73 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/partners?page=1&limit=10",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "partners"],
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"partners"
+							],
 							"query": [
-								{ "key": "page", "value": "1" },
-								{ "key": "limit", "value": "10" },
-								{ "key": "search", "value": "", "disabled": true },
-								{ "key": "serviceType", "value": "book_me", "disabled": true },
-								{ "key": "serviceCategory", "value": "wash", "disabled": true },
-								{ "key": "minRating", "value": "4", "disabled": true },
-								{ "key": "maxPrice", "value": "50", "disabled": true },
-								{ "key": "openNow", "value": "true", "disabled": true },
-								{ "key": "lat", "value": "35.1234", "disabled": true },
-								{ "key": "lng", "value": "33.5678", "disabled": true },
-								{ "key": "radius", "value": "10", "disabled": true },
-								{ "key": "sortBy", "value": "rating", "disabled": true }
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "search",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "serviceType",
+									"value": "book_me",
+									"disabled": true
+								},
+								{
+									"key": "serviceCategory",
+									"value": "wash",
+									"disabled": true
+								},
+								{
+									"key": "minRating",
+									"value": "4",
+									"disabled": true
+								},
+								{
+									"key": "maxPrice",
+									"value": "50",
+									"disabled": true
+								},
+								{
+									"key": "openNow",
+									"value": "true",
+									"disabled": true
+								},
+								{
+									"key": "lat",
+									"value": "35.1234",
+									"disabled": true
+								},
+								{
+									"key": "lng",
+									"value": "33.5678",
+									"disabled": true
+								},
+								{
+									"key": "radius",
+									"value": "10",
+									"disabled": true
+								},
+								{
+									"key": "sortBy",
+									"value": "rating",
+									"disabled": true
+								}
 							]
 						},
 						"description": "List partners with filters.\n\n**Query Parameters:**\n- `search`: Search by name/service\n- `serviceType`: `book_me`, `pick_by_me`, `washing_van`\n- `serviceCategory`: `wash`, `detailing`, `other`\n- `minRating`: 1-5\n- `maxPrice`: Max service price\n- `openNow`: Only open partners (based on current time and partner's schedule)\n- `lat`, `lng`, `radius`: Geolocation filter\n- `sortBy`: `rating`, `distance`, `price`\n\n**Response includes:**\n- `schedule`: Array of weekly schedule with multiple time blocks per day\n- `isOpenNow`: Boolean based on current time and schedule\n\n**Schedule Format:**\n```json\n{\n  \"schedule\": [\n    {\n      \"dayOfWeek\": 0,\n      \"dayName\": \"Sunday\",\n      \"isEnabled\": false,\n      \"timeBlocks\": []\n    },\n    {\n      \"dayOfWeek\": 6,\n      \"dayName\": \"Saturday\",\n      \"isEnabled\": true,\n      \"timeBlocks\": [\n        { \"start\": \"01:30\", \"end\": \"05:30\" },\n        { \"start\": \"07:30\", \"end\": \"12:00\" },\n        { \"start\": \"14:00\", \"end\": \"19:30\" }\n      ]\n    }\n  ]\n}\n```"
@@ -808,8 +1046,15 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/partners/{{partnerId}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "partners", "{{partnerId}}"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"partners",
+								"{{partnerId}}"
+							]
 						},
 						"description": "Get detailed partner info including services, products, and weekly schedule.\n\n**Response includes:**\n- Full partner details with contact information\n- `schedule`: Weekly availability with multiple time blocks per day\n- Services list with pricing\n- Products list\n- Review statistics\n\n**Schedule Format:**\nPartners can have multiple time blocks per day for flexible scheduling:\n```json\n{\n  \"schedule\": [\n    {\n      \"dayOfWeek\": 0,\n      \"dayName\": \"Sunday\",\n      \"isEnabled\": false,\n      \"timeBlocks\": []\n    },\n    {\n      \"dayOfWeek\": 1,\n      \"dayName\": \"Monday\",\n      \"isEnabled\": true,\n      \"timeBlocks\": [\n        { \"start\": \"09:00\", \"end\": \"12:00\" },\n        { \"start\": \"14:00\", \"end\": \"18:00\" }\n      ]\n    }\n  ]\n}\n```"
 					}
@@ -841,7 +1086,9 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/partners/{{partnerId}}/services",
-							"host": ["{{baseUrl}}"],
+							"host": [
+								"{{baseUrl}}"
+							],
 							"path": [
 								"api",
 								"mobile",
@@ -850,8 +1097,16 @@
 								"services"
 							],
 							"query": [
-								{ "key": "serviceCategory", "value": "wash", "disabled": true },
-								{ "key": "serviceType", "value": "book_me", "disabled": true }
+								{
+									"key": "serviceCategory",
+									"value": "wash",
+									"disabled": true
+								},
+								{
+									"key": "serviceType",
+									"value": "book_me",
+									"disabled": true
+								}
 							]
 						},
 						"description": "Get partner's services with pricing."
@@ -869,7 +1124,9 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/partners/{{partnerId}}/products",
-							"host": ["{{baseUrl}}"],
+							"host": [
+								"{{baseUrl}}"
+							],
 							"path": [
 								"api",
 								"mobile",
@@ -877,7 +1134,13 @@
 								"{{partnerId}}",
 								"products"
 							],
-							"query": [{ "key": "category", "value": "", "disabled": true }]
+							"query": [
+								{
+									"key": "category",
+									"value": "",
+									"disabled": true
+								}
+							]
 						},
 						"description": "Get partner's add-on products (air fresheners, etc.)."
 					}
@@ -894,11 +1157,25 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/partners/{{partnerId}}/reviews?page=1&limit=10",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "partners", "{{partnerId}}", "reviews"],
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"partners",
+								"{{partnerId}}",
+								"reviews"
+							],
 							"query": [
-								{ "key": "page", "value": "1" },
-								{ "key": "limit", "value": "10" }
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
 							]
 						},
 						"description": "Get partner's customer reviews."
@@ -916,12 +1193,29 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/partners/{{partnerId}}/slots?date=2026-02-25&serviceCategory=wash&duration=30",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "partners", "{{partnerId}}", "slots"],
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"partners",
+								"{{partnerId}}",
+								"slots"
+							],
 							"query": [
-								{ "key": "date", "value": "2026-02-25" },
-								{ "key": "serviceCategory", "value": "wash" },
-								{ "key": "duration", "value": "30" }
+								{
+									"key": "date",
+									"value": "2026-02-25"
+								},
+								{
+									"key": "serviceCategory",
+									"value": "wash"
+								},
+								{
+									"key": "duration",
+									"value": "30"
+								}
 							]
 						},
 						"description": "Get available time slots for booking.\n\n**Response includes:**\n- `windows`: Array of available slots with bay availability\n- `capacity`: Total bays per service category\n\n**Bay Logic:** Each slot shows `availableBays`. Book only if > 0."
@@ -953,8 +1247,15 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/bookings/calculate-price",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "bookings", "calculate-price"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"bookings",
+								"calculate-price"
+							]
 						},
 						"description": "Calculate total price before booking.\n\n**Response includes:**\n- Service price (based on vehicle body type)\n- Subscription discount (if applicable)\n- Products total\n- Platform fee\n- Grand total"
 					}
@@ -994,8 +1295,14 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/bookings",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "bookings"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"bookings"
+							]
 						},
 						"description": "Create a new booking.\n\n**Important:**\n- Select slot from available slots endpoint\n- Products array optional (add-ons)\n- Instructions optional"
 					}
@@ -1012,13 +1319,33 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/bookings?page=1&limit=10",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "bookings"],
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"bookings"
+							],
 							"query": [
-								{ "key": "page", "value": "1" },
-								{ "key": "limit", "value": "10" },
-								{ "key": "status", "value": "booked", "disabled": true },
-								{ "key": "search", "value": "", "disabled": true }
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "status",
+									"value": "booked",
+									"disabled": true
+								},
+								{
+									"key": "search",
+									"value": "",
+									"disabled": true
+								}
 							]
 						},
 						"description": "List customer's bookings.\n\n**Status values:** `booked`, `in_progress`, `completed`, `picked`, `out_for_delivery`, `delivered`, `cancelled`"
@@ -1036,8 +1363,15 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/bookings/{{bookingId}}",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "bookings", "{{bookingId}}"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"bookings",
+								"{{bookingId}}"
+							]
 						},
 						"description": "Get booking details with tracking info.\n\n**Response includes:**\n- Booking details\n- Service steps with timestamps\n- Status images (uploaded by partner)"
 					}
@@ -1062,8 +1396,16 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/bookings/{{bookingId}}/cancel",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "bookings", "{{bookingId}}", "cancel"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"bookings",
+								"{{bookingId}}",
+								"cancel"
+							]
 						},
 						"description": "Cancel a booking.\n\n**Note:** Can only cancel bookings with status `booked`."
 					}
@@ -1088,8 +1430,16 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/bookings/{{bookingId}}/review",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "bookings", "{{bookingId}}", "review"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"bookings",
+								"{{bookingId}}",
+								"review"
+							]
 						},
 						"description": "Submit review for completed booking.\n\n**Note:** Can only review bookings with status `completed` or `delivered`."
 					}
@@ -1107,8 +1457,15 @@
 						"header": [],
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/subscriptions/plans",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "subscriptions", "plans"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"subscriptions",
+								"plans"
+							]
 						},
 						"description": "Get available subscription plans.\n\n**No authentication required.**\n\n**Plans:** Basic, Premium with different features and pricing."
 					}
@@ -1125,8 +1482,15 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/subscriptions/current",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "subscriptions", "current"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"subscriptions",
+								"current"
+							]
 						},
 						"description": "Get customer's current subscription status."
 					}
@@ -1151,8 +1515,15 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/subscriptions/subscribe",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "subscriptions", "subscribe"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"subscriptions",
+								"subscribe"
+							]
 						},
 						"description": "Subscribe to a plan.\n\n**tier:** `basic` or `premium`"
 					}
@@ -1169,8 +1540,15 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/subscriptions/cancel",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "subscriptions", "cancel"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"subscriptions",
+								"cancel"
+							]
 						},
 						"description": "Cancel subscription auto-renewal.\n\n**Note:** Subscription remains active until end date."
 					}
@@ -1193,8 +1571,14 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/conversations",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "conversations"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"conversations"
+							]
 						},
 						"description": "List all conversations with partners."
 					}
@@ -1226,7 +1610,9 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/conversations/{{partnerId}}/start",
-							"host": ["{{baseUrl}}"],
+							"host": [
+								"{{baseUrl}}"
+							],
 							"path": [
 								"api",
 								"mobile",
@@ -1250,7 +1636,9 @@
 						],
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/conversations/{{conversationId}}/messages?page=1&limit=50",
-							"host": ["{{baseUrl}}"],
+							"host": [
+								"{{baseUrl}}"
+							],
 							"path": [
 								"api",
 								"mobile",
@@ -1259,8 +1647,14 @@
 								"messages"
 							],
 							"query": [
-								{ "key": "page", "value": "1" },
-								{ "key": "limit", "value": "50" }
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "50"
+								}
 							]
 						},
 						"description": "Get messages in a conversation.\n\n**Note:** Also marks unread messages as read."
@@ -1286,7 +1680,9 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/conversations/{{conversationId}}/messages",
-							"host": ["{{baseUrl}}"],
+							"host": [
+								"{{baseUrl}}"
+							],
 							"path": [
 								"api",
 								"mobile",
@@ -1327,8 +1723,14 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/upload",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "upload"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"upload"
+							]
 						},
 						"description": "Upload a single file.\n\n## Request\n**Method:** `POST`\n**Content-Type:** `multipart/form-data`\n**Field Name:** `file`\n\n## Supported File Types\n- **Images:** jpg, jpeg, png, gif, webp\n- **Documents:** pdf\n\n## File Size Limit\n- **Maximum:** 10MB per file\n\n## Response (Success)\n```json\n{\n  \"status\": 0,\n  \"message\": \"File uploaded successfully\",\n  \"data\": {\n    \"url\": \"/uploads/abc-123-uuid.jpg\",\n    \"filename\": \"abc-123-uuid.jpg\",\n    \"originalName\": \"my-photo.jpg\",\n    \"size\": 245678,\n    \"mimetype\": \"image/jpeg\"\n  }\n}\n```\n\n## Usage Examples\n- Upload customer avatar for profile\n- Upload vehicle photos\n- Upload booking documentation\n- Upload proof of payment\n\n## Error Responses\n**No file provided:**\n```json\n{\n  \"status\": -1,\n  \"message\": \"No file uploaded\"\n}\n```\n\n**Invalid file type:**\n```json\n{\n  \"status\": -1,\n  \"message\": \"Only images (jpg, jpeg, png, gif, webp) and PDF files are allowed\"\n}\n```\n\n**File too large:**\n```json\n{\n  \"status\": -1,\n  \"message\": \"File too large. Max size is 10MB.\"\n}\n```\n\n## Notes\n- The returned `url` is relative and should be prefixed with your base URL\n- Files are stored securely on the server\n- Authentication required (customer token)"
 					}
@@ -1368,10 +1770,16 @@
 						},
 						"url": {
 							"raw": "{{baseUrl}}/api/mobile/upload",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "mobile", "upload"]
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mobile",
+								"upload"
+							]
 						},
-						"description": "Upload multiple files in a single request.\n\n## Request\n**Method:** `POST`\n**Content-Type:** `multipart/form-data`\n**Field Name:** `files` (use same field name for all files)\n\n## Limits\n- **Maximum files:** 10 files per request\n- **Maximum size:** 10MB per file\n\n## Supported File Types\n- **Images:** jpg, jpeg, png, gif, webp\n- **Documents:** pdf\n\n## Response (Success)\n```json\n{\n  \"status\": 0,\n  \"message\": \"Files uploaded successfully\",\n  \"data\": {\n    \"files\": [\n      {\n        \"url\": \"/uploads/abc-123-uuid.jpg\",\n        \"filename\": \"abc-123-uuid.jpg\",\n        \"originalName\": \"photo1.jpg\",\n        \"size\": 245678,\n        \"mimetype\": \"image/jpeg\"\n      },\n      {\n        \"url\": \"/uploads/def-456-uuid.jpg\",\n        \"filename\": \"def-456-uuid.jpg\",\n        \"originalName\": \"photo2.jpg\",\n        \"size\": 189234,\n        \"mimetype\": \"image/jpeg\"\n      },\n      {\n        \"url\": \"/uploads/ghi-789-uuid.png\",\n        \"filename\": \"ghi-789-uuid.png\",\n        \"originalName\": \"screenshot.png\",\n        \"size\": 512345,\n        \"mimetype\": \"image/png\"\n      }\n    ]\n  }\n}\n```\n\n## Usage Examples\n- Upload multiple vehicle photos at once\n- Upload before/after photos for a booking\n- Upload multiple documents for verification\n- Batch upload gallery images\n\n## Implementation Notes\n\n### Same Endpoint for Single & Multiple\nThis endpoint intelligently handles both single and multiple file uploads:\n- Use field name `file` for single upload → returns single file object\n- Use field name `files` for multiple uploads → returns array of file objects\n\n### Mobile Implementation (React Native)\n```javascript\n// Single file upload\nconst formData = new FormData();\nformData.append('file', {\n  uri: imageUri,\n  type: 'image/jpeg',\n  name: 'photo.jpg'\n});\n\n// Multiple files upload\nconst formData = new FormData();\nimages.forEach((image, index) => {\n  formData.append('files', {\n    uri: image.uri,\n    type: 'image/jpeg',\n    name: `photo${index}.jpg`\n  });\n});\n\nfetch('{{baseUrl}}/api/mobile/upload', {\n  method: 'POST',\n  headers: {\n    'Authorization': `Bearer ${accessToken}`,\n  },\n  body: formData\n});\n```\n\n### cURL Examples\n```bash\n# Single file\ncurl -X POST https://api.plindo.com/api/mobile/upload \\\n  -H \"Authorization: Bearer YOUR_TOKEN\" \\\n  -F \"file=@/path/to/image.jpg\"\n\n# Multiple files\ncurl -X POST https://api.plindo.com/api/mobile/upload \\\n  -H \"Authorization: Bearer YOUR_TOKEN\" \\\n  -F \"files=@/path/to/image1.jpg\" \\\n  -F \"files=@/path/to/image2.jpg\" \\\n  -F \"files=@/path/to/image3.png\"\n```\n\n## Error Responses\n**No files provided:**\n```json\n{\n  \"status\": -1,\n  \"message\": \"No file uploaded\"\n}\n```\n\n**Too many files:**\n```json\n{\n  \"status\": -1,\n  \"message\": \"Too many files. Maximum 10 files allowed.\"\n}\n```"
+						"description": "Upload multiple files in a single request.\n\n## Request\n**Method:** `POST`\n**Content-Type:** `multipart/form-data`\n**Field Name:** `files` (use same field name for all files)\n\n## Limits\n- **Maximum files:** 10 files per request\n- **Maximum size:** 10MB per file\n\n## Supported File Types\n- **Images:** jpg, jpeg, png, gif, webp\n- **Documents:** pdf\n\n## Response (Success)\n```json\n{\n  \"status\": 0,\n  \"message\": \"Files uploaded successfully\",\n  \"data\": {\n    \"files\": [\n      {\n        \"url\": \"/uploads/abc-123-uuid.jpg\",\n        \"filename\": \"abc-123-uuid.jpg\",\n        \"originalName\": \"photo1.jpg\",\n        \"size\": 245678,\n        \"mimetype\": \"image/jpeg\"\n      },\n      {\n        \"url\": \"/uploads/def-456-uuid.jpg\",\n        \"filename\": \"def-456-uuid.jpg\",\n        \"originalName\": \"photo2.jpg\",\n        \"size\": 189234,\n        \"mimetype\": \"image/jpeg\"\n      },\n      {\n        \"url\": \"/uploads/ghi-789-uuid.png\",\n        \"filename\": \"ghi-789-uuid.png\",\n        \"originalName\": \"screenshot.png\",\n        \"size\": 512345,\n        \"mimetype\": \"image/png\"\n      }\n    ]\n  }\n}\n```\n\n## Usage Examples\n- Upload multiple vehicle photos at once\n- Upload before/after photos for a booking\n- Upload multiple documents for verification\n- Batch upload gallery images\n\n## Implementation Notes\n\n### Same Endpoint for Single & Multiple\nThis endpoint intelligently handles both single and multiple file uploads:\n- Use field name `file` for single upload \u2192 returns single file object\n- Use field name `files` for multiple uploads \u2192 returns array of file objects\n\n### Mobile Implementation (React Native)\n```javascript\n// Single file upload\nconst formData = new FormData();\nformData.append('file', {\n  uri: imageUri,\n  type: 'image/jpeg',\n  name: 'photo.jpg'\n});\n\n// Multiple files upload\nconst formData = new FormData();\nimages.forEach((image, index) => {\n  formData.append('files', {\n    uri: image.uri,\n    type: 'image/jpeg',\n    name: `photo${index}.jpg`\n  });\n});\n\nfetch('{{baseUrl}}/api/mobile/upload', {\n  method: 'POST',\n  headers: {\n    'Authorization': `Bearer ${accessToken}`,\n  },\n  body: formData\n});\n```\n\n### cURL Examples\n```bash\n# Single file\ncurl -X POST https://api.plindo.com/api/mobile/upload \\\n  -H \"Authorization: Bearer YOUR_TOKEN\" \\\n  -F \"file=@/path/to/image.jpg\"\n\n# Multiple files\ncurl -X POST https://api.plindo.com/api/mobile/upload \\\n  -H \"Authorization: Bearer YOUR_TOKEN\" \\\n  -F \"files=@/path/to/image1.jpg\" \\\n  -F \"files=@/path/to/image2.jpg\" \\\n  -F \"files=@/path/to/image3.png\"\n```\n\n## Error Responses\n**No files provided:**\n```json\n{\n  \"status\": -1,\n  \"message\": \"No file uploaded\"\n}\n```\n\n**Too many files:**\n```json\n{\n  \"status\": -1,\n  \"message\": \"Too many files. Maximum 10 files allowed.\"\n}\n```"
 					}
 				}
 			]

@@ -12,7 +12,7 @@ export function usePricingForm(adminCars: AdminCar[]) {
 	const [distanceCharges, setDistanceCharges] = useState<DistanceCharges | undefined>();
 
 	const [overrideMake, setOverrideMake] = useState("");
-	const [overrideModel, setOverrideModel] = useState("");
+	const [overrideCarId, setOverrideCarId] = useState("");
 	const [overridePrice, setOverridePrice] = useState(0);
 
 	const uniqueMakes = [...new Set(adminCars.map((car) => car.make))].sort();
@@ -35,7 +35,7 @@ export function usePricingForm(adminCars: AdminCar[]) {
 		setCarOverrides([]);
 		setDistanceCharges(undefined);
 		setOverrideMake("");
-		setOverrideModel("");
+		setOverrideCarId("");
 		setOverridePrice(0);
 	};
 
@@ -44,13 +44,13 @@ export function usePricingForm(adminCars: AdminCar[]) {
 	};
 
 	const addCarOverride = (): boolean => {
-		if (!overrideMake || !overrideModel || overridePrice <= 0) {
+		if (!overrideMake || !overrideCarId || overridePrice <= 0) {
 			toast.error("Please select make, model and enter a valid price");
 			return false;
 		}
-		const car = adminCars.find((c) => c.make === overrideMake && c.model === overrideModel);
+		const car = adminCars.find((c) => c.id === overrideCarId);
 		if (!car) return false;
-		if (carOverrides.some((co) => co.make === overrideMake && co.model === overrideModel)) {
+		if (carOverrides.some((co) => co.carId === overrideCarId)) {
 			toast.error("This car already has a custom price");
 			return false;
 		}
@@ -63,7 +63,7 @@ export function usePricingForm(adminCars: AdminCar[]) {
 		};
 		setCarOverrides((prev) => [...prev, newOverride]);
 		setOverrideMake("");
-		setOverrideModel("");
+		setOverrideCarId("");
 		setOverridePrice(0);
 		return true;
 	};
@@ -111,8 +111,8 @@ export function usePricingForm(adminCars: AdminCar[]) {
 		distanceCharges,
 		overrideMake,
 		setOverrideMake,
-		overrideModel,
-		setOverrideModel,
+		overrideCarId,
+		setOverrideCarId,
 		overridePrice,
 		setOverridePrice,
 		uniqueMakes,

@@ -11,8 +11,8 @@ interface CarOverrideDialogProps {
 	onOpenChange: (open: boolean) => void;
 	selectedMake: string;
 	onMakeChange: (value: string) => void;
-	selectedModel: string;
-	onModelChange: (value: string) => void;
+	selectedCarId: string;
+	onCarChange: (value: string) => void;
 	overridePrice: number;
 	onPriceChange: (value: number) => void;
 	uniqueMakes: string[];
@@ -26,8 +26,8 @@ export function CarOverrideDialog({
 	onOpenChange,
 	selectedMake,
 	onMakeChange,
-	selectedModel,
-	onModelChange,
+	selectedCarId,
+	onCarChange,
 	overridePrice,
 	onPriceChange,
 	uniqueMakes,
@@ -40,7 +40,7 @@ export function CarOverrideDialog({
 		if (success) onOpenChange(false);
 	};
 
-	const selectedCar = modelsForMake.find((c) => c.model === selectedModel);
+	const selectedCar = modelsForMake.find((c) => c.id === selectedCarId);
 	const defaultPrice = selectedCar ? getBodyTypeDefaultPrice(selectedCar.bodyType) : 0;
 
 	return (
@@ -57,7 +57,7 @@ export function CarOverrideDialog({
 							value={selectedMake}
 							onValueChange={(value) => {
 								onMakeChange(value);
-								onModelChange("");
+								onCarChange("");
 							}}
 						>
 							<SelectTrigger>
@@ -74,13 +74,13 @@ export function CarOverrideDialog({
 					</div>
 					<div className="space-y-2">
 						<Label>Model *</Label>
-						<Select value={selectedModel} onValueChange={onModelChange} disabled={!selectedMake}>
+						<Select value={selectedCarId} onValueChange={onCarChange} disabled={!selectedMake}>
 							<SelectTrigger>
 								<SelectValue placeholder="Select model" />
 							</SelectTrigger>
 							<SelectContent>
 								{modelsForMake.map((car) => (
-									<SelectItem key={car.id} value={car.model}>
+									<SelectItem key={car.id} value={car.id}>
 										{car.model} ({car.bodyType})
 									</SelectItem>
 								))}
@@ -92,11 +92,11 @@ export function CarOverrideDialog({
 							<span className="text-muted-foreground">Body type:</span>{" "}
 							<span className="font-medium">{selectedCar.bodyType}</span>
 							<span className="text-muted-foreground ml-3">Default price:</span>{" "}
-							<span className="font-medium">\u00A3{defaultPrice}</span>
+							<span className="font-medium">£{defaultPrice}</span>
 						</div>
 					)}
 					<div className="space-y-2">
-						<Label>Custom Price (\u00A3) *</Label>
+						<Label>Custom Price (£) *</Label>
 						<Input
 							type="number"
 							min={0}

@@ -45,6 +45,7 @@ import {
 	deletePaymentMethod,
 	deleteVehicle,
 	getBookingsSummary,
+	getBodyTypesByMakeModel,
 	getCarBodyTypes,
 	getCarMakes,
 	getCarModels,
@@ -86,6 +87,7 @@ router.post("/auth/refresh-token", refreshToken);
 router.get("/cars/makes", getCarMakes);
 router.get("/cars/models/:make", getCarModels);
 router.get("/cars/body-types", getCarBodyTypes);
+router.get("/cars/body-types/:make/:model", getBodyTypesByMakeModel);
 
 // Subscription plans (public)
 router.get("/subscriptions/plans", getSubscriptionPlans);

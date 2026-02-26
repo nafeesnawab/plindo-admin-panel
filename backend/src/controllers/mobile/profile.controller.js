@@ -527,3 +527,17 @@ export const getCarBodyTypes = async (req, res) => {
 		return error(res, err.message, 500);
 	}
 };
+
+/**
+ * GET /api/mobile/cars/body-types/:make/:model
+ * Get body types for a specific make + model combination
+ */
+export const getBodyTypesByMakeModel = async (req, res) => {
+	try {
+		const { make, model } = req.params;
+		const bodyTypes = await Car.distinct("bodyType", { make, model });
+		return success(res, { bodyTypes: bodyTypes.sort() });
+	} catch (err) {
+		return error(res, err.message, 500);
+	}
+};

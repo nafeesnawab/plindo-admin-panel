@@ -31,8 +31,8 @@ export const getCars = async (req, res) => {
 export const createCar = async (req, res) => {
 	try {
 		const { make, model, bodyType } = req.body;
-		const existing = await Car.findOne({ make, model });
-		if (existing) return error(res, "A car with this make and model already exists", 400, 10002);
+		const existing = await Car.findOne({ make, model, bodyType });
+		if (existing) return error(res, "This make, model and body type combination already exists", 400, 10002);
 
 		const car = await Car.create({ make, model, bodyType });
 		return success(res, { car }, "Car created successfully", 201);

@@ -65,6 +65,7 @@ interface Pagination {
 export interface ActivityLogsResponse {
 	logs: ActivityLog[];
 	admins: string[];
+	actions: string[];
 	pagination: Pagination;
 }
 
@@ -88,6 +89,8 @@ interface LogFilters {
 	limit?: number;
 	admin?: string;
 	level?: string;
+	action?: string;
+	search?: string;
 }
 
 const logsService = {

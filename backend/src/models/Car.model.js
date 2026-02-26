@@ -18,7 +18,7 @@ const carSchema = new mongoose.Schema(
   }
 );
 
-carSchema.index({ make: 1, model: 1 });
+carSchema.index({ make: 1, model: 1, bodyType: 1 }, { unique: true });
 carSchema.index({ bodyType: 1 });
 carSchema.index({ make: 'text', model: 'text' });
 

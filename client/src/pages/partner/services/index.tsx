@@ -143,8 +143,8 @@ export default function PartnerServicesPage() {
 					onOpenChange={setCarOverrideDialogOpen}
 					selectedMake={pricing.overrideMake}
 					onMakeChange={pricing.setOverrideMake}
-					selectedModel={pricing.overrideModel}
-					onModelChange={pricing.setOverrideModel}
+					selectedCarId={pricing.overrideCarId}
+					onCarChange={pricing.setOverrideCarId}
 					overridePrice={pricing.overridePrice}
 					onPriceChange={pricing.setOverridePrice}
 					uniqueMakes={pricing.uniqueMakes}
