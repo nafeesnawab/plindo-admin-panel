@@ -163,7 +163,7 @@ export const getAvailableSlots = async (req, res) => {
 		const cap = capacity || getDefaultCapacity(partnerId);
 
 		// Parse date as local noon to avoid UTC day-boundary issues
-		const requestedDate = new Date(date + "T12:00:00");
+		const requestedDate = new Date(`${date}T12:00:00`);
 		const dayOfWeek = requestedDate.getDay();
 		const dayAvail = avail.schedule.find((d) => d.dayOfWeek === dayOfWeek);
 
@@ -238,7 +238,9 @@ export const getAvailableSlots = async (req, res) => {
 			}
 		}
 
-		return success(res, { date, windows, capacity: cap.capacityByCategory, bufferMinutes });
+		const responseData = { date, windows, capacity: cap.capacityByCategory, bufferMinutes };
+		if (windows.length === 0) responseData.message = "No available slots for this day";
+		return success(res, responseData);
 	} catch (err) {
 		return error(res, err.message, 500);
 	}
@@ -352,7 +354,6 @@ export const createBooking = async (req, res) => {
 			slot,
 			products = [],
 			instructions,
-			paymentMethodId,
 		} = req.body;
 		const customerId = req.user.id;
 
@@ -463,7 +464,7 @@ export const createBooking = async (req, res) => {
 		}
 
 		// Calculate pricing
-		let bodyType = vehicle.bodyType || "Sedan";
+		const bodyType = vehicle.bodyType || "Sedan";
 		let basePrice = 20;
 		if (service.bodyTypePricing?.length) {
 			const match = service.bodyTypePricing.find((p) => p.bodyType === bodyType);
