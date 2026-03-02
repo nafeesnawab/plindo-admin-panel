@@ -58,7 +58,9 @@ const getDefaultCapacity = (partnerId) => {
 	};
 };
 
-const formatBooking = (b) => ({
+// partnerLogoMap and serviceBannerMap are optional lookup maps for enriching response
+// (used when booking documents don't have logo/banner stored from creation time)
+const formatBooking = (b, partnerLogoMap = {}, serviceBannerMap = {}) => ({
 	id: b._id,
 	bookingNumber: b.bookingNumber,
 	customer: {
@@ -75,6 +77,7 @@ const formatBooking = (b) => ({
 		location: b.partnerLocation || "",
 		address: b.partnerAddress || "",
 		rating: b.partnerRating || 0,
+		avatar: partnerLogoMap[b.partnerId?.toString()] ?? b.partnerLogo ?? "",
 	},
 	vehicle: b.vehicle || {},
 	service: {
@@ -83,6 +86,7 @@ const formatBooking = (b) => ({
 		serviceType: b.serviceType,
 		serviceCategory: b.serviceCategory,
 		duration: b.serviceDuration || 0,
+		bannerUrl: serviceBannerMap[b.serviceId?.toString()] ?? b.serviceBannerUrl ?? "",
 	},
 	slot: {
 		date: b.slotDate,
@@ -108,9 +112,38 @@ const formatBooking = (b) => ({
 		: null,
 });
 
+// Fetches partner logos and service banners for a list of bookings
+// Returns maps keyed by ID string so formatBooking can look them up
+const buildEnrichmentMaps = async (bookings) => {
+	const partnerIds = [...new Set(bookings.map((b) => b.partnerId?.toString()).filter(Boolean))];
+	const serviceIds = [...new Set(bookings.map((b) => b.serviceId?.toString()).filter(Boolean))];
+
+	const [partners, services] = await Promise.all([
+		partnerIds.length ? Partner.find({ _id: { $in: partnerIds } }).select("_id logo avatar").lean() : [],
+		serviceIds.length ? Service.find({ _id: { $in: serviceIds } }).select("_id bannerUrl").lean() : [],
+	]);
+
+	const partnerLogoMap = {};
+	partners.forEach((p) => { partnerLogoMap[p._id.toString()] = p.logo || p.avatar || ""; });
+
+	const serviceBannerMap = {};
+	services.forEach((s) => { serviceBannerMap[s._id.toString()] = s.bannerUrl || ""; });
+
+	return { partnerLogoMap, serviceBannerMap };
+};
+
 /**
  * GET /api/mobile/partners/:partnerId/slots
  * Get available slots for a partner
+ *
+ * Buffer logic: buffer applies after each booking ends AND after any new slot ends.
+ * Symmetric check: slot A and booking B conflict if:
+ *   A.start < B.end + buffer  AND  B.start < A.end + buffer
+ * This ensures no slot can be placed where its buffer zone bleeds into another booking.
+ *
+ * Steps: 5-minute granularity so buffer boundaries (e.g. 2:10pm) are always reachable.
+ * Bay availability: count-based (overlapping bookings count vs totalBays) so it works
+ * even when the partner hasn't explicitly configured named bays.
  */
 export const getAvailableSlots = async (req, res) => {
 	try {
@@ -129,7 +162,8 @@ export const getAvailableSlots = async (req, res) => {
 		const avail = availability || getDefaultAvailability(partnerId);
 		const cap = capacity || getDefaultCapacity(partnerId);
 
-		const requestedDate = new Date(date);
+		// Parse date as local noon to avoid UTC day-boundary issues
+		const requestedDate = new Date(date + "T12:00:00");
 		const dayOfWeek = requestedDate.getDay();
 		const dayAvail = avail.schedule.find((d) => d.dayOfWeek === dayOfWeek);
 
@@ -153,49 +187,58 @@ export const getAvailableSlots = async (req, res) => {
 		}
 
 		const durationMinutes = parseInt(duration);
+		// Use avail buffer (set on schedule page) falling back to capacity buffer
 		const bufferMinutes = avail.bufferTimeMinutes || cap.bufferTimeMinutes || 15;
+
+		// For today: only return slots starting at least 30 minutes from now
+		const now = new Date();
+		const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+		const minStartMinutes = date === todayStr
+			? now.getHours() * 60 + now.getMinutes() + 30
+			: null;
 
 		const existingBookings = await Booking.find({
 			partnerId,
 			slotDate: date,
 			serviceCategory,
 			status: { $nin: ["cancelled"] },
-		}).select("slotStartTime slotEndTime bayId");
+		}).select("slotStartTime slotEndTime");
+
+		// Pre-compute existing booking times for efficiency
+		const bookingTimes = existingBookings.map((b) => ({
+			start: timeToMinutes(b.slotStartTime),
+			end: timeToMinutes(b.slotEndTime),
+		}));
 
 		const windows = [];
+
 		for (const block of dayAvail.timeBlocks) {
 			const blockStart = timeToMinutes(block.start);
 			const blockEnd = timeToMinutes(block.end);
 
-			for (let startMin = blockStart; startMin + durationMinutes <= blockEnd; startMin += 15) {
-				const startTime = minutesToTime(startMin);
-				const endTime = minutesToTime(startMin + durationMinutes);
+			for (let startMin = blockStart; startMin + durationMinutes <= blockEnd; startMin += durationMinutes) {
+				// Skip past/too-soon slots when viewing today
+				if (minStartMinutes !== null && startMin < minStartMinutes) continue;
+
 				const endM = startMin + durationMinutes;
 
-				const overlapping = existingBookings.filter((b) => {
-					const bStart = timeToMinutes(b.slotStartTime);
-					const bEnd = timeToMinutes(b.slotEndTime) + bufferMinutes;
-					return startMin < bEnd && bStart < endM;
-				});
+				// Count bookings that conflict with this slot (symmetric buffer on both sides)
+				const overlappingCount = bookingTimes.filter((b) =>
+					startMin < b.end + bufferMinutes && b.start < endM + bufferMinutes
+				).length;
 
-				const usedBayIds = new Set(overlapping.map((b) => b.bayId).filter(Boolean));
-				const categoryBays = cap.bays.filter(
-					(b) => b.serviceCategory === serviceCategory && b.isActive
-				);
-				const freeBays = categoryBays.filter((b) => !usedBayIds.has(b.id));
-
-				if (freeBays.length > 0) {
+				if (overlappingCount < totalBays) {
 					windows.push({
-						startTime,
-						endTime,
-						availableBays: freeBays.length,
+						startTime: minutesToTime(startMin),
+						endTime: minutesToTime(endM),
+						availableBays: totalBays - overlappingCount,
 						totalBays,
 					});
 				}
 			}
 		}
 
-		return success(res, { date, windows, capacity: cap.capacityByCategory });
+		return success(res, { date, windows, capacity: cap.capacityByCategory, bufferMinutes });
 	} catch (err) {
 		return error(res, err.message, 500);
 	}
@@ -356,12 +399,21 @@ export const createBooking = async (req, res) => {
 			return error(res, "Cannot book in the past", 400);
 		}
 
+		// Same-day: reject if slot start time is already in the past
+		if (daysInAdvance === 0) {
+			const now = new Date();
+			const currentMinutes = now.getHours() * 60 + now.getMinutes();
+			if (timeToMinutes(slot.startTime) <= currentMinutes) {
+				return error(res, "Cannot book a slot that has already passed", 400);
+			}
+		}
+
 		const maxAdvanceDays = avail.maxAdvanceBookingDays || 21;
 		if (daysInAdvance > maxAdvanceDays) {
 			return error(res, `Bookings can only be made up to ${maxAdvanceDays} days in advance`, 400);
 		}
 
-		// Check slot availability
+		// Check slot availability (symmetric buffer - same logic as getAvailableSlots)
 		const existingBookings = await Booking.find({
 			partnerId,
 			slotDate: slot.date,
@@ -371,20 +423,34 @@ export const createBooking = async (req, res) => {
 
 		const startM = timeToMinutes(slot.startTime);
 		const endM = timeToMinutes(slot.endTime);
-		const bufferM = cap.bufferTimeMinutes || 15;
+		// Use avail buffer (schedule page setting) falling back to capacity buffer
+		const bufferM = avail.bufferTimeMinutes || cap.bufferTimeMinutes || 15;
+
+		const totalBaysForCategory = cap.capacityByCategory[svcCategory] || 0;
 
 		const overlapping = existingBookings.filter((b) => {
-			const bStart = timeToMinutes(b.slotStartTime);
-			const bEnd = timeToMinutes(b.slotEndTime) + bufferM;
-			return startM < bEnd && bStart < endM;
+			const bStartM = timeToMinutes(b.slotStartTime);
+			const bEndM = timeToMinutes(b.slotEndTime);
+			// Symmetric: new slot's buffer must not bleed into existing, and vice versa
+			return startM < bEndM + bufferM && bStartM < endM + bufferM;
 		});
 
-		const usedBayIds = new Set(overlapping.map((b) => b.bayId).filter(Boolean));
+		if (overlapping.length >= totalBaysForCategory) {
+			return error(res, "No available bays for this time slot", 400);
+		}
+
+		// Assign a bay: prefer named bays, fall back to virtual IDs
 		const categoryBays = cap.bays.filter((b) => b.serviceCategory === svcCategory && b.isActive);
-		const availableBay = categoryBays.find((b) => !usedBayIds.has(b.id));
+		const usedBayIds = new Set(overlapping.map((b) => b.bayId).filter(Boolean));
+		let availableBay = categoryBays.find((b) => !usedBayIds.has(b.id));
 
 		if (!availableBay) {
-			return error(res, "No available bays for this time slot", 400);
+			// No named bays configured — assign a virtual bay ID based on slot count
+			const bayNum = overlapping.length + 1;
+			availableBay = {
+				id: `${svcCategory}-bay-${bayNum}`,
+				name: `${svcCategory.charAt(0).toUpperCase() + svcCategory.slice(1)} Bay ${bayNum}`,
+			};
 		}
 
 		// Get vehicle
@@ -452,6 +518,7 @@ export const createBooking = async (req, res) => {
 			partnerLocation: partner.location,
 			partnerAddress: partner.address,
 			partnerRating: partner.rating,
+			partnerLogo: partner.logo || partner.avatar || "",
 			vehicle: {
 				make: vehicle.make,
 				model: vehicle.model,
@@ -465,6 +532,7 @@ export const createBooking = async (req, res) => {
 			serviceType: service.serviceType,
 			serviceCategory: svcCategory,
 			serviceDuration: service.duration,
+			serviceBannerUrl: service.bannerUrl || "",
 			slotDate: slot.date,
 			slotStartTime: slot.startTime,
 			slotEndTime: slot.endTime,
@@ -494,7 +562,8 @@ export const createBooking = async (req, res) => {
 			Customer.findByIdAndUpdate(customerId, { $inc: { totalBookings: 1, totalSpent: finalPrice } }),
 		]);
 
-		return success(res, { booking: formatBooking(booking) }, "Booking created successfully", 201);
+		const { partnerLogoMap, serviceBannerMap } = await buildEnrichmentMaps([booking]);
+		return success(res, { booking: formatBooking(booking, partnerLogoMap, serviceBannerMap) }, "Booking created successfully", 201);
 	} catch (err) {
 		return error(res, err.message, 500);
 	}
@@ -529,7 +598,10 @@ export const getBookings = async (req, res) => {
 			Booking.countDocuments(filter),
 		]);
 
-		return success(res, paginatedResponse(bookings.map(formatBooking), total, page, limit));
+		// Enrich with partner logo and service banner (fallback for older bookings)
+		const { partnerLogoMap, serviceBannerMap } = await buildEnrichmentMaps(bookings);
+
+		return success(res, paginatedResponse(bookings.map((b) => formatBooking(b, partnerLogoMap, serviceBannerMap)), total, page, limit));
 	} catch (err) {
 		return error(res, err.message, 500);
 	}
@@ -549,7 +621,8 @@ export const getBookingDetails = async (req, res) => {
 			return error(res, "Booking not found", 404);
 		}
 
-		return success(res, { booking: formatBooking(booking) });
+		const { partnerLogoMap, serviceBannerMap } = await buildEnrichmentMaps([booking]);
+		return success(res, { booking: formatBooking(booking, partnerLogoMap, serviceBannerMap) });
 	} catch (err) {
 		return error(res, err.message, 500);
 	}

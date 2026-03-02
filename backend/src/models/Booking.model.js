@@ -53,6 +53,7 @@ const bookingSchema = new mongoose.Schema(
     partnerLocation: { type: String },
     partnerAddress: { type: String },
     partnerRating: { type: Number },
+    partnerLogo: { type: String },
 
     // Vehicle (embedded)
     vehicle: vehicleInfoSchema,
@@ -63,6 +64,7 @@ const bookingSchema = new mongoose.Schema(
     serviceType: { type: String, enum: ['book_me', 'pick_by_me', 'washing_van'] },
     serviceCategory: { type: String, enum: ['wash', 'detailing', 'other'], index: true },
     serviceDuration: { type: Number },
+    serviceBannerUrl: { type: String },
 
     // Slot
     slotDate: { type: String, required: true, index: true },

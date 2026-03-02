@@ -105,6 +105,7 @@ const formatProduct = (p) => ({
 /**
  * GET /api/mobile/partners
  * List partners with filters
+ * radius param is in kilometers (km)
  */
 export const getPartners = async (req, res) => {
 	try {
@@ -122,47 +123,74 @@ export const getPartners = async (req, res) => {
 			sortBy = "rating",
 		} = req.query;
 
-		// Build base filter
+		// Build base filter for active partners
 		const filter = { status: "active" };
-
-		if (search) {
-			filter.$or = [
-				{ businessName: { $regex: search, $options: "i" } },
-				{ description: { $regex: search, $options: "i" } },
-			];
-		}
-
 		if (minRating) {
 			filter.rating = { $gte: parseFloat(minRating) };
 		}
 
-		// Get all matching partners first
-		let partners = await Partner.find(filter).lean();
+		const hasServiceFilters = !!(serviceType || serviceCategory || maxPrice);
 
-		// If searching by service-related filters, we need to check services
-		let serviceFilter = { status: "active" };
-		let partnerIdsWithMatchingServices = null;
+		// Determine eligible partner IDs from service filters + search
+		// A partner is eligible if:
+		//   - their name/description matches the search term, OR
+		//   - they have a service matching the search/service filters
+		let eligiblePartnerIds = null; // null = no ID restriction
 
-		if (serviceType || serviceCategory || maxPrice || search) {
-			if (serviceType) serviceFilter.serviceType = serviceType;
-			if (serviceCategory) serviceFilter.serviceCategory = serviceCategory;
+		if (hasServiceFilters || search) {
+			let serviceFilterMatchIds = new Set();
 
-			if (maxPrice) {
-				serviceFilter["bodyTypePricing.price"] = { $lte: parseFloat(maxPrice) };
+			if (hasServiceFilters) {
+				const svcFilter = { status: "active" };
+				if (serviceType) svcFilter.serviceType = serviceType;
+				if (serviceCategory) svcFilter.serviceCategory = serviceCategory;
+				if (maxPrice) svcFilter["bodyTypePricing.price"] = { $lte: parseFloat(maxPrice) };
+				const svcMatches = await Service.find(svcFilter).select("partnerId").lean();
+				serviceFilterMatchIds = new Set(svcMatches.map((s) => s.partnerId.toString()));
 			}
 
 			if (search) {
-				serviceFilter.$or = [
-					{ name: { $regex: search, $options: "i" } },
-					{ description: { $regex: search, $options: "i" } },
-				];
+				// Escape regex special characters for safe partial/full-word search
+				const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+				const searchRgx = { $regex: escaped, $options: "i" };
+
+				// Partners matching by business name or description
+				const nameMatches = await Partner.find({
+					status: "active",
+					$or: [{ businessName: searchRgx }, { description: searchRgx }],
+				}).select("_id").lean();
+				const nameMatchIds = new Set(nameMatches.map((p) => p._id.toString()));
+
+				// Services matching search text (union with service filter matches)
+				const svcSearch = await Service.find({
+					status: "active",
+					$or: [{ name: searchRgx }, { description: searchRgx }],
+				}).select("partnerId").lean();
+				const svcSearchIds = new Set(svcSearch.map((s) => s.partnerId.toString()));
+
+				// Combine: partner name match OR service name match
+				const searchUnion = new Set([...nameMatchIds, ...svcSearchIds]);
+
+				if (hasServiceFilters) {
+					// Must satisfy both: service filters AND search term
+					eligiblePartnerIds = new Set(
+						[...serviceFilterMatchIds].filter((id) => searchUnion.has(id))
+					);
+				} else {
+					eligiblePartnerIds = searchUnion;
+				}
+			} else {
+				// Only service filters, no text search
+				eligiblePartnerIds = serviceFilterMatchIds;
 			}
 
-			const matchingServices = await Service.find(serviceFilter).select("partnerId").lean();
-			partnerIdsWithMatchingServices = new Set(matchingServices.map((s) => s.partnerId.toString()));
-
-			partners = partners.filter((p) => partnerIdsWithMatchingServices.has(p._id.toString()));
+			if (eligiblePartnerIds !== null) {
+				filter._id = { $in: [...eligiblePartnerIds] };
+			}
 		}
+
+		// Get all matching partners
+		let partners = await Partner.find(filter).lean();
 
 		// Note: openNow filter will be applied after fetching schedules
 

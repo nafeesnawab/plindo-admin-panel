@@ -1,7 +1,8 @@
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { CAR_BODY_TYPES } from "@/_mock/handlers/_cars";
+import apiClient from "@/api/apiClient";
 import type { ServiceCategory } from "@/types/booking";
+import { CAR_BODY_TYPES } from "@/_mock/handlers/_cars";
 
 import type { Service, ServiceFormData, ServiceType } from "../types";
 import { getInitialDistanceCharges, getInitialFormState } from "../types";
@@ -61,7 +62,7 @@ export function useServiceForm() {
 		setBannerPreview(service.bannerUrl || "");
 	};
 
-	const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+	const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
 		if (!file) return;
 		if (!file.type.startsWith("image/")) {
@@ -72,13 +73,23 @@ export function useServiceForm() {
 			toast.error("Image size should be less than 5MB");
 			return;
 		}
+		// Show local preview immediately
 		const reader = new FileReader();
 		reader.onloadend = () => {
-			const result = reader.result as string;
-			setBannerPreview(result);
-			setFormData((prev) => ({ ...prev, bannerUrl: result }));
+			setBannerPreview(reader.result as string);
 		};
 		reader.readAsDataURL(file);
+
+		// Upload to server and store the returned URL path
+		try {
+			const formData = new FormData();
+			formData.append("file", file);
+			const res = await apiClient.postForm<{ url: string }>({ url: "/upload", data: formData });
+			setFormData((prev) => ({ ...prev, bannerUrl: res.url }));
+		} catch {
+			toast.error("Failed to upload banner image");
+			setBannerPreview("");
+		}
 	};
 
 	const removeBanner = () => {
