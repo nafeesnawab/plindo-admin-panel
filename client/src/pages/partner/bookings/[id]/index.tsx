@@ -79,7 +79,7 @@ export default function OrderDetailsPage() {
 		try {
 			const formData = new FormData();
 			formData.append("file", pendingFile);
-			const res = await apiClient.post<{ url: string }>({ url: "/upload", data: formData });
+			const res = await apiClient.postForm<{ url: string }>({ url: "/upload", data: formData });
 			const uploadedUrl = (res as unknown as { url: string }).url;
 			setPendingImageUrl(uploadedUrl);
 			toast.success("Photo ready — click 'Advance Step' to attach it");
