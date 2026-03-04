@@ -7,6 +7,7 @@ import {
 	Check,
 	Clock,
 	Download,
+	Image,
 	Loader2,
 	MapPin,
 	MessageCircle,
@@ -20,6 +21,7 @@ import {
 import { useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
+import apiClient from "@/api/apiClient";
 import slotBookingService from "@/api/services/slotBookingService";
 import type { BookingStatus, ServiceStep } from "@/types/booking";
 import { SERVICE_TYPE_LABELS } from "@/types/booking";
@@ -53,22 +55,42 @@ export default function OrderDetailsPage() {
 	const [cancelReason, setCancelReason] = useState("");
 	const [photoDialogOpen, setPhotoDialogOpen] = useState(false);
 	const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+	const [pendingImageUrl, setPendingImageUrl] = useState<string | null>(null);
+	const [isUploading, setIsUploading] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const navigate = useNavigate();
+
+	const [pendingFile, setPendingFile] = useState<File | null>(null);
 
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
 		if (file) {
 			setPhotoPreview(URL.createObjectURL(file));
+			setPendingFile(file);
 			setPhotoDialogOpen(true);
 			e.target.value = "";
 		}
 	};
 
-	const handlePhotoUploadConfirm = () => {
-		toast.success("Photo uploaded successfully");
-		setPhotoPreview(null);
-		setPhotoDialogOpen(false);
+	const handlePhotoUploadConfirm = async () => {
+		if (!pendingFile) return;
+
+		setIsUploading(true);
+		try {
+			const formData = new FormData();
+			formData.append("file", pendingFile);
+			const res = await apiClient.post<{ url: string }>({ url: "/upload", data: formData });
+			const uploadedUrl = (res as unknown as { url: string }).url;
+			setPendingImageUrl(uploadedUrl);
+			toast.success("Photo ready — click 'Advance Step' to attach it");
+		} catch {
+			toast.error("Photo upload failed");
+		} finally {
+			setIsUploading(false);
+			setPhotoPreview(null);
+			setPendingFile(null);
+			setPhotoDialogOpen(false);
+		}
 	};
 
 	// Fetch booking details
@@ -78,16 +100,17 @@ export default function OrderDetailsPage() {
 		isError,
 	} = useQuery({
 		queryKey: ["booking-details", bookingId],
-		queryFn: () => slotBookingService.getBookingDetails(bookingId!),
+		queryFn: () => slotBookingService.getBookingDetails(bookingId ?? ""),
 		enabled: !!bookingId,
 	});
 
 	// Advance service step mutation
 	const advanceStepMutation = useMutation({
-		mutationFn: () => slotBookingService.advanceServiceStep(bookingId!),
+		mutationFn: () => slotBookingService.advanceServiceStep(bookingId ?? "", pendingImageUrl ?? undefined),
 		onSuccess: (updatedBooking) => {
 			queryClient.setQueryData(["booking-details", bookingId], updatedBooking);
 			queryClient.invalidateQueries({ queryKey: ["partner-bookings"] });
+			setPendingImageUrl(null);
 			const allDone = updatedBooking.serviceSteps.every(
 				(s: ServiceStep) => s.status === "completed" || s.status === "skipped",
 			);
@@ -98,7 +121,7 @@ export default function OrderDetailsPage() {
 
 	// Cancel booking mutation
 	const cancelMutation = useMutation({
-		mutationFn: (reason: string) => slotBookingService.cancelBooking(bookingId!, reason, "partner"),
+		mutationFn: (reason: string) => slotBookingService.cancelBooking(bookingId ?? "", reason, "partner"),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["booking-details", bookingId] });
 			queryClient.invalidateQueries({ queryKey: ["partner-bookings"] });
@@ -110,7 +133,7 @@ export default function OrderDetailsPage() {
 
 	// Update status mutation
 	const updateStatusMutation = useMutation({
-		mutationFn: (status: BookingStatus) => slotBookingService.updateBookingStatus(bookingId!, status),
+		mutationFn: (status: BookingStatus) => slotBookingService.updateBookingStatus(bookingId ?? "", status),
 		onSuccess: (updatedBooking) => {
 			queryClient.setQueryData(["booking-details", bookingId], updatedBooking);
 			queryClient.invalidateQueries({ queryKey: ["partner-bookings"] });
@@ -185,6 +208,9 @@ export default function OrderDetailsPage() {
 	const progressPercent = steps.length > 0 ? Math.round((completedCount / steps.length) * 100) : 0;
 
 	const canCancel = booking.status === "booked";
+	const isPickByMe = booking.service.serviceType === "pick_by_me";
+	const isWashingVan = booking.service.serviceType === "washing_van";
+	const isAdvancedServiceType = isPickByMe || isWashingVan;
 
 	// ============ RENDER ============
 
@@ -338,7 +364,7 @@ export default function OrderDetailsPage() {
 						</CardContent>
 					</Card>
 
-					{/* Status Tracker */}
+					{/* Service Progress */}
 					<Card>
 						<CardHeader>
 							<div className="flex items-center justify-between">
@@ -358,12 +384,26 @@ export default function OrderDetailsPage() {
 										{advanceStepMutation.isPending ? (
 											<Loader2 className="h-4 w-4 animate-spin" />
 										) : (
-											<Upload className="h-4 w-4" />
+											<Check className="h-4 w-4" />
 										)}
-										{nextStepLabel ? `Next: ${nextStepLabel}` : "Advance Step"}
+										{nextStepLabel ? `Mark: ${nextStepLabel}` : "Advance Step"}
 									</Button>
 								)}
 							</div>
+							{/* Pending image indicator */}
+							{pendingImageUrl && (
+								<div className="flex items-center gap-2 mt-2 rounded-lg bg-blue-50 border border-blue-200 px-3 py-2 text-sm text-blue-700">
+									<Image className="h-4 w-4" />
+									Photo attached — will be saved with next step advance
+									<button
+										type="button"
+										className="ml-auto text-blue-400 hover:text-blue-600"
+										onClick={() => setPendingImageUrl(null)}
+									>
+										×
+									</button>
+								</div>
+							)}
 							{/* Progress bar */}
 							<div className="w-full bg-muted rounded-full h-2 mt-2">
 								<div
@@ -430,6 +470,20 @@ export default function OrderDetailsPage() {
 														Started at {format(new Date(step.startedAt), "HH:mm")}
 													</p>
 												)}
+												{/* Step images */}
+												{step.images && step.images.length > 0 && (
+													<div className="flex gap-2 mt-2 flex-wrap">
+														{step.images.map((img) => (
+															<a key={img.url} href={img.url} target="_blank" rel="noopener noreferrer">
+																<img
+																	src={img.url}
+																	alt={step.name}
+																	className="h-14 w-14 rounded object-cover border hover:opacity-80 transition-opacity"
+																/>
+															</a>
+														))}
+													</div>
+												)}
 											</div>
 										</div>
 									);
@@ -439,7 +493,7 @@ export default function OrderDetailsPage() {
 							{allStepsDone && (
 								<div className="mt-4 rounded-lg bg-green-50 border border-green-200 p-3 text-center">
 									<Check className="h-5 w-5 text-green-600 mx-auto mb-1" />
-									<p className="text-sm font-medium text-green-800">All service steps completed!</p>
+									<p className="text-sm font-medium text-green-800">All steps completed!</p>
 								</div>
 							)}
 						</CardContent>
@@ -513,7 +567,8 @@ export default function OrderDetailsPage() {
 							<CardTitle className="text-base">Actions</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-2">
-							{booking.status === "booked" && (
+							{/* book_me only: manual start button (step system handles the rest) */}
+							{!isAdvancedServiceType && booking.status === "booked" && (
 								<Button
 									className="w-full justify-start gap-2 bg-purple-600 hover:bg-purple-700"
 									onClick={() => updateStatusMutation.mutate("in_progress")}
@@ -523,25 +578,26 @@ export default function OrderDetailsPage() {
 									Start Service
 								</Button>
 							)}
-							{booking.status === "completed" && (
-								<Button
-									className="w-full justify-start gap-2 bg-green-600 hover:bg-green-700"
-									onClick={() => updateStatusMutation.mutate("delivered")}
-									disabled={updateStatusMutation.isPending}
-								>
-									<Check className="h-4 w-4" />
-									Mark as Delivered
-								</Button>
+
+							{/* pick_by_me / washing_van: steps drive everything — no separate start button needed */}
+							{isAdvancedServiceType && booking.status === "booked" && canAdvanceStep && (
+								<p className="text-xs text-muted-foreground px-1">
+									Use "Mark: {steps.find((s) => s.status === "pending")?.name ?? "next step"}" in the progress tracker above to begin.
+								</p>
 							)}
+
+							{/* Upload photo — attaches to next step advance */}
 							<input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
 							<Button
 								variant="outline"
-								className="w-full justify-start gap-2"
+								className={cn("w-full justify-start gap-2", pendingImageUrl && "border-blue-400 text-blue-600")}
 								onClick={() => fileInputRef.current?.click()}
+								disabled={booking.status === "cancelled" || allStepsDone}
 							>
 								<Camera className="h-4 w-4" />
-								Upload Photo
+								{pendingImageUrl ? "Change Photo" : "Attach Photo to Step"}
 							</Button>
+
 							{canCancel && (
 								<Button
 									variant="outline"
@@ -591,16 +647,16 @@ export default function OrderDetailsPage() {
 			<Dialog
 				open={photoDialogOpen}
 				onOpenChange={(open) => {
-					if (!open) {
-						setPhotoPreview(null);
-					}
+					if (!open) setPhotoPreview(null);
 					setPhotoDialogOpen(open);
 				}}
 			>
 				<DialogContent>
 					<DialogHeader>
-						<DialogTitle>Upload Photo</DialogTitle>
-						<DialogDescription>Confirm the photo to document the current service step.</DialogDescription>
+						<DialogTitle>Attach Photo to Step</DialogTitle>
+						<DialogDescription>
+							This photo will be attached to the current step when you advance it.
+						</DialogDescription>
 					</DialogHeader>
 					{photoPreview ? (
 						<div className="rounded-lg overflow-hidden border">
@@ -613,18 +669,12 @@ export default function OrderDetailsPage() {
 						</div>
 					)}
 					<DialogFooter>
-						<Button
-							variant="outline"
-							onClick={() => {
-								setPhotoPreview(null);
-								setPhotoDialogOpen(false);
-							}}
-						>
+						<Button variant="outline" onClick={() => { setPhotoPreview(null); setPhotoDialogOpen(false); }}>
 							Cancel
 						</Button>
-						<Button onClick={handlePhotoUploadConfirm} disabled={!photoPreview}>
-							<Upload className="mr-2 h-4 w-4" />
-							Confirm Upload
+						<Button onClick={handlePhotoUploadConfirm} disabled={!photoPreview || isUploading}>
+							{isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+							{isUploading ? "Uploading..." : "Confirm"}
 						</Button>
 					</DialogFooter>
 				</DialogContent>

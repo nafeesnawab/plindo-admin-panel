@@ -1,3 +1,4 @@
+import ActivityLog from "../../models/ActivityLog.model.js";
 import Service from "../../models/Service.model.js";
 import { error, success } from "../../utils/response.js";
 
@@ -40,6 +41,16 @@ export const createService = async (req, res) => {
 			...req.body,
 			partnerId: req.user.partnerId,
 		});
+
+		// Log service creation
+		await ActivityLog.create({
+			action: "service_created",
+			targetType: "service",
+			targetId: service._id.toString(),
+			details: { name: service.name, partnerId: req.user.partnerId },
+			category: "activity",
+		});
+
 		return success(res, { service }, "Service created", 201);
 	} catch (err) {
 		return error(res, err.message, 500);

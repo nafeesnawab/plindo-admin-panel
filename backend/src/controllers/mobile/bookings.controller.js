@@ -9,6 +9,7 @@ import Service from "../../models/Service.model.js";
 import Settings from "../../models/Settings.model.js";
 import { paginate, paginatedResponse } from "../../utils/pagination.js";
 import { error, success } from "../../utils/response.js";
+import { getInitialServiceSteps } from "../../utils/serviceSteps.js";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -554,7 +555,7 @@ export const createBooking = async (req, res) => {
 				totalAmount: productsTotal,
 			} : undefined,
 			notes: instructions,
-			serviceSteps: [],
+			serviceSteps: getInitialServiceSteps(service.serviceType, svcCategory),
 		});
 
 		// Update stats
@@ -697,8 +698,8 @@ export const submitReview = async (req, res) => {
 			return error(res, "Booking not found", 404);
 		}
 
-		if (booking.status !== "completed") {
-			return error(res, "Can only review completed bookings", 400);
+		if (!["completed", "delivered"].includes(booking.status)) {
+			return error(res, "Can only review completed or delivered bookings", 400);
 		}
 
 		if (booking.ratingScore) {

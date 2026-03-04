@@ -1,7 +1,7 @@
-import Link from "@tiptap/extension-link";
-import Underline from "@tiptap/extension-underline";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import Link from "@tiptap/extension-link";
+import Underline from "@tiptap/extension-underline";
 import {
 	Bold,
 	Heading1,
@@ -41,8 +41,8 @@ export function RichTextEditor({
 			Underline,
 		],
 		content: value,
-		onUpdate: ({ editor }) => {
-			onChange(editor.getHTML());
+		onUpdate: ({ editor: ed }) => {
+			onChange(ed.getHTML());
 		},
 		editorProps: {
 			attributes: {
@@ -57,7 +57,15 @@ export function RichTextEditor({
 		}
 	}, [value, editor]);
 
-	if (!editor) return null;
+	if (!editor) {
+		return (
+			<div className={cn("border rounded-lg overflow-hidden", className)}>
+				<div className="flex items-center justify-center min-h-[200px] text-muted-foreground">
+					Loading editor...
+				</div>
+			</div>
+		);
+	}
 
 	const addLink = () => {
 		const url = window.prompt("Enter URL:");

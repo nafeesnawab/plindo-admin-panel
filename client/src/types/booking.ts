@@ -94,6 +94,11 @@ export const SERVICE_TYPE_LABELS: Record<ServiceType, string> = {
 
 export type ServiceStepStatus = "pending" | "in_progress" | "completed" | "skipped";
 
+export interface ServiceStepImage {
+	url: string;
+	uploadedAt: string;
+}
+
 export interface ServiceStep {
 	id: string;
 	name: string;
@@ -101,6 +106,7 @@ export interface ServiceStep {
 	startedAt?: string;
 	completedAt?: string;
 	order: number;
+	images?: ServiceStepImage[];
 }
 
 // Predefined steps per service — partner updates these as work progresses

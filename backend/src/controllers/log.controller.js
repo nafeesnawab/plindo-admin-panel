@@ -12,16 +12,27 @@ const buildPagination = (page, limit, total) => ({
 
 /**
  * GET /api/logs/activity
- * Response: { logs, admins, pagination }
+ * Response: { logs, actions, pagination }
  */
 export const getActivityLogs = async (req, res) => {
 	try {
 		const { page, limit, skip } = paginate(req.query);
 		const filter = { category: "activity" };
-		if (req.query.action)
+
+		// Search across multiple fields
+		if (req.query.search) {
+			filter.$or = [
+				{ action: { $regex: req.query.search, $options: "i" } },
+				{ adminName: { $regex: req.query.search, $options: "i" } },
+				{ targetType: { $regex: req.query.search, $options: "i" } },
+				{ details: { $regex: req.query.search, $options: "i" } },
+			];
+		}
+
+		// Filter by specific action
+		if (req.query.action && req.query.action !== "all")
 			filter.action = { $regex: req.query.action, $options: "i" };
-		if (req.query.admin && req.query.admin !== "all")
-			filter.adminId = req.query.admin;
+
 		if (req.query.level) filter.level = req.query.level;
 		if (req.query.dateFrom)
 			filter.createdAt = { $gte: new Date(req.query.dateFrom) };
@@ -31,27 +42,27 @@ export const getActivityLogs = async (req, res) => {
 				$lte: new Date(req.query.dateTo),
 			};
 
-		const [items, total, adminIds] = await Promise.all([
+		const [items, total, actions] = await Promise.all([
 			ActivityLog.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
 			ActivityLog.countDocuments(filter),
-			ActivityLog.distinct("adminId"),
+			ActivityLog.distinct("action"),
 		]);
 
 		const logs = items.map((log) => ({
 			id: log._id,
 			adminId: log.adminId,
-			adminName: log.adminName || "",
+			adminName: log.adminName || "System",
 			action: log.action,
-			targetType: log.targetType,
+			targetType: log.targetType || "",
 			targetId: log.targetId,
 			details: log.details,
-			ipAddress: log.ipAddress || "",
+			ipAddress: log.ipAddress || "N/A",
 			timestamp: log.createdAt,
 		}));
 
 		return success(res, {
 			logs,
-			admins: adminIds.map((id) => String(id)),
+			actions: actions.filter(Boolean),
 			pagination: buildPagination(page, limit, total),
 		});
 	} catch (err) {

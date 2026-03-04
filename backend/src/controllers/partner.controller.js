@@ -1,5 +1,6 @@
 import ActivityLog from "../models/ActivityLog.model.js";
 import Booking from "../models/Booking.model.js";
+import Driver from "../models/Driver.model.js";
 import Partner from "../models/Partner.model.js";
 import PartnerAvailability from "../models/PartnerAvailability.model.js";
 import PartnerCapacity from "../models/PartnerCapacity.model.js";
@@ -324,12 +325,28 @@ export const approvePartner = async (req, res) => {
 		);
 		if (!partner) return error(res, "Partner not found", 404);
 
+		// Migrate embedded drivers to Driver collection
+		if (partner.drivers && partner.drivers.length > 0) {
+			const driversToCreate = partner.drivers.map((d) => ({
+				partnerId: partner._id,
+				fullName: d.fullName,
+				phone: d.contactNumber,
+				licenseUrl: d.driverLicenseUrl,
+				insuranceUrl: d.driverInsuranceUrl,
+				status: "active",
+			}));
+
+			await Driver.insertMany(driversToCreate);
+		}
+
 		await ActivityLog.create({
 			action: "partner_approved",
 			adminId: req.user.id,
+			adminName: req.user.username || "Admin",
 			targetId: partner._id.toString(),
 			targetType: "Partner",
 			details: `Partner "${partner.businessName}" approved`,
+			ipAddress: req.ip || req.connection?.remoteAddress || "",
 		});
 
 		return success(

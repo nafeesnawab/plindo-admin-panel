@@ -113,6 +113,12 @@ export function ReviewStep() {
 								<MapPin className="h-4 w-4" />
 								{businessInfo.address}
 							</p>
+							{businessInfo.latitude && businessInfo.longitude && (
+								<p className="text-xs text-muted-foreground mt-1">
+									📍 Coordinates: {businessInfo.latitude.toFixed(6)},{" "}
+									{businessInfo.longitude.toFixed(6)}
+								</p>
+							)}
 						</div>
 						<div className="md:col-span-2">
 							<p className="text-sm text-muted-foreground">Password</p>
@@ -303,7 +309,10 @@ export function ReviewStep() {
 									{day.dayName.slice(0, 3)}:{" "}
 									{day.isEnabled && day.timeBlocks.length > 0
 										? day.timeBlocks
-												.map((b: { start: string; end: string }) => `${b.start}-${b.end}`)
+												.map(
+													(b: { start: string; end: string }) =>
+														`${b.start}-${b.end}`,
+												)
 												.join(", ")
 										: "Closed"}
 								</Badge>

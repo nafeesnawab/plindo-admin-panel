@@ -10,11 +10,31 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/ui/avatar";
 import { Badge } from "@/ui/badge";
 import { Button } from "@/ui/button";
 import { Card, CardContent } from "@/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/ui/dialog";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/ui/dialog";
 import { Input } from "@/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/ui/select";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/ui/select";
 import { Skeleton } from "@/ui/skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/ui/table";
 import { Textarea } from "@/ui/textarea";
 
 export default function CustomersPage() {
@@ -24,7 +44,9 @@ export default function CustomersPage() {
 	const [search, setSearch] = useState("");
 	const [searchInput, setSearchInput] = useState("");
 	const [statusFilter, setStatusFilter] = useState<string>("");
-	const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+	const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
+		null,
+	);
 	const [suspendReason, setSuspendReason] = useState("");
 	const [showSuspendDialog, setShowSuspendDialog] = useState(false);
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -42,7 +64,8 @@ export default function CustomersPage() {
 	});
 
 	const suspendMutation = useMutation({
-		mutationFn: ({ id, reason }: { id: string; reason: string }) => customerService.suspendCustomer(id, reason),
+		mutationFn: ({ id, reason }: { id: string; reason: string }) =>
+			customerService.suspendCustomer(id, reason),
 		onSuccess: () => {
 			toast.success("Customer suspended");
 			queryClient.invalidateQueries({ queryKey: ["customers"] });
@@ -88,7 +111,10 @@ export default function CustomersPage() {
 
 	const handleSuspend = () => {
 		if (selectedCustomer && suspendReason) {
-			suspendMutation.mutate({ id: selectedCustomer.id, reason: suspendReason });
+			suspendMutation.mutate({
+				id: selectedCustomer.id,
+				reason: suspendReason,
+			});
 		}
 	};
 
@@ -153,7 +179,11 @@ export default function CustomersPage() {
 								<button
 									type="button"
 									className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-									onClick={() => { setSearchInput(""); setSearch(""); setPage(1); }}
+									onClick={() => {
+										setSearchInput("");
+										setSearch("");
+										setPage(1);
+									}}
 								>
 									<X className="h-4 w-4" />
 								</button>
@@ -178,7 +208,9 @@ export default function CustomersPage() {
 					</div>
 
 					{data?.items.length === 0 ? (
-						<div className="text-center py-8 text-muted-foreground">No customers found</div>
+						<div className="text-center py-8 text-muted-foreground">
+							No customers found
+						</div>
 					) : (
 						<>
 							<Table>
@@ -202,9 +234,12 @@ export default function CustomersPage() {
 												<TableCell>
 													<div className="flex items-center gap-3">
 														<Avatar className="h-10 w-10">
-															<AvatarImage src={customer.avatar} alt={customer.name} />
+															<AvatarImage
+																src={customer.avatar}
+																alt={customer.name}
+															/>
 															<AvatarFallback className="bg-primary/10 text-primary text-xs">
-																{customer.name
+																{(customer.name || "")
 																	.split(" ")
 																	.map((n) => n[0])
 																	.join("")}
@@ -212,33 +247,54 @@ export default function CustomersPage() {
 														</Avatar>
 														<div>
 															<p className="font-medium">{customer.name}</p>
-															<p className="text-xs text-muted-foreground">{customer.location}</p>
+															<p className="text-xs text-muted-foreground">
+																{customer.location}
+															</p>
 														</div>
 													</div>
 												</TableCell>
 												<TableCell>
 													<div className="text-sm">
 														<p>{customer.email}</p>
-														<p className="text-muted-foreground">{customer.phone}</p>
+														<p className="text-muted-foreground">
+															{customer.phone}
+														</p>
 													</div>
 												</TableCell>
-												<TableCell>{format(new Date(customer.registeredAt), "MMM dd, yyyy")}</TableCell>
+												<TableCell>
+													{format(
+														new Date(customer.registeredAt),
+														"MMM dd, yyyy",
+													)}
+												</TableCell>
 												<TableCell>{customer.totalBookings}</TableCell>
 												<TableCell>€{customer.totalSpent.toFixed(2)}</TableCell>
 												<TableCell>
 													{customer.status === "active" ? (
-														<Badge variant="secondary" className="bg-green-500/10 text-green-600">
+														<Badge
+															variant="secondary"
+															className="bg-green-500/10 text-green-600"
+														>
 															Active
 														</Badge>
 													) : (
-														<Badge variant="secondary" className="bg-red-500/10 text-red-600">
+														<Badge
+															variant="secondary"
+															className="bg-red-500/10 text-red-600"
+														>
 															Suspended
 														</Badge>
 													)}
 												</TableCell>
 												<TableCell className="text-right">
 													<div className="flex items-center justify-end gap-2">
-														<Button variant="ghost" size="icon" onClick={() => navigate(`/customers/${customer.id}`)}>
+														<Button
+															variant="ghost"
+															size="icon"
+															onClick={() =>
+																navigate(`/customers/${customer.id}`)
+															}
+														>
 															<Eye className="h-4 w-4" />
 														</Button>
 														{customer.status === "active" ? (
@@ -298,7 +354,8 @@ export default function CustomersPage() {
 					<DialogHeader>
 						<DialogTitle>Suspend Customer</DialogTitle>
 						<DialogDescription>
-							Please provide a reason for suspending {selectedCustomer?.name}'s account.
+							Please provide a reason for suspending {selectedCustomer?.name}'s
+							account.
 						</DialogDescription>
 					</DialogHeader>
 					<Textarea
@@ -308,7 +365,10 @@ export default function CustomersPage() {
 						rows={4}
 					/>
 					<DialogFooter>
-						<Button variant="outline" onClick={() => setShowSuspendDialog(false)}>
+						<Button
+							variant="outline"
+							onClick={() => setShowSuspendDialog(false)}
+						>
 							Cancel
 						</Button>
 						<Button
@@ -322,19 +382,29 @@ export default function CustomersPage() {
 				</DialogContent>
 			</Dialog>
 
-			<Dialog open={showReactivateDialog} onOpenChange={setShowReactivateDialog}>
+			<Dialog
+				open={showReactivateDialog}
+				onOpenChange={setShowReactivateDialog}
+			>
 				<DialogContent>
 					<DialogHeader>
 						<DialogTitle>Reactivate Customer</DialogTitle>
 						<DialogDescription>
-							Are you sure you want to reactivate {selectedCustomer?.name}'s account?
+							Are you sure you want to reactivate {selectedCustomer?.name}'s
+							account?
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>
-						<Button variant="outline" onClick={() => setShowReactivateDialog(false)}>
+						<Button
+							variant="outline"
+							onClick={() => setShowReactivateDialog(false)}
+						>
 							Cancel
 						</Button>
-						<Button onClick={handleReactivate} disabled={reactivateMutation.isPending}>
+						<Button
+							onClick={handleReactivate}
+							disabled={reactivateMutation.isPending}
+						>
 							Reactivate
 						</Button>
 					</DialogFooter>
@@ -346,15 +416,22 @@ export default function CustomersPage() {
 					<DialogHeader>
 						<DialogTitle>Delete Customer</DialogTitle>
 						<DialogDescription>
-							Are you sure you want to permanently delete {selectedCustomer?.name}'s account? This action cannot be
-							undone.
+							Are you sure you want to permanently delete{" "}
+							{selectedCustomer?.name}'s account? This action cannot be undone.
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter>
-						<Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+						<Button
+							variant="outline"
+							onClick={() => setShowDeleteDialog(false)}
+						>
 							Cancel
 						</Button>
-						<Button variant="destructive" onClick={handleDelete} disabled={deleteMutation.isPending}>
+						<Button
+							variant="destructive"
+							onClick={handleDelete}
+							disabled={deleteMutation.isPending}
+						>
 							Delete
 						</Button>
 					</DialogFooter>

@@ -32,7 +32,7 @@ export function WeeklyCalendar({ schedule, onDayChange }: WeeklyCalendarProps) {
 				<div className="overflow-x-auto">
 					<div className="min-w-[640px]">
 						<div
-							className="grid border-b border-border bg-muted/50"
+							className="grid border-b border-border bg-muted/50 sticky top-0 z-10"
 							style={{ gridTemplateColumns: "56px repeat(7, 1fr)" }}
 						>
 							<div />

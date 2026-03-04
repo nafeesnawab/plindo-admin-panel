@@ -164,9 +164,10 @@ const updateBookingStatus = (id: string, status: string) =>
 		data: { status },
 	});
 
-const advanceServiceStep = (bookingId: string) =>
+const advanceServiceStep = (bookingId: string, imageUrl?: string) =>
 	apiClient.patch<SlotBooking>({
 		url: `${SlotBookingApi.UpdateStatus}/${bookingId}/step/advance`,
+		data: imageUrl ? { imageUrl } : undefined,
 	});
 
 // ============ Services & Pricing ============

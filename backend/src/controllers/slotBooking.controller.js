@@ -7,6 +7,7 @@ import Service from "../models/Service.model.js";
 import Settings from "../models/Settings.model.js";
 import { paginate, paginatedResponse } from "../utils/pagination.js";
 import { error, success } from "../utils/response.js";
+import { getFinalBookingStatus, getInitialServiceSteps } from "../utils/serviceSteps.js";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -297,7 +298,7 @@ export const createSlotBooking = async (req, res) => {
 			status: "booked",
 			bayId: availableBay.id,
 			bayName: availableBay.name,
-			serviceSteps: [],
+			serviceSteps: getInitialServiceSteps(serviceType || "book_me", svcCategory),
 		});
 
 		await Partner.findByIdAndUpdate(partnerId, { $inc: { totalBookings: 1 } });
@@ -377,6 +378,7 @@ export const updateBookingStatus = async (req, res) => {
 
 export const advanceServiceStep = async (req, res) => {
 	try {
+		const { imageUrl } = req.body;
 		const booking = await Booking.findById(req.params.id);
 		if (!booking) return error(res, "Booking not found", 404);
 
@@ -387,10 +389,28 @@ export const advanceServiceStep = async (req, res) => {
 		if (currentStep) {
 			currentStep.status = "completed";
 			currentStep.completedAt = new Date();
+			if (imageUrl) {
+				currentStep.images = currentStep.images || [];
+				currentStep.images.push({ url: imageUrl, uploadedAt: new Date() });
+			}
 		}
+
 		if (nextPending) {
 			nextPending.status = "in_progress";
 			nextPending.startedAt = new Date();
+		} else {
+			// All steps done — auto-update top-level status
+			const allDone = steps.every((s) => s.status === "completed" || s.status === "skipped");
+			if (allDone) {
+				booking.status = getFinalBookingStatus(booking.serviceType);
+				booking.completedAt = new Date();
+			}
+		}
+
+		// Set in_progress on the first advance if still booked
+		if (booking.status === "booked" && (currentStep || nextPending)) {
+			booking.status = "in_progress";
+			booking.startedAt = new Date();
 		}
 
 		booking.markModified("serviceSteps");

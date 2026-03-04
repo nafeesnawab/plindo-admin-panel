@@ -1373,7 +1373,7 @@
 								"{{bookingId}}"
 							]
 						},
-						"description": "Get booking details with tracking info.\n\n**Response includes:**\n- Booking details\n- Service steps with timestamps\n- Status images (uploaded by partner)"
+						"description": "Get booking details with tracking info. Works for ALL service types — one endpoint for everything.\n\n**The `serviceSteps` array is auto-populated based on service type:**\n\n**book_me** (customer drops off car):\n`Confirmed → Washing → Drying → [Interior Cleaning] → Completed`\n\n**pick_by_me** (driver picks up & delivers):\n`Confirmed → Driver Assigned → En Route to Pickup → Car Picked Up → Washing → Drying → [Interior Cleaning] → Ready for Delivery → Out for Delivery → Delivered`\n\n**washing_van** (van comes to customer):\n`Confirmed → En Route to You → Arrived → Washing → Drying → [Interior Cleaning] → Completed`\n\n*Interior Cleaning is included only for detailing service category.*\n\n**Each step object:**\n```json\n{\n  \"name\": \"En Route to Pickup\",\n  \"status\": \"in_progress\",\n  \"startedAt\": \"2026-03-04T10:00:00Z\",\n  \"completedAt\": null,\n  \"order\": 3,\n  \"images\": [\n    { \"url\": \"/uploads/abc.jpg\", \"uploadedAt\": \"2026-03-04T10:05:00Z\" }\n  ]\n}\n```\n\n**step.status values:** `pending` | `in_progress` | `completed` | `skipped`\n\n**Top-level booking status** auto-updates when all steps complete:\n- `pick_by_me` → `delivered`\n- all others → `completed`"
 					}
 				},
 				{

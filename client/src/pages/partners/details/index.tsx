@@ -1,9 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
-import { Pagination } from 'antd';
-import { format, formatDistanceToNow } from 'date-fns';
+import { useQuery } from "@tanstack/react-query";
+import { Pagination } from "antd";
+import { format, formatDistanceToNow } from "date-fns";
 import {
 	ArrowLeft,
-	Building2,
 	Calendar,
 	CheckCircle,
 	DollarSign,
@@ -17,18 +16,18 @@ import {
 	TrendingUp,
 	User,
 	UserCheck,
-} from 'lucide-react';
-import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router';
-import partnerService from '@/api/services/partnerService';
-import { Chart } from '@/components/chart';
-import { Avatar, AvatarFallback, AvatarImage } from '@/ui/avatar';
-import { Badge } from '@/ui/badge';
-import { Button } from '@/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/ui/card';
-import { Separator } from '@/ui/separator';
-import { Skeleton } from '@/ui/skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/tabs';
+} from "lucide-react";
+import { useState } from "react";
+import { useNavigate, useParams } from "react-router";
+import partnerService from "@/api/services/partnerService";
+import { Chart } from "@/components/chart";
+import { Avatar, AvatarFallback, AvatarImage } from "@/ui/avatar";
+import { Badge } from "@/ui/badge";
+import { Button } from "@/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
+import { Separator } from "@/ui/separator";
+import { Skeleton } from "@/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/tabs";
 
 export default function PartnerDetails() {
 	const { id } = useParams<{ id: string }>();
@@ -37,18 +36,18 @@ export default function PartnerDetails() {
 	const reviewPageSize = 3;
 
 	const { data: partner, isLoading } = useQuery({
-		queryKey: ['partner-details', id],
+		queryKey: ["partner-details", id],
 		queryFn: () => partnerService.getPartnerDetails(id!),
 		enabled: !!id,
 	});
 
 	if (isLoading) {
 		return (
-			<div className='space-y-6'>
-				<Skeleton className='h-10 w-32' />
-				<div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
-					<Skeleton className='h-[400px] lg:col-span-1' />
-					<Skeleton className='h-[400px] lg:col-span-2' />
+			<div className="space-y-6">
+				<Skeleton className="h-10 w-32" />
+				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+					<Skeleton className="h-[400px] lg:col-span-1" />
+					<Skeleton className="h-[400px] lg:col-span-2" />
 				</div>
 			</div>
 		);
@@ -56,9 +55,9 @@ export default function PartnerDetails() {
 
 	if (!partner) {
 		return (
-			<div className='text-center py-12'>
-				<p className='text-muted-foreground'>Partner not found</p>
-				<Button variant='outline' onClick={() => navigate(-1)} className='mt-4'>
+			<div className="text-center py-12">
+				<p className="text-muted-foreground">Partner not found</p>
+				<Button variant="outline" onClick={() => navigate(-1)} className="mt-4">
 					Go Back
 				</Button>
 			</div>
@@ -66,22 +65,22 @@ export default function PartnerDetails() {
 	}
 
 	const statusColors: Record<string, string> = {
-		pending: 'bg-yellow-500/10 text-yellow-600',
-		active: 'bg-green-500/10 text-green-600',
-		suspended: 'bg-red-500/10 text-red-600',
+		pending: "bg-yellow-500/10 text-yellow-600",
+		active: "bg-green-500/10 text-green-600",
+		suspended: "bg-red-500/10 text-red-600",
 	};
 
 	const earningsChartOptions: ApexCharts.ApexOptions = {
-		chart: { type: 'bar', toolbar: { show: false } },
+		chart: { type: "bar", toolbar: { show: false } },
 		xaxis: { categories: partner.earningsHistory.map((e) => e.month) },
-		colors: ['#10b981'],
+		colors: ["#10b981"],
 		plotOptions: { bar: { borderRadius: 4 } },
 		dataLabels: { enabled: false },
 		yaxis: { labels: { formatter: (v) => `€${v.toFixed(0)}` } },
 	};
 
 	const earningsSeries = [
-		{ name: 'Earnings', data: partner.earningsHistory.map((e) => e.earnings) },
+		{ name: "Earnings", data: partner.earningsHistory.map((e) => e.earnings) },
 	];
 
 	return (
@@ -112,15 +111,26 @@ export default function PartnerDetails() {
 							<div className="flex items-center gap-4">
 								<Avatar className="h-16 w-16">
 									{partner.logo && (
-										<AvatarImage src={partner.logo} alt={partner.businessName} />
+										<AvatarImage
+											src={partner.logo}
+											alt={partner.businessName}
+										/>
 									)}
 									<AvatarFallback className="bg-primary/10 text-primary text-lg">
-										{partner.businessName.split(" ").slice(0, 2).map((n) => n[0]).join("")}
+										{partner.businessName
+											.split(" ")
+											.slice(0, 2)
+											.map((n) => n[0])
+											.join("")}
 									</AvatarFallback>
 								</Avatar>
 								<div>
-									<p className="font-semibold text-lg">{partner.businessName}</p>
-									<p className="text-sm text-muted-foreground">License: {partner.businessLicense}</p>
+									<p className="font-semibold text-lg">
+										{partner.businessName}
+									</p>
+									<p className="text-sm text-muted-foreground">
+										License: {partner.businessLicense}
+									</p>
 								</div>
 							</div>
 
@@ -129,7 +139,9 @@ export default function PartnerDetails() {
 									<Separator />
 									<div>
 										<p className="text-sm font-medium mb-1">About</p>
-										<p className="text-sm text-muted-foreground leading-relaxed">{partner.description}</p>
+										<p className="text-sm text-muted-foreground leading-relaxed">
+											{partner.description}
+										</p>
 									</div>
 								</>
 							)}
@@ -154,12 +166,10 @@ export default function PartnerDetails() {
 									<span>{partner.address}</span>
 								</div>
 								<div className="flex items-center gap-3 text-sm">
-									<Building2 className="h-4 w-4 text-muted-foreground" />
-									<span>{partner.location}</span>
-								</div>
-								<div className="flex items-center gap-3 text-sm">
 									<Calendar className="h-4 w-4 text-muted-foreground" />
-									<span>Joined {format(new Date(partner.createdAt), "MMM dd, yyyy")}</span>
+									<span>
+										Joined {format(new Date(partner.createdAt), "MMM dd, yyyy")}
+									</span>
 								</div>
 							</div>
 
@@ -170,10 +180,14 @@ export default function PartnerDetails() {
 								<div className="space-y-1 text-sm">
 									{(partner.schedule ?? []).map((day) => (
 										<div key={day.dayOfWeek} className="flex justify-between">
-											<span className="text-muted-foreground">{day.dayName}</span>
+											<span className="text-muted-foreground">
+												{day.dayName}
+											</span>
 											<span>
 												{day.isEnabled && day.timeBlocks.length > 0
-													? day.timeBlocks.map((b) => `${b.start}-${b.end}`).join(", ")
+													? day.timeBlocks
+															.map((b) => `${b.start}-${b.end}`)
+															.join(", ")
 													: "Closed"}
 											</span>
 										</div>
@@ -187,12 +201,20 @@ export default function PartnerDetails() {
 								<p className="text-sm font-medium mb-2">Service Capacity</p>
 								<div className="space-y-2 text-sm">
 									<div className="flex justify-between">
-										<span className="text-muted-foreground">Car Wash Booths/Bays</span>
-										<span className="font-medium">{partner.capacityByCategory?.wash ?? 0}</span>
+										<span className="text-muted-foreground">
+											Car Wash Booths/Bays
+										</span>
+										<span className="font-medium">
+											{partner.capacityByCategory?.wash ?? 0}
+										</span>
 									</div>
 									<div className="flex justify-between">
-										<span className="text-muted-foreground">Car Detailing Booths/Bays</span>
-										<span className="font-medium">{partner.capacityByCategory?.detailing ?? 0}</span>
+										<span className="text-muted-foreground">
+											Car Detailing Booths/Bays
+										</span>
+										<span className="font-medium">
+											{partner.capacityByCategory?.detailing ?? 0}
+										</span>
 									</div>
 								</div>
 							</div>
@@ -200,53 +222,81 @@ export default function PartnerDetails() {
 					</Card>
 
 					<div className="lg:col-span-2 space-y-6">
-						<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-							<Card>
-								<CardContent className="pt-6">
-									<div className="flex items-center gap-2">
-										<Star className="h-5 w-5 text-yellow-500" />
-										<span className="text-2xl font-bold">{partner.rating?.toFixed(1) || "N/A"}</span>
-									</div>
-									<p className="text-xs text-muted-foreground mt-1">Average Rating</p>
-								</CardContent>
-							</Card>
-							<Card>
-								<CardContent className="pt-6">
-									<div className="flex items-center gap-2">
-										<TrendingUp className="h-5 w-5 text-green-500" />
-										<span className="text-2xl font-bold">{partner.totalBookings.toLocaleString()}</span>
-									</div>
-									<p className="text-xs text-muted-foreground mt-1">Total Bookings</p>
-								</CardContent>
-							</Card>
-							<Card>
-								<CardContent className="pt-6">
-									<div className="flex items-center gap-2">
-										<CheckCircle className="h-5 w-5 text-blue-500" />
-										<span className="text-2xl font-bold">{partner.completionRate || 0}%</span>
-									</div>
-									<p className="text-xs text-muted-foreground mt-1">Completion Rate</p>
-								</CardContent>
-							</Card>
-							<Card>
-								<CardContent className="pt-6">
-									<div className="flex items-center gap-2">
-										<DollarSign className="h-5 w-5 text-emerald-500" />
-										<span className="text-2xl font-bold">€{partner.totalEarnings.toLocaleString()}</span>
-									</div>
-									<p className="text-xs text-muted-foreground mt-1">Total Earnings</p>
-								</CardContent>
-							</Card>
-						</div>
+						{partner.status !== "pending" && (
+							<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+								<Card>
+									<CardContent className="pt-6">
+										<div className="flex items-center gap-2">
+											<Star className="h-5 w-5 text-yellow-500" />
+											<span className="text-2xl font-bold">
+												{partner.rating?.toFixed(1) || "N/A"}
+											</span>
+										</div>
+										<p className="text-xs text-muted-foreground mt-1">
+											Average Rating
+										</p>
+									</CardContent>
+								</Card>
+								<Card>
+									<CardContent className="pt-6">
+										<div className="flex items-center gap-2">
+											<TrendingUp className="h-5 w-5 text-green-500" />
+											<span className="text-2xl font-bold">
+												{partner.totalBookings.toLocaleString()}
+											</span>
+										</div>
+										<p className="text-xs text-muted-foreground mt-1">
+											Total Bookings
+										</p>
+									</CardContent>
+								</Card>
+								<Card>
+									<CardContent className="pt-6">
+										<div className="flex items-center gap-2">
+											<CheckCircle className="h-5 w-5 text-blue-500" />
+											<span className="text-2xl font-bold">
+												{partner.completionRate || 0}%
+											</span>
+										</div>
+										<p className="text-xs text-muted-foreground mt-1">
+											Completion Rate
+										</p>
+									</CardContent>
+								</Card>
+								<Card>
+									<CardContent className="pt-6">
+										<div className="flex items-center gap-2">
+											<DollarSign className="h-5 w-5 text-emerald-500" />
+											<span className="text-2xl font-bold">
+												€{partner.totalEarnings.toLocaleString()}
+											</span>
+										</div>
+										<p className="text-xs text-muted-foreground mt-1">
+											Total Earnings
+										</p>
+									</CardContent>
+								</Card>
+							</div>
+						)}
 
 						<Tabs defaultValue="documents">
 							<TabsList className="flex-wrap h-auto">
 								<TabsTrigger value="documents">Documents</TabsTrigger>
-								<TabsTrigger value="drivers">Drivers ({partner.drivers?.length ?? 0})</TabsTrigger>
-								<TabsTrigger value="photos">Photos ({partner.photos?.length ?? 0})</TabsTrigger>
-								<TabsTrigger value="services">Services</TabsTrigger>
-								<TabsTrigger value="reviews">Reviews ({partner.reviews.length})</TabsTrigger>
-								<TabsTrigger value="earnings">Earnings</TabsTrigger>
+								<TabsTrigger value="drivers">
+									Drivers ({partner.drivers?.length ?? 0})
+								</TabsTrigger>
+								<TabsTrigger value="photos">
+									Photos ({partner.photos?.length ?? 0})
+								</TabsTrigger>
+								{partner.status !== "pending" && (
+									<>
+										<TabsTrigger value="services">Services</TabsTrigger>
+										<TabsTrigger value="reviews">
+											Reviews ({partner.reviews.length})
+										</TabsTrigger>
+										<TabsTrigger value="earnings">Earnings</TabsTrigger>
+									</>
+								)}
 							</TabsList>
 
 							<TabsContent value="documents" className="mt-4">
@@ -259,10 +309,15 @@ export default function PartnerDetails() {
 									</CardHeader>
 									<CardContent className="space-y-3">
 										{partner.documents.length === 0 ? (
-											<p className="text-sm text-muted-foreground text-center py-4">No documents uploaded</p>
+											<p className="text-sm text-muted-foreground text-center py-4">
+												No documents uploaded
+											</p>
 										) : (
 											partner.documents.map((doc) => (
-												<div key={doc.name} className="flex items-center justify-between p-3 border rounded-lg">
+												<div
+													key={doc.name}
+													className="flex items-center justify-between p-3 border rounded-lg"
+												>
 													<div className="flex items-center gap-3">
 														<FileText className="h-5 w-5 text-muted-foreground" />
 														<div>
@@ -276,8 +331,16 @@ export default function PartnerDetails() {
 														</div>
 													</div>
 													{doc.url && doc.url !== "#" && (
-														<a href={doc.url} target="_blank" rel="noopener noreferrer">
-															<Button variant="outline" size="sm" className="gap-1">
+														<a
+															href={doc.url}
+															target="_blank"
+															rel="noopener noreferrer"
+														>
+															<Button
+																variant="outline"
+																size="sm"
+																className="gap-1"
+															>
 																<ExternalLink className="h-3 w-3" />
 																View
 															</Button>
@@ -300,18 +363,29 @@ export default function PartnerDetails() {
 									</CardHeader>
 									<CardContent className="space-y-4">
 										{!partner.drivers || partner.drivers.length === 0 ? (
-											<p className="text-sm text-muted-foreground text-center py-4">No drivers registered</p>
+											<p className="text-sm text-muted-foreground text-center py-4">
+												No drivers registered
+											</p>
 										) : (
 											partner.drivers.map((driver) => (
-												<div key={driver.id} className="border rounded-lg p-4 space-y-3">
+												<div
+													key={driver.id}
+													className="border rounded-lg p-4 space-y-3"
+												>
 													<div className="flex items-center gap-3">
 														<Avatar className="h-10 w-10">
 															<AvatarFallback className="bg-primary/10 text-primary text-sm">
-																{driver.fullName.split(" ").slice(0, 2).map((n) => n[0]).join("")}
+																{driver.fullName
+																	.split(" ")
+																	.slice(0, 2)
+																	.map((n) => n[0])
+																	.join("")}
 															</AvatarFallback>
 														</Avatar>
 														<div>
-															<p className="font-medium text-sm">{driver.fullName}</p>
+															<p className="font-medium text-sm">
+																{driver.fullName}
+															</p>
 															<p className="text-xs text-muted-foreground flex items-center gap-1">
 																<Phone className="h-3 w-3" />
 																{driver.contactNumber}
@@ -320,23 +394,43 @@ export default function PartnerDetails() {
 													</div>
 													<div className="grid grid-cols-2 gap-2">
 														<div className="flex items-center justify-between p-2 bg-muted/50 rounded text-xs">
-															<span className="text-muted-foreground">Driver License</span>
+															<span className="text-muted-foreground">
+																Driver License
+															</span>
 															{driver.driverLicenseUrl ? (
-																<a href={driver.driverLicenseUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1">
-																	<ExternalLink className="h-3 w-3" />View
+																<a
+																	href={driver.driverLicenseUrl}
+																	target="_blank"
+																	rel="noopener noreferrer"
+																	className="text-primary hover:underline flex items-center gap-1"
+																>
+																	<ExternalLink className="h-3 w-3" />
+																	View
 																</a>
 															) : (
-																<span className="text-muted-foreground">Not uploaded</span>
+																<span className="text-muted-foreground">
+																	Not uploaded
+																</span>
 															)}
 														</div>
 														<div className="flex items-center justify-between p-2 bg-muted/50 rounded text-xs">
-															<span className="text-muted-foreground">Insurance</span>
+															<span className="text-muted-foreground">
+																Insurance
+															</span>
 															{driver.driverInsuranceUrl ? (
-																<a href={driver.driverInsuranceUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1">
-																	<ExternalLink className="h-3 w-3" />View
+																<a
+																	href={driver.driverInsuranceUrl}
+																	target="_blank"
+																	rel="noopener noreferrer"
+																	className="text-primary hover:underline flex items-center gap-1"
+																>
+																	<ExternalLink className="h-3 w-3" />
+																	View
 																</a>
 															) : (
-																<span className="text-muted-foreground">Not uploaded</span>
+																<span className="text-muted-foreground">
+																	Not uploaded
+																</span>
 															)}
 														</div>
 													</div>
@@ -357,7 +451,9 @@ export default function PartnerDetails() {
 									</CardHeader>
 									<CardContent>
 										{partner.photos.length === 0 ? (
-											<p className="text-sm text-muted-foreground text-center py-4">No photos uploaded</p>
+											<p className="text-sm text-muted-foreground text-center py-4">
+												No photos uploaded
+											</p>
 										) : (
 											<div className="grid grid-cols-2 md:grid-cols-3 gap-3">
 												{partner.photos.map((url, idx) => (
@@ -388,7 +484,9 @@ export default function PartnerDetails() {
 								<Card>
 									<CardContent className="pt-6">
 										{partner.services.length === 0 ? (
-											<p className="text-sm text-muted-foreground text-center py-4">No services listed</p>
+											<p className="text-sm text-muted-foreground text-center py-4">
+												No services listed
+											</p>
 										) : (
 											<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 												{partner.services.map((service) => (
@@ -397,7 +495,9 @@ export default function PartnerDetails() {
 														className="flex items-center justify-between p-4 border rounded-lg"
 													>
 														<span className="font-medium">{service.name}</span>
-														<Badge variant="secondary">€{service.price.toFixed(2)}</Badge>
+														<Badge variant="secondary">
+															€{service.price.toFixed(2)}
+														</Badge>
 													</div>
 												))}
 											</div>
@@ -410,7 +510,9 @@ export default function PartnerDetails() {
 								<Card className="h-full flex flex-col">
 									<CardContent className="pt-6 flex-1 min-h-0 flex flex-col">
 										{partner.reviews.length === 0 ? (
-											<p className="text-center text-muted-foreground py-4">No reviews yet</p>
+											<p className="text-center text-muted-foreground py-4">
+												No reviews yet
+											</p>
 										) : (
 											<>
 												<div className="flex-1 min-h-0 overflow-auto space-y-4">
@@ -420,15 +522,23 @@ export default function PartnerDetails() {
 															reviewPage * reviewPageSize,
 														)
 														.map((review) => (
-															<div key={review.id} className="border-b last:border-0 pb-4 last:pb-0">
+															<div
+																key={review.id}
+																className="border-b last:border-0 pb-4 last:pb-0"
+															>
 																<div className="flex items-center justify-between mb-2">
 																	<div className="flex items-center gap-2">
 																		<Avatar className="h-8 w-8">
 																			<AvatarFallback className="text-xs">
-																				{review.customerName.split(" ").map((n) => n[0]).join("")}
+																				{review.customerName
+																					.split(" ")
+																					.map((n) => n[0])
+																					.join("")}
 																			</AvatarFallback>
 																		</Avatar>
-																		<span className="font-medium text-sm">{review.customerName}</span>
+																		<span className="font-medium text-sm">
+																			{review.customerName}
+																		</span>
 																	</div>
 																	<div className="flex items-center gap-1">
 																		{Array.from({ length: 5 }).map((_, i) => (
@@ -439,9 +549,14 @@ export default function PartnerDetails() {
 																		))}
 																	</div>
 																</div>
-																<p className="text-sm text-muted-foreground">{review.comment}</p>
+																<p className="text-sm text-muted-foreground">
+																	{review.comment}
+																</p>
 																<p className="text-xs text-muted-foreground mt-1">
-																	{formatDistanceToNow(new Date(review.createdAt), { addSuffix: true })}
+																	{formatDistanceToNow(
+																		new Date(review.createdAt),
+																		{ addSuffix: true },
+																	)}
 																</p>
 															</div>
 														))}
@@ -466,7 +581,9 @@ export default function PartnerDetails() {
 							<TabsContent value="earnings" className="mt-4">
 								<Card>
 									<CardHeader>
-										<CardTitle className="text-base">Earnings History (Last 6 Months)</CardTitle>
+										<CardTitle className="text-base">
+											Earnings History (Last 6 Months)
+										</CardTitle>
 									</CardHeader>
 									<CardContent>
 										<Chart

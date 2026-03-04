@@ -4,10 +4,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import slotBookingService from "@/api/services/slotBookingService";
+import { useUserInfo } from "@/store/userStore";
 import type { DayAvailability, PartnerCapacity, ServiceCategory, WeeklyAvailability } from "@/types/booking";
 import type { DayAvailabilityExtended } from "../types";
-
-const PARTNER_ID = "demo-partner-1";
 
 const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -44,6 +43,9 @@ function convertToStandard(schedule: DayAvailabilityExtended[]): DayAvailability
 }
 
 export function useSchedule() {
+	const userInfo = useUserInfo();
+	const partnerId = (userInfo as any)?.partnerId || userInfo?.id || "demo-partner-1";
+
 	const [hasChanges, setHasChanges] = useState(false);
 	const hydrated = useRef(false);
 
@@ -58,15 +60,17 @@ export function useSchedule() {
 
 	// Fetch
 	const { data: existingAvailability, isLoading: loadingAvailability } = useQuery({
-		queryKey: ["partner-availability", PARTNER_ID],
-		queryFn: () => slotBookingService.getWeeklyAvailability(PARTNER_ID),
+		queryKey: ["partner-availability", partnerId],
+		queryFn: () => slotBookingService.getWeeklyAvailability(partnerId),
 		refetchOnWindowFocus: false,
+		enabled: !!partnerId,
 	});
 
 	const { data: existingCapacity, isLoading: loadingCapacity } = useQuery({
-		queryKey: ["partner-capacity", PARTNER_ID],
-		queryFn: () => slotBookingService.getPartnerCapacity(PARTNER_ID),
+		queryKey: ["partner-capacity", partnerId],
+		queryFn: () => slotBookingService.getPartnerCapacity(partnerId),
 		refetchOnWindowFocus: false,
+		enabled: !!partnerId,
 	});
 
 	// Hydrate only on initial load
@@ -89,11 +93,11 @@ export function useSchedule() {
 
 	// Mutations
 	const saveAvailabilityMutation = useMutation({
-		mutationFn: (data: Partial<WeeklyAvailability>) => slotBookingService.updateWeeklyAvailability(data, PARTNER_ID),
+		mutationFn: (data: Partial<WeeklyAvailability>) => slotBookingService.updateWeeklyAvailability(data, partnerId),
 	});
 
 	const saveCapacityMutation = useMutation({
-		mutationFn: (data: Partial<PartnerCapacity>) => slotBookingService.updatePartnerCapacity(data, PARTNER_ID),
+		mutationFn: (data: Partial<PartnerCapacity>) => slotBookingService.updatePartnerCapacity(data, partnerId),
 	});
 
 	const isSaving = saveAvailabilityMutation.isPending || saveCapacityMutation.isPending;
@@ -119,13 +123,13 @@ export function useSchedule() {
 			const standardSchedule = convertToStandard(schedule);
 			await Promise.all([
 				saveAvailabilityMutation.mutateAsync({
-					partnerId: PARTNER_ID,
+					partnerId,
 					schedule: standardSchedule,
 					bufferTimeMinutes: bufferTime,
 					maxAdvanceBookingDays: 14,
 				}),
 				saveCapacityMutation.mutateAsync({
-					partnerId: PARTNER_ID,
+					partnerId,
 					capacityByCategory,
 					bufferTimeMinutes: bufferTime,
 				}),
@@ -135,7 +139,7 @@ export function useSchedule() {
 		} catch {
 			toast.error("Failed to save settings");
 		}
-	}, [schedule, capacityByCategory, bufferTime, saveAvailabilityMutation, saveCapacityMutation]);
+	}, [partnerId, schedule, capacityByCategory, bufferTime, saveAvailabilityMutation, saveCapacityMutation]);
 
 	const isLoading = loadingAvailability || loadingCapacity;
 	const totalBays = capacityByCategory.wash + capacityByCategory.detailing + capacityByCategory.other;

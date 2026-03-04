@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import ActivityLog from "../models/ActivityLog.model.js";
 import Partner from "../models/Partner.model.js";
 import PartnerAvailability from "../models/PartnerAvailability.model.js";
 import PartnerCapacity from "../models/PartnerCapacity.model.js";
@@ -240,6 +241,15 @@ export const registerPartner = async (req, res) => {
 			capacityByCategory,
 			bufferTimeMinutes: bufferTime,
 			bays: [], // Initially empty, can be managed later
+		});
+
+		// Log partner application
+		await ActivityLog.create({
+			action: "partner_application_submitted",
+			targetType: "partner",
+			targetId: partner._id.toString(),
+			details: { businessName, email },
+			category: "activity",
 		});
 
 		return success(

@@ -6,6 +6,7 @@ const serviceStepSchema = new mongoose.Schema({
   startedAt: { type: Date },
   completedAt: { type: Date },
   order: { type: Number, required: true },
+  images: [{ url: { type: String }, uploadedAt: { type: Date, default: Date.now } }],
 }, { _id: true });
 
 const bookingPricingSchema = new mongoose.Schema({

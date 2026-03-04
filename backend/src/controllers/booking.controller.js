@@ -161,21 +161,29 @@ export const cancelBooking = async (req, res) => {
 		const { reason } = req.body;
 		const booking = await Booking.findById(req.params.id);
 		if (!booking) return error(res, "Booking not found", 404);
+
+		// If partner, ensure they can only cancel their own bookings
+		if (req.user.role === "partner" && booking.partnerId.toString() !== req.user.partnerId.toString()) {
+			return error(res, "You can only cancel your own bookings", 403);
+		}
+
 		if (booking.status === "cancelled")
 			return error(res, "Booking is already cancelled", 400);
 
 		booking.status = "cancelled";
 		booking.cancellationReason = reason;
 		booking.cancelledAt = new Date();
-		booking.cancelledBy = "partner";
+		booking.cancelledBy = req.user.role;
 		await booking.save();
 
 		await ActivityLog.create({
 			action: "booking_cancelled",
 			adminId: req.user.id,
+			adminName: req.user.role === "admin" ? req.user.username : req.user.businessName,
 			targetId: booking._id.toString(),
 			targetType: "Booking",
-			details: `Booking ${booking.bookingNumber} cancelled. Reason: ${reason}`,
+			details: `Booking ${booking.bookingNumber} cancelled by ${req.user.role}. Reason: ${reason}`,
+			ipAddress: req.ip || req.connection?.remoteAddress || "",
 		});
 
 		return success(

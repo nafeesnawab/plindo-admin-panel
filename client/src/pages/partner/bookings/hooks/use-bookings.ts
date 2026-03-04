@@ -172,6 +172,7 @@ export function useBookings() {
 				partnerId: partnerId,
 				startDate: dateRange.startDate,
 				endDate: dateRange.endDate,
+				limit: 500,
 			}),
 		enabled: !!partnerId,
 	});

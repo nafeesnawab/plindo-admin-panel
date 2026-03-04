@@ -1,8 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, MapPin } from "lucide-react";
-import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
+import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { MapLocationPicker } from "@/components/map-location-picker";
 import { Button } from "@/ui/button";
 import {
 	Form,
@@ -57,6 +58,13 @@ export function BusinessInfoStep() {
 			confirmPassword: "",
 		},
 	});
+
+	const handleLocationChange = useCallback(
+		(lat: number, lng: number) => {
+			setBusinessInfo({ ...businessInfo, latitude: lat, longitude: lng });
+		},
+		[businessInfo, setBusinessInfo],
+	);
 
 	const onSubmit = (data: BusinessInfoFormData) => {
 		const { confirmPassword: _, ...rest } = data;
@@ -163,41 +171,22 @@ export function BusinessInfoStep() {
 							<FormItem>
 								<FormLabel>Business Address *</FormLabel>
 								<FormControl>
-									<div className="relative">
-										<Input
-											placeholder="e.g., 123 Main Street, Nicosia, Cyprus"
-											{...field}
-										/>
-										<Button
-											type="button"
-											variant="ghost"
-											size="sm"
-											className="absolute right-1 top-1/2 -translate-y-1/2"
-											onClick={() => {
-												// TODO: Implement map location picker
-											}}
-										>
-											<MapPin className="h-4 w-4" />
-										</Button>
-									</div>
+									<Input
+										placeholder="e.g., 123 Main Street, Nicosia, Cyprus"
+										{...field}
+									/>
 								</FormControl>
 								<FormMessage />
 							</FormItem>
 						)}
 					/>
 
-					<div className="rounded-lg border border-dashed p-4 bg-muted/50">
-						<div className="flex items-center gap-2 text-muted-foreground">
-							<MapPin className="h-5 w-5" />
-							<span className="text-sm">
-								Map location picker will be available here. You can pin your
-								exact business location.
-							</span>
-						</div>
-						<div className="mt-2 h-48 rounded-md bg-muted flex items-center justify-center text-muted-foreground">
-							Google Maps Integration (Coming Soon)
-						</div>
-					</div>
+					<MapLocationPicker
+						latitude={businessInfo.latitude}
+						longitude={businessInfo.longitude}
+						onLocationChange={handleLocationChange}
+						onAddressChange={(address) => form.setValue("address", address)}
+					/>
 
 					<div className="grid gap-4 md:grid-cols-2">
 						<FormField

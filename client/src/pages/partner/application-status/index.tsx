@@ -117,8 +117,8 @@ export default function PartnerApplicationStatusPage() {
 	return (
 		<div className="min-h-screen bg-background">
 			{/* Header */}
-			<header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-				<div className="container flex h-16 items-center justify-between px-4">
+			<header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 w-full">
+				<div className="flex h-16 items-center justify-between px-6 w-full max-w-none">
 					<Link to="/" className="flex items-center gap-2">
 						<Logo size={32} />
 						<span className="text-xl font-semibold text-foreground">
@@ -127,17 +127,17 @@ export default function PartnerApplicationStatusPage() {
 					</Link>
 					<div className="flex items-center gap-4">
 						<Link to="/partner/register">
-							<Button variant="ghost">New Registration</Button>
+							<Button variant="ghost" className="text-foreground">New Registration</Button>
 						</Link>
-						<Link to="/partner/login">
-							<Button variant="ghost">Login</Button>
+						<Link to="/auth/login">
+							<Button variant="ghost" className="text-foreground">Login</Button>
 						</Link>
 						<SettingButton />
 					</div>
 				</div>
 			</header>
 
-			<main className="container flex min-h-[calc(100vh-4rem)] items-center justify-center py-8 px-4">
+			<main className="flex min-h-[calc(100vh-4rem)] items-center justify-center py-8 px-6 w-full">
 				<Card className="w-full max-w-md">
 					<CardHeader className="text-center">
 						<CardTitle className="text-2xl">Application Status</CardTitle>
@@ -188,7 +188,9 @@ export default function PartnerApplicationStatusPage() {
 								<div
 									className={`rounded-lg p-6 text-center ${statusConfig?.bgColor}`}
 								>
-									<div className={`mx-auto mb-4 ${statusConfig?.color}`}>
+									<div
+										className={`flex justify-center mb-4 ${statusConfig?.color}`}
+									>
 										{statusConfig?.icon}
 									</div>
 									<h3 className="text-lg font-semibold mb-2">
@@ -245,7 +247,7 @@ export default function PartnerApplicationStatusPage() {
 									{(application.status === "approved" ||
 										application.status === "active") && (
 										<Link to="/auth/login" className="w-full">
-											<Button className="w-full">
+											<Button className="w-full text-foreground bg-primary hover:bg-primary/90">
 												Login to Partner Dashboard
 											</Button>
 										</Link>

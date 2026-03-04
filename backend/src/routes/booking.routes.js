@@ -11,13 +11,13 @@ import { authorize, protect } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-router.use(protect, authorize("admin"));
+router.use(protect);
 
-router.get("/disputes", getDisputes);
-router.get("/", getBookings);
-router.get("/:id", getBookingDetails);
-router.post("/:id/cancel", cancelBooking);
-router.post("/:id/refund", issueRefund);
-router.post("/:id/resolve-dispute", resolveDispute);
+router.get("/disputes", authorize("admin"), getDisputes);
+router.get("/", authorize("admin"), getBookings);
+router.get("/:id", authorize("admin", "partner"), getBookingDetails);
+router.post("/:id/cancel", authorize("admin", "partner"), cancelBooking);
+router.post("/:id/refund", authorize("admin"), issueRefund);
+router.post("/:id/resolve-dispute", authorize("admin"), resolveDispute);
 
 export default router;

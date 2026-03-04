@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import ActivityLog from "../../models/ActivityLog.model.js";
 import Customer from "../../models/Customer.model.js";
 import OTP from "../../models/OTP.model.js";
 import { sendOtpEmail } from "../../utils/email.js";
@@ -267,6 +268,18 @@ export const signup = async (req, res) => {
 		}
 
 		const customer = await Customer.create(customerData);
+
+		// Log customer account creation
+		await ActivityLog.create({
+			action: "customer_account_created",
+			targetType: "customer",
+			targetId: customer._id.toString(),
+			details: {
+				identifier: otp.identifier,
+				identifierType: otp.identifierType,
+			},
+			category: "activity",
+		});
 
 		// Delete used OTP
 		await OTP.findByIdAndDelete(otp._id);
