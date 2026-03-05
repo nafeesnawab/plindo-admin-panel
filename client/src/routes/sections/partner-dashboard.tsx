@@ -15,6 +15,7 @@ const PartnerDrivers = lazy(() => import("@/pages/partner/drivers"));
 const PartnerSettings = lazy(() => import("@/pages/partner/settings"));
 const PartnerProducts = lazy(() => import("@/pages/partner/products"));
 const PartnerCustomers = lazy(() => import("@/pages/partner/customers"));
+const PartnerDeals = lazy(() => import("@/pages/partner/deals"));
 
 export const partnerDashboardRoutes: RouteObject[] = [
 	{
@@ -120,6 +121,14 @@ export const partnerDashboardRoutes: RouteObject[] = [
 				element: (
 					<Suspense>
 						<PartnerProducts />
+					</Suspense>
+				),
+			},
+			{
+				path: "deals",
+				element: (
+					<Suspense>
+						<PartnerDeals />
 					</Suspense>
 				),
 			},

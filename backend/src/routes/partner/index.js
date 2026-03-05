@@ -13,6 +13,9 @@ import reviewRoutes from "./review.routes.js";
 import scheduleRoutes from "./schedule.routes.js";
 import serviceRoutes from "./service.routes.js";
 import settingsRoutes from "./settings.routes.js";
+import invoicesRoutes from "./invoices.routes.js";
+import portfolioRoutes from "./portfolio.routes.js";
+import dealsRoutes from "./deals.routes.js";
 
 const router = express.Router();
 
@@ -33,6 +36,9 @@ router.use("/drivers", driverRoutes);
 router.use("/products", productRoutes);
 router.use("/product-orders", productOrderRoutes);
 router.use("/settings", settingsRoutes);
+router.use("/invoices", invoicesRoutes);
+router.use("/portfolio", portfolioRoutes);
+router.use("/deals", dealsRoutes);
 router.use("/", calendarEventRoutes);
 
 export default router;

@@ -60,6 +60,11 @@ export const partnerNavData: NavProps["data"] = [
 				path: "/partner/reviews",
 				icon: <Icon icon="solar:star-bold-duotone" size="24" />,
 			},
+			{
+				title: "Deals & Packages",
+				path: "/partner/deals",
+				icon: <Icon icon="solar:tag-price-bold-duotone" size="24" />,
+			},
 		],
 	},
 	{

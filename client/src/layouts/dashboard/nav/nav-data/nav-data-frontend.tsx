@@ -45,6 +45,16 @@ export const frontendNavData: NavProps["data"] = [
 				path: "/finance",
 				icon: <Icon icon="solar:wallet-money-bold-duotone" size="24" />,
 			},
+			{
+				title: "Refund Requests",
+				path: "/finance/refund-requests",
+				icon: <Icon icon="solar:money-bag-bold-duotone" size="24" />,
+			},
+			{
+				title: "Reports",
+				path: "/reports",
+				icon: <Icon icon="solar:file-download-bold-duotone" size="24" />,
+			},
 		],
 	},
 	{

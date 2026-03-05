@@ -1,4 +1,8 @@
+import { useQuery } from "@tanstack/react-query";
+import { AlertTriangle, Star } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router";
+import partnerService from "@/api/services/partnerService";
 import avatar1 from "@/assets/images/avatars/avatar-1.png";
 import avatar2 from "@/assets/images/avatars/avatar-2.png";
 import avatar3 from "@/assets/images/avatars/avatar-3.png";
@@ -91,6 +95,47 @@ const totalIncome = {
 		{ label: "Views", value: 23876 },
 	],
 };
+
+function AtRiskPartnersWidget() {
+	const navigate = useNavigate();
+	const { data } = useQuery({
+		queryKey: ["at-risk-partners"],
+		queryFn: () => partnerService.getActivePartners({ limit: 5, rating: "0" }),
+	});
+
+	const atRisk = (data?.items ?? []).filter((p) => p.rating !== null && p.rating < 3.5);
+
+	if (!atRisk.length) return null;
+
+	return (
+		<Card>
+			<CardContent className="p-4">
+				<div className="flex items-center gap-2 mb-3">
+					<AlertTriangle className="h-4 w-4 text-red-500" />
+					<Text variant="body2" className="font-semibold text-red-600">
+						At-Risk Partners ({atRisk.length})
+					</Text>
+				</div>
+				<div className="flex flex-col gap-2">
+					{atRisk.map((p) => (
+						<button
+							type="button"
+							key={p.id}
+							className="flex items-center justify-between text-left hover:bg-muted/50 rounded px-2 py-1 transition-colors w-full"
+							onClick={() => navigate(`/partners/${p.id}`)}
+						>
+							<Text variant="body2" className="truncate max-w-[160px]">{p.businessName}</Text>
+							<div className="flex items-center gap-1 shrink-0">
+								<Star className="h-3.5 w-3.5 fill-red-400 text-red-400" />
+								<span className="text-sm font-medium text-red-600">{p.rating?.toFixed(1)}</span>
+							</div>
+						</button>
+					))}
+				</div>
+			</CardContent>
+		</Card>
+	);
+}
 
 export default function Workbench() {
 	const [activeTab, setActiveTab] = useState("All Transaction");
@@ -339,6 +384,9 @@ export default function Workbench() {
 					</div>
 				</Card>
 			</div>
+
+		{/* At-Risk Partners */}
+		<AtRiskPartnersWidget />
 		</div>
 	);
 }

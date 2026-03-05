@@ -53,10 +53,12 @@ export interface Partner {
 	status: "pending" | "active" | "suspended";
 	services: PartnerService[];
 	rating: number | null;
+	totalReviews: number;
 	totalBookings: number;
 	completionRate: number | null;
 	totalEarnings: number;
 	isVerified: boolean;
+	hasWarning: boolean;
 	businessLicense: string;
 	description: string;
 	logo: string | null;

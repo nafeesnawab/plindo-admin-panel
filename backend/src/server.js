@@ -33,6 +33,9 @@ import supportRoutes from "./routes/support.routes.js";
 import uploadRoutes from "./routes/upload.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import { initSocket } from "./socket/index.js";
+import { startBookingTimeoutJob } from "./jobs/bookingTimeoutJob.js";
+import refundRequestsRoutes from "./routes/admin/refundRequests.routes.js";
+import reportsRoutes from "./routes/admin/reports.routes.js";
 
 dotenv.config();
 
@@ -109,6 +112,9 @@ app.use("/api/support", supportRoutes);
 app.use("/api/admin/cars", carRoutes);
 // Admin bookings endpoint (from slotBookingService.ts AdminBookings)
 app.use("/api/admin/bookings", adminBookingsRoutes);
+// Admin refund requests & downloadable reports
+app.use("/api/admin/refund-requests", refundRequestsRoutes);
+app.use("/api/admin/reports", reportsRoutes);
 // Public services & subscriptions
 app.use("/api/services", servicesRoutes);
 app.use("/api/subscriptions", subscriptionsRoutes);
@@ -122,6 +128,9 @@ app.use("/api/mobile", mobileRoutes);
 
 // Error handler
 app.use(errorHandler);
+
+// Start cron jobs
+startBookingTimeoutJob();
 
 httpServer.listen(PORT, () => {
 	console.log(`🚀 Server is running on port ${PORT}`);

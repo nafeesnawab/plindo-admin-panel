@@ -1,5 +1,6 @@
 import Booking from "../../models/Booking.model.js";
 import Customer from "../../models/Customer.model.js";
+import RefundRequest from "../../models/RefundRequest.model.js";
 import Partner from "../../models/Partner.model.js";
 import PartnerAvailability from "../../models/PartnerAvailability.model.js";
 import PartnerCapacity from "../../models/PartnerCapacity.model.js";
@@ -669,6 +670,35 @@ export const cancelBooking = async (req, res) => {
 		booking.cancellationReason = reason || "Cancelled by customer";
 		await booking.save();
 
+		// Cancellation refund logic (B2)
+		const customer = await Customer.findById(customerId);
+		if (customer) {
+			customer.cancellationCount = (customer.cancellationCount || 0) + 1;
+			await customer.save();
+
+			const refundAmount = booking.pricing?.finalPrice || 0;
+			if (customer.cancellationCount <= 2) {
+				// 1st and 2nd cancellation: auto-refund
+				booking.isRefunded = true;
+				booking.refundAmount = refundAmount;
+				booking.refundedAt = new Date();
+				await booking.save();
+			} else {
+				// 3rd+ cancellation: create manual review request
+				await RefundRequest.create({
+					bookingId: booking._id,
+					bookingNumber: booking.bookingNumber,
+					customerId: customer._id,
+					customerName: customer.name,
+					customerEmail: customer.email,
+					amount: refundAmount,
+					reason: reason || "Cancelled by customer",
+					cancellationCount: customer.cancellationCount,
+					status: "pending_review",
+				});
+			}
+		}
+
 		return success(res, { booking: formatBooking(booking) }, "Booking cancelled");
 	} catch (err) {
 		return error(res, err.message, 500);
@@ -726,10 +756,27 @@ export const submitReview = async (req, res) => {
 		booking.ratingCreatedAt = new Date();
 		await booking.save();
 
-		// Update partner rating (simple average for now)
+		// Update partner rating + auto-monitoring (B3)
 		const allReviews = await Review.find({ partnerId: booking.partnerId });
 		const avgRating = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
-		await Partner.findByIdAndUpdate(booking.partnerId, { rating: avgRating.toFixed(1) });
+		const partner = await Partner.findById(booking.partnerId);
+		if (partner) {
+			partner.rating = parseFloat(avgRating.toFixed(1));
+			partner.totalReviews = allReviews.length;
+			// Warning threshold: avg < 3.5
+			if (avgRating < 3.5 && !partner.hasWarning) {
+				partner.hasWarning = true;
+				console.log(`[PartnerMonitor] Warning set for partner ${partner._id} (rating: ${avgRating.toFixed(1)})`);
+			}
+			// Auto-suspend threshold: avg < 3.0
+			if (avgRating < 3.0 && partner.status === "active") {
+				partner.status = "suspended";
+				partner.suspensionReason = `Auto-suspended: average rating dropped to ${avgRating.toFixed(1)}`;
+				partner.suspendedAt = new Date();
+				console.log(`[PartnerMonitor] Auto-suspended partner ${partner._id} (rating: ${avgRating.toFixed(1)})`);
+			}
+			await partner.save();
+		}
 
 		return success(
 			res,

@@ -2,6 +2,7 @@ import { AccountCard } from "./components/account-card";
 import { LogoutSection } from "./components/logout-section";
 import { NotificationsCard } from "./components/notifications-card";
 import { PasswordDialog } from "./components/password-dialog";
+import { PortfolioCard } from "./components/portfolio-card";
 import { useSettings } from "./hooks/use-settings";
 
 export default function PartnerSettings() {
@@ -35,7 +36,9 @@ export default function PartnerSettings() {
 				/>
 			</div>
 
-			<LogoutSection
+			<PortfolioCard />
+
+		<LogoutSection
 				dialogOpen={logoutDialogOpen}
 				onDialogOpenChange={setLogoutDialogOpen}
 				onLogout={handleLogout}

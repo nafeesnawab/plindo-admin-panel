@@ -34,8 +34,17 @@ export function getFrontendDashboardRoutes(): RouteObject[] {
 			],
 		},
 
-		// Financial Reports (single merged page)
-		{ path: "finance", element: Component("/pages/finance") },
+		// Financial Reports
+		{
+			path: "finance",
+			children: [
+				{ index: true, element: Component("/pages/finance") },
+				{ path: "refund-requests", element: Component("/pages/finance/refund-requests") },
+			],
+		},
+
+		// Downloadable Reports
+		{ path: "reports", element: Component("/pages/reports") },
 
 		// Platform Settings (single merged page)
 		{ path: "settings", element: Component("/pages/settings") },

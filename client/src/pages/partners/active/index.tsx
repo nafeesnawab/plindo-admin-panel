@@ -229,10 +229,21 @@ export default function ActivePartners() {
 										</TableCell>
 										<TableCell>{partner.location}</TableCell>
 										<TableCell>
-											<div className="flex items-center gap-1">
-												<Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-												<span>{partner.rating?.toFixed(1) || "N/A"}</span>
+											{partner.rating != null ? (
+											<div className="flex items-center gap-1.5">
+												<Star
+													className={`h-4 w-4 fill-current ${partner.rating >= 4.0 ? "text-green-500" : partner.rating >= 3.5 ? "text-yellow-500" : "text-red-500"}`}
+												/>
+												<span className={`font-medium ${partner.rating >= 4.0 ? "text-green-600" : partner.rating >= 3.5 ? "text-yellow-600" : "text-red-600"}`}>
+													{partner.rating.toFixed(1)}
+												</span>
+												{partner.hasWarning && (
+													<Badge className="bg-yellow-500/10 text-yellow-600 text-[10px] px-1 py-0">⚠</Badge>
+												)}
 											</div>
+										) : (
+											<span className="text-muted-foreground text-sm">N/A</span>
+										)}
 										</TableCell>
 										<TableCell>{partner.totalBookings.toLocaleString()}</TableCell>
 										<TableCell>

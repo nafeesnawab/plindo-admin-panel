@@ -296,6 +296,7 @@ export const createSlotBooking = async (req, res) => {
 				partnerPayout,
 			},
 			status: "booked",
+			acceptDeadline: new Date(Date.now() + 2 * 60 * 1000), // 2 minutes from now
 			bayId: availableBay.id,
 			bayName: availableBay.name,
 			serviceSteps: getInitialServiceSteps(serviceType || "book_me", svcCategory),

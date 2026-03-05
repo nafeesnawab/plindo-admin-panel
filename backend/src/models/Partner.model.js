@@ -144,12 +144,17 @@ const partnerSchema = new mongoose.Schema(
 			customerMessage: { type: Boolean, default: true },
 		},
 
+		// Portfolio Images (up to 10)
+		portfolioImages: { type: [String], default: [], validate: { validator: (v) => v.length <= 10, message: "Maximum 10 portfolio images allowed" } },
+
 		// Stats
 		rating: { type: Number, default: 0 },
+		totalReviews: { type: Number, default: 0 },
 		totalBookings: { type: Number, default: 0 },
 		completionRate: { type: Number, default: 0 },
 		totalEarnings: { type: Number, default: 0 },
 		isVerified: { type: Boolean, default: false },
+		hasWarning: { type: Boolean, default: false },
 	},
 	{
 		timestamps: true,

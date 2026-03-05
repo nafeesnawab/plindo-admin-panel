@@ -87,6 +87,7 @@ const customerSchema = new mongoose.Schema(
 		// Stats
 		totalBookings: { type: Number, default: 0 },
 		totalSpent: { type: Number, default: 0 },
+		cancellationCount: { type: Number, default: 0 },
 
 		// Push notifications
 		fcmToken: { type: String },

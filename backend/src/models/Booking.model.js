@@ -93,6 +93,9 @@ const bookingSchema = new mongoose.Schema(
     // Product order (embedded summary)
     productOrder: productOrderSchema,
 
+    // 2-minute accept deadline (set on booking creation)
+    acceptDeadline: { type: Date },
+
     // Cancellation
     cancelledAt: { type: Date },
     cancelledBy: { type: String, enum: ['customer', 'partner'] },
