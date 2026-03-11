@@ -105,7 +105,10 @@ const customerSchema = new mongoose.Schema(
 customerSchema.index({ email: 1 }, { sparse: true });
 customerSchema.index({ phone: 1 }, { sparse: true });
 customerSchema.index({ status: 1 });
-customerSchema.index({ name: "text", email: "text" });
+customerSchema.index(
+	{ name: "text", email: "text" },
+	{ language_override: "ftsLanguage" },
+);
 
 customerSchema.pre("save", async function (next) {
 	if (!this.isModified("password") || !this.password) {
