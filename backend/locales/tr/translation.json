@@ -1,0 +1,112 @@
+{
+  "auth": {
+    "otp_sent": "OTP başarıyla gönderildi",
+    "otp_verified": "OTP başarıyla doğrulandı",
+    "account_created": "Hesap başarıyla oluşturuldu",
+    "signin_success": "Başarıyla giriş yapıldı",
+    "password_reset_success": "Şifre başarıyla sıfırlandı",
+    "password_changed": "Şifre başarıyla değiştirildi",
+    "invalid_credentials": "Geçersiz kimlik bilgileri",
+    "account_suspended": "Hesabınız askıya alındı",
+    "account_exists": "Bu {{type}} ile zaten bir hesap var",
+    "account_not_found": "Bu {{type}} ile hesap bulunamadı",
+    "wait_before_resend": "Yeni bir OTP istemeden önce lütfen {{seconds}} saniye bekleyin",
+    "invalid_otp": "Geçersiz veya süresi dolmuş OTP",
+    "otp_expired": "OTP'nin süresi doldu",
+    "max_attempts": "Maksimum deneme sayısı aşıldı. Lütfen yeni bir OTP isteyin",
+    "invalid_otp_attempts": "Geçersiz OTP. {{remaining}} deneme kaldı",
+    "invalid_verification_token": "Geçersiz veya süresi dolmuş doğrulama belirteci",
+    "verification_expired": "Doğrulama belirtecinin süresi doldu. Lütfen baştan başlayın",
+    "identifier_mismatch": "Tanımlayıcı, doğrulanmış OTP ile eşleşmiyor",
+    "account_already_exists": "Bu tanımlayıcıya sahip bir hesap zaten var",
+    "reset_password_continue": "Devam etmek için lütfen şifrenizi sıfırlayın",
+    "invalid_refresh_token": "Geçersiz yenileme belirteci",
+    "type_required": "tür, değer ve amaç gereklidir",
+    "type_invalid": "tür 'email' veya 'phone' olmalıdır",
+    "purpose_invalid": "amaç 'signup' veya 'reset_password' olmalıdır",
+    "verification_password_required": "doğrulama belirteci ve şifre gereklidir",
+    "email_phone_required": "e-posta veya telefon gereklidir",
+    "password_min_length": "Şifre en az 6 karakter olmalıdır",
+    "identifier_password_required": "tanımlayıcı ve şifre gereklidir",
+    "email_required": "E-posta gereklidir",
+    "verification_newpassword_required": "doğrulama belirteci ve yeni şifre gereklidir",
+    "refresh_token_required": "Yenileme belirteci gereklidir",
+    "invalid_token_type": "Geçersiz belirteç türü"
+  },
+  "profile": {
+    "customer_not_found": "Müşteri bulunamadı",
+    "profile_updated": "Profil güncellendi",
+    "email_in_use": "E-posta zaten kullanılıyor",
+    "phone_in_use": "Telefon numarası zaten kullanılıyor",
+    "old_new_password_required": "eski şifre ve yeni şifre gereklidir",
+    "current_password_incorrect": "Mevcut şifre yanlış",
+    "account_deleted": "Hesap başarıyla silindi",
+    "logged_out": "Başarıyla çıkış yapıldı"
+  },
+  "vehicles": {
+    "vehicle_added": "Araç eklendi",
+    "vehicle_updated": "Araç güncellendi",
+    "vehicle_deleted": "Araç silindi",
+    "vehicle_not_found": "Araç bulunamadı",
+    "make_model_required": "marka ve model gereklidir",
+    "type_last4_required": "tür ve son 4 rakam gereklidir"
+  },
+  "payment": {
+    "payment_method_added": "Ödeme yöntemi eklendi",
+    "payment_method_removed": "Ödeme yöntemi kaldırıldı",
+    "payment_method_not_found": "Ödeme yöntemi bulunamadı"
+  },
+  "bookings": {
+    "booking_created": "Rezervasyon başarıyla oluşturuldu",
+    "booking_cancelled": "Rezervasyon başarıyla iptal edildi",
+    "booking_not_found": "Rezervasyon bulunamadı",
+    "cannot_cancel": "Mevcut durumda rezervasyon iptal edilemiyor",
+    "review_submitted": "İnceleme başarıyla gönderildi",
+    "already_reviewed": "Bu rezervasyonu zaten incelemiştiniz",
+    "cannot_review": "Yalnızca tamamlanmış rezervasyonları inceleyebilirsiniz",
+    "rating_required": "değerlendirme gereklidir",
+    "rating_invalid": "değerlendirme 1 ile 5 arasında olmalıdır",
+    "service_required": "hizmet kimliği gereklidir",
+    "vehicle_required": "araç kimliği gereklidir",
+    "datetime_required": "planlanan tarih ve saat gereklidir",
+    "invalid_datetime": "Geçersiz tarih veya saat formatı",
+    "slot_not_available": "Seçilen zaman dilimi mevcut değil",
+    "partner_not_found": "İş ortağı bulunamadı",
+    "service_not_found": "Hizmet bulunamadı",
+    "vehicle_not_belongs": "Araç size ait değil",
+    "payment_failed": "Ödeme işlemi başarısız oldu"
+  },
+  "partners": {
+    "partner_not_found": "İş ortağı bulunamadı",
+    "no_services": "Mevcut hizmet yok",
+    "no_products": "Mevcut ürün yok"
+  },
+  "subscriptions": {
+    "subscription_created": "Abonelik başarıyla oluşturuldu",
+    "subscription_cancelled": "Abonelik başarıyla iptal edildi",
+    "plan_not_found": "Abonelik planı bulunamadı",
+    "already_subscribed": "Zaten aktif bir aboneliğiniz var",
+    "no_active_subscription": "Aktif abonelik bulunamadı"
+  },
+  "messaging": {
+    "conversation_started": "Konuşma başladı",
+    "message_sent": "Mesaj gönderildi",
+    "conversation_not_found": "Konuşma bulunamadı",
+    "message_required": "mesaj gereklidir",
+    "partner_required": "iş ortağı kimliği gereklidir"
+  },
+  "upload": {
+    "upload_success": "Dosyalar başarıyla yüklendi",
+    "no_files": "Dosya yüklenmedi"
+  },
+  "common": {
+    "success": "Başarılı",
+    "error": "Bir hata oluştu",
+    "invalid_request": "Geçersiz istek",
+    "unauthorized": "Yetkisiz",
+    "forbidden": "Yasak",
+    "not_found": "Bulunamadı",
+    "server_error": "Dahili sunucu hatası",
+    "validation_error": "Doğrulama hatası"
+  }
+}

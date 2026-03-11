@@ -1,0 +1,112 @@
+{
+  "auth": {
+    "otp_sent": "تم إرسال رمز التحقق بنجاح",
+    "otp_verified": "تم التحقق من الرمز بنجاح",
+    "account_created": "تم إنشاء الحساب بنجاح",
+    "signin_success": "تم تسجيل الدخول بنجاح",
+    "password_reset_success": "تم إعادة تعيين كلمة المرور بنجاح",
+    "password_changed": "تم تغيير كلمة المرور بنجاح",
+    "invalid_credentials": "بيانات الاعتماد غير صحيحة",
+    "account_suspended": "تم تعليق حسابك",
+    "account_exists": "يوجد حساب بالفعل بهذا {{type}}",
+    "account_not_found": "لم يتم العثور على حساب بهذا {{type}}",
+    "wait_before_resend": "يرجى الانتظار {{seconds}} ثانية قبل طلب رمز جديد",
+    "invalid_otp": "رمز التحقق غير صحيح أو منتهي الصلاحية",
+    "otp_expired": "انتهت صلاحية رمز التحقق",
+    "max_attempts": "تم تجاوز الحد الأقصى للمحاولات. يرجى طلب رمز جديد",
+    "invalid_otp_attempts": "رمز التحقق غير صحيح. {{remaining}} محاولات متبقية",
+    "invalid_verification_token": "رمز التحقق غير صحيح أو منتهي الصلاحية",
+    "verification_expired": "انتهت صلاحية رمز التحقق. يرجى البدء من جديد",
+    "identifier_mismatch": "المعرف لا يطابق رمز التحقق المعتمد",
+    "account_already_exists": "يوجد حساب بالفعل بهذا المعرف",
+    "reset_password_continue": "يرجى إعادة تعيين كلمة المرور للمتابعة",
+    "invalid_refresh_token": "رمز التحديث غير صحيح",
+    "type_required": "النوع والقيمة والغرض مطلوبة",
+    "type_invalid": "يجب أن يكون النوع 'email' أو 'phone'",
+    "purpose_invalid": "يجب أن يكون الغرض 'signup' أو 'reset_password'",
+    "verification_password_required": "رمز التحقق وكلمة المرور مطلوبة",
+    "email_phone_required": "البريد الإلكتروني أو رقم الهاتف مطلوب",
+    "password_min_length": "يجب أن تكون كلمة المرور 6 أحرف على الأقل",
+    "identifier_password_required": "المعرف وكلمة المرور مطلوبة",
+    "email_required": "البريد الإلكتروني مطلوب",
+    "verification_newpassword_required": "رمز التحقق وكلمة المرور الجديدة مطلوبة",
+    "refresh_token_required": "رمز التحديث مطلوب",
+    "invalid_token_type": "نوع الرمز غير صحيح"
+  },
+  "profile": {
+    "customer_not_found": "لم يتم العثور على العميل",
+    "profile_updated": "تم تحديث الملف الشخصي",
+    "email_in_use": "البريد الإلكتروني مستخدم بالفعل",
+    "phone_in_use": "رقم الهاتف مستخدم بالفعل",
+    "old_new_password_required": "كلمة المرور القديمة والجديدة مطلوبة",
+    "current_password_incorrect": "كلمة المرور الحالية غير صحيحة",
+    "account_deleted": "تم حذف الحساب بنجاح",
+    "logged_out": "تم تسجيل الخروج بنجاح"
+  },
+  "vehicles": {
+    "vehicle_added": "تمت إضافة المركبة",
+    "vehicle_updated": "تم تحديث المركبة",
+    "vehicle_deleted": "تم حذف المركبة",
+    "vehicle_not_found": "لم يتم العثور على المركبة",
+    "make_model_required": "الصانع والطراز مطلوبان",
+    "type_last4_required": "النوع وآخر 4 أرقام مطلوبة"
+  },
+  "payment": {
+    "payment_method_added": "تمت إضافة طريقة الدفع",
+    "payment_method_removed": "تمت إزالة طريقة الدفع",
+    "payment_method_not_found": "لم يتم العثور على طريقة الدفع"
+  },
+  "bookings": {
+    "booking_created": "تم إنشاء الحجز بنجاح",
+    "booking_cancelled": "تم إلغاء الحجز بنجاح",
+    "booking_not_found": "لم يتم العثور على الحجز",
+    "cannot_cancel": "لا يمكن إلغاء الحجز في الحالة الحالية",
+    "review_submitted": "تم إرسال التقييم بنجاح",
+    "already_reviewed": "لقد قمت بالفعل بتقييم هذا الحجز",
+    "cannot_review": "يمكنك فقط تقييم الحجوزات المكتملة",
+    "rating_required": "التقييم مطلوب",
+    "rating_invalid": "يجب أن يكون التقييم بين 1 و 5",
+    "service_required": "معرف الخدمة مطلوب",
+    "vehicle_required": "معرف المركبة مطلوب",
+    "datetime_required": "التاريخ والوقت المحددان مطلوبان",
+    "invalid_datetime": "تنسيق التاريخ أو الوقت غير صحيح",
+    "slot_not_available": "الفترة الزمنية المحددة غير متاحة",
+    "partner_not_found": "لم يتم العثور على الشريك",
+    "service_not_found": "لم يتم العثور على الخدمة",
+    "vehicle_not_belongs": "المركبة لا تنتمي إليك",
+    "payment_failed": "فشلت معالجة الدفع"
+  },
+  "partners": {
+    "partner_not_found": "لم يتم العثور على الشريك",
+    "no_services": "لا توجد خدمات متاحة",
+    "no_products": "لا توجد منتجات متاحة"
+  },
+  "subscriptions": {
+    "subscription_created": "تم إنشاء الاشتراك بنجاح",
+    "subscription_cancelled": "تم إلغاء الاشتراك بنجاح",
+    "plan_not_found": "لم يتم العثور على خطة الاشتراك",
+    "already_subscribed": "لديك بالفعل اشتراك نشط",
+    "no_active_subscription": "لم يتم العثور على اشتراك نشط"
+  },
+  "messaging": {
+    "conversation_started": "بدأت المحادثة",
+    "message_sent": "تم إرسال الرسالة",
+    "conversation_not_found": "لم يتم العثور على المحادثة",
+    "message_required": "الرسالة مطلوبة",
+    "partner_required": "معرف الشريك مطلوب"
+  },
+  "upload": {
+    "upload_success": "تم تحميل الملفات بنجاح",
+    "no_files": "لم يتم تحميل أي ملفات"
+  },
+  "common": {
+    "success": "نجح",
+    "error": "حدث خطأ",
+    "invalid_request": "طلب غير صحيح",
+    "unauthorized": "غير مصرح",
+    "forbidden": "محظور",
+    "not_found": "غير موجود",
+    "server_error": "خطأ في الخادم الداخلي",
+    "validation_error": "خطأ في التحقق"
+  }
+}

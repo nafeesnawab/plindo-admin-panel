@@ -1,0 +1,112 @@
+{
+  "auth": {
+    "otp_sent": "OTP trimis cu succes",
+    "otp_verified": "OTP verificat cu succes",
+    "account_created": "Cont creat cu succes",
+    "signin_success": "Autentificare reușită",
+    "password_reset_success": "Parola a fost resetată cu succes",
+    "password_changed": "Parola a fost schimbată cu succes",
+    "invalid_credentials": "Credențiale invalide",
+    "account_suspended": "Contul dvs. a fost suspendat",
+    "account_exists": "Există deja un cont cu acest {{type}}",
+    "account_not_found": "Nu s-a găsit niciun cont cu acest {{type}}",
+    "wait_before_resend": "Vă rugăm să așteptați {{seconds}} secunde înainte de a solicita un nou OTP",
+    "invalid_otp": "OTP invalid sau expirat",
+    "otp_expired": "OTP-ul a expirat",
+    "max_attempts": "Numărul maxim de încercări a fost depășit. Vă rugăm să solicitați un nou OTP",
+    "invalid_otp_attempts": "OTP invalid. {{remaining}} încercări rămase",
+    "invalid_verification_token": "Token de verificare invalid sau expirat",
+    "verification_expired": "Token-ul de verificare a expirat. Vă rugăm să începeți din nou",
+    "identifier_mismatch": "Identificatorul nu corespunde cu OTP-ul verificat",
+    "account_already_exists": "Există deja un cont cu acest identificator",
+    "reset_password_continue": "Vă rugăm să resetați parola pentru a continua",
+    "invalid_refresh_token": "Token de reîmprospătare invalid",
+    "type_required": "tip, valoare și scop sunt necesare",
+    "type_invalid": "tipul trebuie să fie 'email' sau 'phone'",
+    "purpose_invalid": "scopul trebuie să fie 'signup' sau 'reset_password'",
+    "verification_password_required": "token de verificare și parolă sunt necesare",
+    "email_phone_required": "email sau telefon este necesar",
+    "password_min_length": "Parola trebuie să aibă cel puțin 6 caractere",
+    "identifier_password_required": "identificator și parolă sunt necesare",
+    "email_required": "Email-ul este necesar",
+    "verification_newpassword_required": "token de verificare și parolă nouă sunt necesare",
+    "refresh_token_required": "Token de reîmprospătare este necesar",
+    "invalid_token_type": "Tip de token invalid"
+  },
+  "profile": {
+    "customer_not_found": "Clientul nu a fost găsit",
+    "profile_updated": "Profil actualizat",
+    "email_in_use": "Email-ul este deja utilizat",
+    "phone_in_use": "Numărul de telefon este deja utilizat",
+    "old_new_password_required": "parola veche și parola nouă sunt necesare",
+    "current_password_incorrect": "Parola curentă este incorectă",
+    "account_deleted": "Cont șters cu succes",
+    "logged_out": "Deconectat cu succes"
+  },
+  "vehicles": {
+    "vehicle_added": "Vehicul adăugat",
+    "vehicle_updated": "Vehicul actualizat",
+    "vehicle_deleted": "Vehicul șters",
+    "vehicle_not_found": "Vehiculul nu a fost găsit",
+    "make_model_required": "marca și modelul sunt necesare",
+    "type_last4_required": "tipul și ultimele 4 cifre sunt necesare"
+  },
+  "payment": {
+    "payment_method_added": "Metodă de plată adăugată",
+    "payment_method_removed": "Metodă de plată eliminată",
+    "payment_method_not_found": "Metoda de plată nu a fost găsită"
+  },
+  "bookings": {
+    "booking_created": "Rezervare creată cu succes",
+    "booking_cancelled": "Rezervare anulată cu succes",
+    "booking_not_found": "Rezervarea nu a fost găsită",
+    "cannot_cancel": "Nu se poate anula rezervarea în starea curentă",
+    "review_submitted": "Recenzie trimisă cu succes",
+    "already_reviewed": "Ați evaluat deja această rezervare",
+    "cannot_review": "Puteți evalua doar rezervările finalizate",
+    "rating_required": "evaluarea este necesară",
+    "rating_invalid": "evaluarea trebuie să fie între 1 și 5",
+    "service_required": "ID-ul serviciului este necesar",
+    "vehicle_required": "ID-ul vehiculului este necesar",
+    "datetime_required": "data și ora programate sunt necesare",
+    "invalid_datetime": "Format invalid de dată sau oră",
+    "slot_not_available": "Intervalul de timp selectat nu este disponibil",
+    "partner_not_found": "Partenerul nu a fost găsit",
+    "service_not_found": "Serviciul nu a fost găsit",
+    "vehicle_not_belongs": "Vehiculul nu vă aparține",
+    "payment_failed": "Procesarea plății a eșuat"
+  },
+  "partners": {
+    "partner_not_found": "Partenerul nu a fost găsit",
+    "no_services": "Nu există servicii disponibile",
+    "no_products": "Nu există produse disponibile"
+  },
+  "subscriptions": {
+    "subscription_created": "Abonament creat cu succes",
+    "subscription_cancelled": "Abonament anulat cu succes",
+    "plan_not_found": "Planul de abonament nu a fost găsit",
+    "already_subscribed": "Aveți deja un abonament activ",
+    "no_active_subscription": "Nu s-a găsit niciun abonament activ"
+  },
+  "messaging": {
+    "conversation_started": "Conversație începută",
+    "message_sent": "Mesaj trimis",
+    "conversation_not_found": "Conversația nu a fost găsită",
+    "message_required": "mesajul este necesar",
+    "partner_required": "ID-ul partenerului este necesar"
+  },
+  "upload": {
+    "upload_success": "Fișiere încărcate cu succes",
+    "no_files": "Nu au fost încărcate fișiere"
+  },
+  "common": {
+    "success": "Succes",
+    "error": "A apărut o eroare",
+    "invalid_request": "Cerere invalidă",
+    "unauthorized": "Neautorizat",
+    "forbidden": "Interzis",
+    "not_found": "Nu a fost găsit",
+    "server_error": "Eroare internă de server",
+    "validation_error": "Eroare de validare"
+  }
+}

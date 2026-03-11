@@ -3,6 +3,7 @@ import PartnerAvailability from "../../models/PartnerAvailability.model.js";
 import Product from "../../models/Product.model.js";
 import Review from "../../models/Review.model.js";
 import Service from "../../models/Service.model.js";
+import { t } from "../../utils/i18n.helper.js";
 import { paginate, paginatedResponse } from "../../utils/pagination.js";
 import { error, success } from "../../utils/response.js";
 
@@ -15,11 +16,11 @@ const formatPartnerListItem = (p, services = [], schedule = null) => {
 	let isOpenNow = false;
 
 	if (schedule?.length > 0) {
-		const todayData = schedule.find(s => s.dayOfWeek === dayOfWeek);
+		const todayData = schedule.find((s) => s.dayOfWeek === dayOfWeek);
 		if (todayData?.isEnabled && todayData.timeBlocks?.length > 0) {
 			// Check if current time falls within any time block
-			isOpenNow = todayData.timeBlocks.some(block =>
-				currentTime >= block.start && currentTime <= block.end
+			isOpenNow = todayData.timeBlocks.some(
+				(block) => currentTime >= block.start && currentTime <= block.end,
 			);
 		}
 	}
@@ -37,7 +38,9 @@ const formatPartnerListItem = (p, services = [], schedule = null) => {
 
 	// Get service types available
 	const serviceTypes = [...new Set(services.map((s) => s.serviceType))];
-	const serviceCategories = [...new Set(services.map((s) => s.serviceCategory))];
+	const serviceCategories = [
+		...new Set(services.map((s) => s.serviceCategory)),
+	];
 
 	return {
 		id: p._id,
@@ -86,9 +89,10 @@ const formatService = (s) => ({
 	duration: s.duration,
 	bannerUrl: s.bannerUrl || "",
 	bodyTypePricing: s.bodyTypePricing || [],
-	minPrice: s.bodyTypePricing?.length > 0
-		? Math.min(...s.bodyTypePricing.map((bp) => bp.price))
-		: 0,
+	minPrice:
+		s.bodyTypePricing?.length > 0
+			? Math.min(...s.bodyTypePricing.map((bp) => bp.price))
+			: 0,
 });
 
 const formatProduct = (p) => ({
@@ -144,9 +148,14 @@ export const getPartners = async (req, res) => {
 				const svcFilter = { status: "active" };
 				if (serviceType) svcFilter.serviceType = serviceType;
 				if (serviceCategory) svcFilter.serviceCategory = serviceCategory;
-				if (maxPrice) svcFilter["bodyTypePricing.price"] = { $lte: parseFloat(maxPrice) };
-				const svcMatches = await Service.find(svcFilter).select("partnerId").lean();
-				serviceFilterMatchIds = new Set(svcMatches.map((s) => s.partnerId.toString()));
+				if (maxPrice)
+					svcFilter["bodyTypePricing.price"] = { $lte: parseFloat(maxPrice) };
+				const svcMatches = await Service.find(svcFilter)
+					.select("partnerId")
+					.lean();
+				serviceFilterMatchIds = new Set(
+					svcMatches.map((s) => s.partnerId.toString()),
+				);
 			}
 
 			if (search) {
@@ -158,15 +167,21 @@ export const getPartners = async (req, res) => {
 				const nameMatches = await Partner.find({
 					status: "active",
 					$or: [{ businessName: searchRgx }, { description: searchRgx }],
-				}).select("_id").lean();
+				})
+					.select("_id")
+					.lean();
 				const nameMatchIds = new Set(nameMatches.map((p) => p._id.toString()));
 
 				// Services matching search text (union with service filter matches)
 				const svcSearch = await Service.find({
 					status: "active",
 					$or: [{ name: searchRgx }, { description: searchRgx }],
-				}).select("partnerId").lean();
-				const svcSearchIds = new Set(svcSearch.map((s) => s.partnerId.toString()));
+				})
+					.select("partnerId")
+					.lean();
+				const svcSearchIds = new Set(
+					svcSearch.map((s) => s.partnerId.toString()),
+				);
 
 				// Combine: partner name match OR service name match
 				const searchUnion = new Set([...nameMatchIds, ...svcSearchIds]);
@@ -174,7 +189,7 @@ export const getPartners = async (req, res) => {
 				if (hasServiceFilters) {
 					// Must satisfy both: service filters AND search term
 					eligiblePartnerIds = new Set(
-						[...serviceFilterMatchIds].filter((id) => searchUnion.has(id))
+						[...serviceFilterMatchIds].filter((id) => searchUnion.has(id)),
 					);
 				} else {
 					eligiblePartnerIds = searchUnion;
@@ -203,7 +218,12 @@ export const getPartners = async (req, res) => {
 			partners = partners
 				.map((p) => {
 					if (p.latitude && p.longitude) {
-						const distance = calculateDistance(userLat, userLng, p.latitude, p.longitude);
+						const distance = calculateDistance(
+							userLat,
+							userLng,
+							p.latitude,
+							p.longitude,
+						);
 						return { ...p, distance };
 					}
 					return { ...p, distance: null };
@@ -251,8 +271,16 @@ export const getPartners = async (req, res) => {
 			partners.sort((a, b) => {
 				const aServices = servicesByPartner[a._id.toString()] || [];
 				const bServices = servicesByPartner[b._id.toString()] || [];
-				const aMin = Math.min(...aServices.flatMap((s) => s.bodyTypePricing?.map((bp) => bp.price) || [999]));
-				const bMin = Math.min(...bServices.flatMap((s) => s.bodyTypePricing?.map((bp) => bp.price) || [999]));
+				const aMin = Math.min(
+					...aServices.flatMap(
+						(s) => s.bodyTypePricing?.map((bp) => bp.price) || [999],
+					),
+				);
+				const bMin = Math.min(
+					...bServices.flatMap(
+						(s) => s.bodyTypePricing?.map((bp) => bp.price) || [999],
+					),
+				);
 				return aMin - bMin;
 			});
 		}
@@ -266,10 +294,11 @@ export const getPartners = async (req, res) => {
 			partners = partners.filter((p) => {
 				const schedule = scheduleByPartner[p._id.toString()];
 				if (!schedule?.length) return false;
-				const todayData = schedule.find(s => s.dayOfWeek === dayOfWeek);
-				if (!todayData?.isEnabled || !todayData.timeBlocks?.length) return false;
-				return todayData.timeBlocks.some(block =>
-					currentTime >= block.start && currentTime <= block.end
+				const todayData = schedule.find((s) => s.dayOfWeek === dayOfWeek);
+				if (!todayData?.isEnabled || !todayData.timeBlocks?.length)
+					return false;
+				return todayData.timeBlocks.some(
+					(block) => currentTime >= block.start && currentTime <= block.end,
 				);
 			});
 		}
@@ -283,7 +312,7 @@ export const getPartners = async (req, res) => {
 			...formatPartnerListItem(
 				p,
 				servicesByPartner[p._id.toString()] || [],
-				scheduleByPartner[p._id.toString()] || []
+				scheduleByPartner[p._id.toString()] || [],
 			),
 			distance: p.distance,
 		}));
@@ -304,7 +333,7 @@ export const getPartnerDetails = async (req, res) => {
 
 		const partner = await Partner.findOne({ _id: id, status: "active" });
 		if (!partner) {
-			return error(res, "Partner not found", 404);
+			return error(res, t(req, "partners.partner_not_found"), 404);
 		}
 
 		const [services, products, reviewStats, availability] = await Promise.all([
@@ -420,8 +449,10 @@ function calculateDistance(lat1, lng1, lat2, lng2) {
 	const dLng = toRad(lng2 - lng1);
 	const a =
 		Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-		Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-		Math.sin(dLng / 2) * Math.sin(dLng / 2);
+		Math.cos(toRad(lat1)) *
+			Math.cos(toRad(lat2)) *
+			Math.sin(dLng / 2) *
+			Math.sin(dLng / 2);
 	const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 	return Math.round(R * c * 10) / 10; // Round to 1 decimal
 }

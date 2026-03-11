@@ -1,0 +1,112 @@
+{
+  "auth": {
+    "otp_sent": "OTP sent successfully",
+    "otp_verified": "OTP verified successfully",
+    "account_created": "Account created successfully",
+    "signin_success": "Signed in successfully",
+    "password_reset_success": "Password reset successfully",
+    "password_changed": "Password changed successfully",
+    "invalid_credentials": "Invalid credentials",
+    "account_suspended": "Your account has been suspended",
+    "account_exists": "An account with this {{type}} already exists",
+    "account_not_found": "No account found with this {{type}}",
+    "wait_before_resend": "Please wait {{seconds}} seconds before requesting a new OTP",
+    "invalid_otp": "Invalid or expired OTP",
+    "otp_expired": "OTP has expired",
+    "max_attempts": "Maximum attempts exceeded. Please request a new OTP",
+    "invalid_otp_attempts": "Invalid OTP. {{remaining}} attempts remaining",
+    "invalid_verification_token": "Invalid or expired verification token",
+    "verification_expired": "Verification token has expired. Please start over",
+    "identifier_mismatch": "Identifier does not match the verified OTP",
+    "account_already_exists": "An account with this identifier already exists",
+    "reset_password_continue": "Please reset your password to continue",
+    "invalid_refresh_token": "Invalid refresh token",
+    "type_required": "type, value, and purpose are required",
+    "type_invalid": "type must be 'email' or 'phone'",
+    "purpose_invalid": "purpose must be 'signup' or 'reset_password'",
+    "verification_password_required": "verificationToken and password are required",
+    "email_phone_required": "email or phone is required",
+    "password_min_length": "Password must be at least 6 characters",
+    "identifier_password_required": "identifier and password are required",
+    "email_required": "Email is required",
+    "verification_newpassword_required": "verificationToken and newPassword are required",
+    "refresh_token_required": "Refresh token is required",
+    "invalid_token_type": "Invalid token type"
+  },
+  "profile": {
+    "customer_not_found": "Customer not found",
+    "profile_updated": "Profile updated",
+    "email_in_use": "Email is already in use",
+    "phone_in_use": "Phone number is already in use",
+    "old_new_password_required": "oldPassword and newPassword are required",
+    "current_password_incorrect": "Current password is incorrect",
+    "account_deleted": "Account deleted successfully",
+    "logged_out": "Logged out successfully"
+  },
+  "vehicles": {
+    "vehicle_added": "Vehicle added",
+    "vehicle_updated": "Vehicle updated",
+    "vehicle_deleted": "Vehicle deleted",
+    "vehicle_not_found": "Vehicle not found",
+    "make_model_required": "make and model are required",
+    "type_last4_required": "type and last4 are required"
+  },
+  "payment": {
+    "payment_method_added": "Payment method added",
+    "payment_method_removed": "Payment method removed",
+    "payment_method_not_found": "Payment method not found"
+  },
+  "bookings": {
+    "booking_created": "Booking created successfully",
+    "booking_cancelled": "Booking cancelled successfully",
+    "booking_not_found": "Booking not found",
+    "cannot_cancel": "Cannot cancel booking in current status",
+    "review_submitted": "Review submitted successfully",
+    "already_reviewed": "You have already reviewed this booking",
+    "cannot_review": "You can only review completed bookings",
+    "rating_required": "rating is required",
+    "rating_invalid": "rating must be between 1 and 5",
+    "service_required": "serviceId is required",
+    "vehicle_required": "vehicleId is required",
+    "datetime_required": "scheduledDate and scheduledTime are required",
+    "invalid_datetime": "Invalid date or time format",
+    "slot_not_available": "Selected time slot is not available",
+    "partner_not_found": "Partner not found",
+    "service_not_found": "Service not found",
+    "vehicle_not_belongs": "Vehicle does not belong to you",
+    "payment_failed": "Payment processing failed"
+  },
+  "partners": {
+    "partner_not_found": "Partner not found",
+    "no_services": "No services available",
+    "no_products": "No products available"
+  },
+  "subscriptions": {
+    "subscription_created": "Subscription created successfully",
+    "subscription_cancelled": "Subscription cancelled successfully",
+    "plan_not_found": "Subscription plan not found",
+    "already_subscribed": "You already have an active subscription",
+    "no_active_subscription": "No active subscription found"
+  },
+  "messaging": {
+    "conversation_started": "Conversation started",
+    "message_sent": "Message sent",
+    "conversation_not_found": "Conversation not found",
+    "message_required": "message is required",
+    "partner_required": "partnerId is required"
+  },
+  "upload": {
+    "upload_success": "Files uploaded successfully",
+    "no_files": "No files uploaded"
+  },
+  "common": {
+    "success": "Success",
+    "error": "An error occurred",
+    "invalid_request": "Invalid request",
+    "unauthorized": "Unauthorized",
+    "forbidden": "Forbidden",
+    "not_found": "Not found",
+    "server_error": "Internal server error",
+    "validation_error": "Validation error"
+  }
+}

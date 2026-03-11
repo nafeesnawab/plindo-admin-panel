@@ -1,0 +1,112 @@
+{
+  "auth": {
+    "otp_sent": "OTP успешно отправлен",
+    "otp_verified": "OTP успешно подтвержден",
+    "account_created": "Аккаунт успешно создан",
+    "signin_success": "Вход выполнен успешно",
+    "password_reset_success": "Пароль успешно сброшен",
+    "password_changed": "Пароль успешно изменен",
+    "invalid_credentials": "Неверные учетные данные",
+    "account_suspended": "Ваш аккаунт заблокирован",
+    "account_exists": "Аккаунт с этим {{type}} уже существует",
+    "account_not_found": "Аккаунт с этим {{type}} не найден",
+    "wait_before_resend": "Пожалуйста, подождите {{seconds}} секунд перед запросом нового OTP",
+    "invalid_otp": "Неверный или истекший OTP",
+    "otp_expired": "Срок действия OTP истек",
+    "max_attempts": "Превышено максимальное количество попыток. Пожалуйста, запросите новый OTP",
+    "invalid_otp_attempts": "Неверный OTP. Осталось попыток: {{remaining}}",
+    "invalid_verification_token": "Неверный или истекший токен подтверждения",
+    "verification_expired": "Срок действия токена подтверждения истек. Пожалуйста, начните заново",
+    "identifier_mismatch": "Идентификатор не совпадает с подтвержденным OTP",
+    "account_already_exists": "Аккаунт с этим идентификатором уже существует",
+    "reset_password_continue": "Пожалуйста, сбросьте пароль, чтобы продолжить",
+    "invalid_refresh_token": "Неверный токен обновления",
+    "type_required": "требуются тип, значение и цель",
+    "type_invalid": "тип должен быть 'email' или 'phone'",
+    "purpose_invalid": "цель должна быть 'signup' или 'reset_password'",
+    "verification_password_required": "требуются токен подтверждения и пароль",
+    "email_phone_required": "требуется email или телефон",
+    "password_min_length": "Пароль должен содержать не менее 6 символов",
+    "identifier_password_required": "требуются идентификатор и пароль",
+    "email_required": "Требуется email",
+    "verification_newpassword_required": "требуются токен подтверждения и новый пароль",
+    "refresh_token_required": "Требуется токен обновления",
+    "invalid_token_type": "Неверный тип токена"
+  },
+  "profile": {
+    "customer_not_found": "Клиент не найден",
+    "profile_updated": "Профиль обновлен",
+    "email_in_use": "Email уже используется",
+    "phone_in_use": "Номер телефона уже используется",
+    "old_new_password_required": "требуются старый и новый пароль",
+    "current_password_incorrect": "Текущий пароль неверен",
+    "account_deleted": "Аккаунт успешно удален",
+    "logged_out": "Выход выполнен успешно"
+  },
+  "vehicles": {
+    "vehicle_added": "Транспорт добавлен",
+    "vehicle_updated": "Транспорт обновлен",
+    "vehicle_deleted": "Транспорт удален",
+    "vehicle_not_found": "Транспорт не найден",
+    "make_model_required": "требуются марка и модель",
+    "type_last4_required": "требуются тип и последние 4 цифры"
+  },
+  "payment": {
+    "payment_method_added": "Способ оплаты добавлен",
+    "payment_method_removed": "Способ оплаты удален",
+    "payment_method_not_found": "Способ оплаты не найден"
+  },
+  "bookings": {
+    "booking_created": "Бронирование успешно создано",
+    "booking_cancelled": "Бронирование успешно отменено",
+    "booking_not_found": "Бронирование не найдено",
+    "cannot_cancel": "Невозможно отменить бронирование в текущем статусе",
+    "review_submitted": "Отзыв успешно отправлен",
+    "already_reviewed": "Вы уже оставили отзыв на это бронирование",
+    "cannot_review": "Вы можете оставлять отзывы только на завершенные бронирования",
+    "rating_required": "требуется оценка",
+    "rating_invalid": "оценка должна быть от 1 до 5",
+    "service_required": "требуется ID услуги",
+    "vehicle_required": "требуется ID транспорта",
+    "datetime_required": "требуются запланированные дата и время",
+    "invalid_datetime": "Неверный формат даты или времени",
+    "slot_not_available": "Выбранный временной слот недоступен",
+    "partner_not_found": "Партнер не найден",
+    "service_not_found": "Услуга не найдена",
+    "vehicle_not_belongs": "Транспорт вам не принадлежит",
+    "payment_failed": "Обработка платежа не удалась"
+  },
+  "partners": {
+    "partner_not_found": "Партнер не найден",
+    "no_services": "Нет доступных услуг",
+    "no_products": "Нет доступных товаров"
+  },
+  "subscriptions": {
+    "subscription_created": "Подписка успешно создана",
+    "subscription_cancelled": "Подписка успешно отменена",
+    "plan_not_found": "План подписки не найден",
+    "already_subscribed": "У вас уже есть активная подписка",
+    "no_active_subscription": "Активная подписка не найдена"
+  },
+  "messaging": {
+    "conversation_started": "Разговор начат",
+    "message_sent": "Сообщение отправлено",
+    "conversation_not_found": "Разговор не найден",
+    "message_required": "требуется сообщение",
+    "partner_required": "требуется ID партнера"
+  },
+  "upload": {
+    "upload_success": "Файлы успешно загружены",
+    "no_files": "Файлы не загружены"
+  },
+  "common": {
+    "success": "Успешно",
+    "error": "Произошла ошибка",
+    "invalid_request": "Неверный запрос",
+    "unauthorized": "Не авторизован",
+    "forbidden": "Запрещено",
+    "not_found": "Не найдено",
+    "server_error": "Внутренняя ошибка сервера",
+    "validation_error": "Ошибка валидации"
+  }
+}

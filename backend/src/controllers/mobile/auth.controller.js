@@ -3,6 +3,7 @@ import ActivityLog from "../../models/ActivityLog.model.js";
 import Customer from "../../models/Customer.model.js";
 import OTP from "../../models/OTP.model.js";
 import { sendOtpEmail } from "../../utils/email.js";
+import { t } from "../../utils/i18n.helper.js";
 import { error, success } from "../../utils/response.js";
 
 const generateTokens = (id) => {
@@ -44,15 +45,15 @@ export const sendOtp = async (req, res) => {
 		const { type, value, purpose } = req.body;
 
 		if (!type || !value || !purpose) {
-			return error(res, "type, value, and purpose are required", 400);
+			return error(res, t(req, "auth.type_required"), 400);
 		}
 
 		if (!["email", "phone"].includes(type)) {
-			return error(res, "type must be 'email' or 'phone'", 400);
+			return error(res, t(req, "auth.type_invalid"), 400);
 		}
 
 		if (!["signup", "reset_password"].includes(purpose)) {
-			return error(res, "purpose must be 'signup' or 'reset_password'", 400);
+			return error(res, t(req, "auth.purpose_invalid"), 400);
 		}
 
 		const identifier = value.toLowerCase().trim();
@@ -63,11 +64,11 @@ export const sendOtp = async (req, res) => {
 		);
 
 		if (purpose === "signup" && existingCustomer) {
-			return error(res, `An account with this ${type} already exists`, 400);
+			return error(res, t(req, "auth.account_exists", { type }), 400);
 		}
 
 		if (purpose === "reset_password" && !existingCustomer) {
-			return error(res, `No account found with this ${type}`, 404);
+			return error(res, t(req, "auth.account_not_found", { type }), 404);
 		}
 
 		// Check rate limiting - only allow resend after 60 seconds
@@ -83,7 +84,7 @@ export const sendOtp = async (req, res) => {
 			);
 			return error(
 				res,
-				`Please wait ${waitTime} seconds before requesting a new OTP`,
+				t(req, "auth.wait_before_resend", { seconds: waitTime }),
 				429,
 			);
 		}
@@ -124,7 +125,7 @@ export const sendOtp = async (req, res) => {
 				expiresIn: 300,
 				canResendAfter: 60,
 			},
-			"OTP sent successfully",
+			t(req, "auth.otp_sent"),
 		);
 	} catch (err) {
 		return error(res, err.message, 500);
@@ -140,27 +141,23 @@ export const verifyOtp = async (req, res) => {
 		const { otpId, code } = req.body;
 
 		if (!otpId || !code) {
-			return error(res, "otpId and code are required", 400);
+			return error(res, t(req, "auth.type_required"), 400);
 		}
 
 		const otp = await OTP.findById(otpId);
 
 		if (!otp) {
-			return error(res, "Invalid or expired OTP", 400);
+			return error(res, t(req, "auth.invalid_otp"), 400);
 		}
 
 		if (otp.expiresAt < new Date()) {
 			await OTP.findByIdAndDelete(otpId);
-			return error(res, "OTP has expired", 400);
+			return error(res, t(req, "auth.otp_expired"), 400);
 		}
 
 		if (otp.attempts >= otp.maxAttempts) {
 			await OTP.findByIdAndDelete(otpId);
-			return error(
-				res,
-				"Maximum attempts exceeded. Please request a new OTP",
-				400,
-			);
+			return error(res, t(req, "auth.max_attempts"), 400);
 		}
 
 		if (otp.code !== code) {
@@ -168,7 +165,9 @@ export const verifyOtp = async (req, res) => {
 			await otp.save();
 			return error(
 				res,
-				`Invalid OTP. ${otp.maxAttempts - otp.attempts} attempts remaining`,
+				t(req, "auth.invalid_otp_attempts", {
+					remaining: otp.maxAttempts - otp.attempts,
+				}),
 				400,
 			);
 		}
@@ -189,7 +188,7 @@ export const verifyOtp = async (req, res) => {
 				identifier: otp.identifier,
 				identifierType: otp.identifierType,
 			},
-			"OTP verified successfully",
+			t(req, "auth.otp_verified"),
 		);
 	} catch (err) {
 		return error(res, err.message, 500);
@@ -205,15 +204,15 @@ export const signup = async (req, res) => {
 		const { verificationToken, password, email, phone } = req.body;
 
 		if (!verificationToken || !password) {
-			return error(res, "verificationToken and password are required", 400);
+			return error(res, t(req, "auth.verification_password_required"), 400);
 		}
 
 		if (!email && !phone) {
-			return error(res, "email or phone is required", 400);
+			return error(res, t(req, "auth.email_phone_required"), 400);
 		}
 
 		if (password.length < 6) {
-			return error(res, "Password must be at least 6 characters", 400);
+			return error(res, t(req, "auth.password_min_length"), 400);
 		}
 
 		// Find and validate verification token
@@ -224,22 +223,18 @@ export const signup = async (req, res) => {
 		});
 
 		if (!otp) {
-			return error(res, "Invalid or expired verification token", 400);
+			return error(res, t(req, "auth.invalid_verification_token"), 400);
 		}
 
 		if (otp.expiresAt < new Date()) {
 			await OTP.findByIdAndDelete(otp._id);
-			return error(
-				res,
-				"Verification token has expired. Please start over",
-				400,
-			);
+			return error(res, t(req, "auth.verification_expired"), 400);
 		}
 
 		// Confirm the submitted identifier matches what was OTP-verified
 		const submittedIdentifier = (email || phone).toLowerCase().trim();
 		if (submittedIdentifier !== otp.identifier) {
-			return error(res, "Identifier does not match the verified OTP", 400);
+			return error(res, t(req, "auth.identifier_mismatch"), 400);
 		}
 
 		// Check if account already exists
@@ -250,7 +245,7 @@ export const signup = async (req, res) => {
 		);
 
 		if (existingCustomer) {
-			return error(res, "An account with this identifier already exists", 400);
+			return error(res, t(req, "auth.account_already_exists"), 400);
 		}
 
 		// Create customer — profile info (name, language, etc.) collected later via profile update
@@ -294,7 +289,7 @@ export const signup = async (req, res) => {
 				accessToken: tokens.accessToken,
 				refreshToken: tokens.refreshToken,
 			},
-			"Account created successfully",
+			t(req, "auth.account_created"),
 			201,
 		);
 	} catch (err) {
@@ -311,7 +306,7 @@ export const signin = async (req, res) => {
 		const { identifier, password } = req.body;
 
 		if (!identifier || !password) {
-			return error(res, "identifier and password are required", 400);
+			return error(res, t(req, "auth.identifier_password_required"), 400);
 		}
 
 		const normalizedIdentifier = identifier.toLowerCase().trim();
@@ -322,20 +317,20 @@ export const signin = async (req, res) => {
 		}).select("+password");
 
 		if (!customer) {
-			return error(res, "Invalid credentials", 401);
+			return error(res, t(req, "auth.invalid_credentials"), 401);
 		}
 
 		if (!customer.password) {
-			return error(res, "Please reset your password to continue", 401);
+			return error(res, t(req, "auth.reset_password_continue"), 401);
 		}
 
 		const isMatch = await customer.comparePassword(password);
 		if (!isMatch) {
-			return error(res, "Invalid credentials", 401);
+			return error(res, t(req, "auth.invalid_credentials"), 401);
 		}
 
 		if (customer.status === "suspended") {
-			return error(res, "Your account has been suspended", 401);
+			return error(res, t(req, "auth.account_suspended"), 401);
 		}
 
 		// Generate tokens
@@ -360,7 +355,7 @@ export const forgotPassword = async (req, res) => {
 		const { email } = req.body;
 
 		if (!email) {
-			return error(res, "Email is required", 400);
+			return error(res, t(req, "auth.email_required"), 400);
 		}
 
 		// Reuse send-otp logic
@@ -385,11 +380,11 @@ export const resetPassword = async (req, res) => {
 		const { verificationToken, newPassword } = req.body;
 
 		if (!verificationToken || !newPassword) {
-			return error(res, "verificationToken and newPassword are required", 400);
+			return error(res, t(req, "auth.verification_newpassword_required"), 400);
 		}
 
 		if (newPassword.length < 6) {
-			return error(res, "Password must be at least 6 characters", 400);
+			return error(res, t(req, "auth.password_min_length"), 400);
 		}
 
 		// Find and validate verification token
@@ -400,16 +395,12 @@ export const resetPassword = async (req, res) => {
 		});
 
 		if (!otp) {
-			return error(res, "Invalid or expired verification token", 400);
+			return error(res, t(req, "auth.invalid_verification_token"), 400);
 		}
 
 		if (otp.expiresAt < new Date()) {
 			await OTP.findByIdAndDelete(otp._id);
-			return error(
-				res,
-				"Verification token has expired. Please start over",
-				400,
-			);
+			return error(res, t(req, "auth.verification_expired"), 400);
 		}
 
 		// Find customer
@@ -420,7 +411,7 @@ export const resetPassword = async (req, res) => {
 		);
 
 		if (!customer) {
-			return error(res, "Account not found", 404);
+			return error(res, t(req, "profile.customer_not_found"), 404);
 		}
 
 		// Update password
@@ -430,7 +421,7 @@ export const resetPassword = async (req, res) => {
 		// Delete used OTP
 		await OTP.findByIdAndDelete(otp._id);
 
-		return success(res, {}, "Password reset successfully");
+		return success(res, {}, t(req, "auth.password_reset_success"));
 	} catch (err) {
 		return error(res, err.message, 500);
 	}
@@ -445,7 +436,7 @@ export const refreshToken = async (req, res) => {
 		const { refreshToken: token } = req.body;
 
 		if (!token) {
-			return error(res, "Refresh token is required", 400);
+			return error(res, t(req, "auth.refresh_token_required"), 400);
 		}
 
 		const decoded = jwt.verify(
@@ -454,16 +445,16 @@ export const refreshToken = async (req, res) => {
 		);
 
 		if (decoded.role !== "customer") {
-			return error(res, "Invalid token type", 401);
+			return error(res, t(req, "auth.invalid_token_type"), 401);
 		}
 
 		const customer = await Customer.findById(decoded.id);
 		if (!customer) {
-			return error(res, "Customer not found", 401);
+			return error(res, t(req, "profile.customer_not_found"), 401);
 		}
 
 		if (customer.status === "suspended") {
-			return error(res, "Your account has been suspended", 401);
+			return error(res, t(req, "auth.account_suspended"), 401);
 		}
 
 		const tokens = generateTokens(customer._id);
@@ -473,7 +464,7 @@ export const refreshToken = async (req, res) => {
 			refreshToken: tokens.refreshToken,
 		});
 	} catch {
-		return error(res, "Invalid refresh token", 401);
+		return error(res, t(req, "auth.invalid_refresh_token"), 401);
 	}
 };
 
@@ -485,7 +476,7 @@ export const getMe = async (req, res) => {
 	try {
 		const customer = await Customer.findById(req.user.id);
 		if (!customer) {
-			return error(res, "Customer not found", 404);
+			return error(res, t(req, "profile.customer_not_found"), 404);
 		}
 
 		return success(res, {

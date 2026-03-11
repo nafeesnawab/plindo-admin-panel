@@ -1,13 +1,14 @@
 import Booking from "../../models/Booking.model.js";
 import Customer from "../../models/Customer.model.js";
-import RefundRequest from "../../models/RefundRequest.model.js";
 import Partner from "../../models/Partner.model.js";
 import PartnerAvailability from "../../models/PartnerAvailability.model.js";
 import PartnerCapacity from "../../models/PartnerCapacity.model.js";
 import Product from "../../models/Product.model.js";
+import RefundRequest from "../../models/RefundRequest.model.js";
 import Review from "../../models/Review.model.js";
 import Service from "../../models/Service.model.js";
 import Settings from "../../models/Settings.model.js";
+import { t } from "../../utils/i18n.helper.js";
 import { paginate, paginatedResponse } from "../../utils/pagination.js";
 import { error, success } from "../../utils/response.js";
 import { getInitialServiceSteps } from "../../utils/serviceSteps.js";
@@ -26,7 +27,15 @@ const minutesToTime = (minutes) => {
 };
 
 const getDefaultAvailability = (partnerId) => {
-	const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+	const days = [
+		"Sunday",
+		"Monday",
+		"Tuesday",
+		"Wednesday",
+		"Thursday",
+		"Friday",
+		"Saturday",
+	];
 	return {
 		partnerId,
 		schedule: days.map((dayName, index) => ({
@@ -47,10 +56,30 @@ const getDefaultAvailability = (partnerId) => {
 
 const getDefaultCapacity = (partnerId) => {
 	const bays = [
-		{ id: "bay-w1", name: "Wash Bay 1", serviceCategory: "wash", isActive: true },
-		{ id: "bay-w2", name: "Wash Bay 2", serviceCategory: "wash", isActive: true },
-		{ id: "bay-w3", name: "Wash Bay 3", serviceCategory: "wash", isActive: true },
-		{ id: "bay-d1", name: "Detail Bay 1", serviceCategory: "detailing", isActive: true },
+		{
+			id: "bay-w1",
+			name: "Wash Bay 1",
+			serviceCategory: "wash",
+			isActive: true,
+		},
+		{
+			id: "bay-w2",
+			name: "Wash Bay 2",
+			serviceCategory: "wash",
+			isActive: true,
+		},
+		{
+			id: "bay-w3",
+			name: "Wash Bay 3",
+			serviceCategory: "wash",
+			isActive: true,
+		},
+		{
+			id: "bay-d1",
+			name: "Detail Bay 1",
+			serviceCategory: "detailing",
+			isActive: true,
+		},
 	];
 	return {
 		partnerId,
@@ -88,7 +117,8 @@ const formatBooking = (b, partnerLogoMap = {}, serviceBannerMap = {}) => ({
 		serviceType: b.serviceType,
 		serviceCategory: b.serviceCategory,
 		duration: b.serviceDuration || 0,
-		bannerUrl: serviceBannerMap[b.serviceId?.toString()] ?? b.serviceBannerUrl ?? "",
+		bannerUrl:
+			serviceBannerMap[b.serviceId?.toString()] ?? b.serviceBannerUrl ?? "",
 	},
 	slot: {
 		date: b.slotDate,
@@ -110,26 +140,46 @@ const formatBooking = (b, partnerLogoMap = {}, serviceBannerMap = {}) => ({
 	cancelledBy: b.cancelledBy,
 	cancellationReason: b.cancellationReason,
 	rating: b.ratingScore
-		? { score: b.ratingScore, comment: b.ratingComment, createdAt: b.ratingCreatedAt }
+		? {
+				score: b.ratingScore,
+				comment: b.ratingComment,
+				createdAt: b.ratingCreatedAt,
+			}
 		: null,
 });
 
 // Fetches partner logos and service banners for a list of bookings
 // Returns maps keyed by ID string so formatBooking can look them up
 const buildEnrichmentMaps = async (bookings) => {
-	const partnerIds = [...new Set(bookings.map((b) => b.partnerId?.toString()).filter(Boolean))];
-	const serviceIds = [...new Set(bookings.map((b) => b.serviceId?.toString()).filter(Boolean))];
+	const partnerIds = [
+		...new Set(bookings.map((b) => b.partnerId?.toString()).filter(Boolean)),
+	];
+	const serviceIds = [
+		...new Set(bookings.map((b) => b.serviceId?.toString()).filter(Boolean)),
+	];
 
 	const [partners, services] = await Promise.all([
-		partnerIds.length ? Partner.find({ _id: { $in: partnerIds } }).select("_id logo avatar").lean() : [],
-		serviceIds.length ? Service.find({ _id: { $in: serviceIds } }).select("_id bannerUrl").lean() : [],
+		partnerIds.length
+			? Partner.find({ _id: { $in: partnerIds } })
+					.select("_id logo avatar")
+					.lean()
+			: [],
+		serviceIds.length
+			? Service.find({ _id: { $in: serviceIds } })
+					.select("_id bannerUrl")
+					.lean()
+			: [],
 	]);
 
 	const partnerLogoMap = {};
-	partners.forEach((p) => { partnerLogoMap[p._id.toString()] = p.logo || p.avatar || ""; });
+	partners.forEach((p) => {
+		partnerLogoMap[p._id.toString()] = p.logo || p.avatar || "";
+	});
 
 	const serviceBannerMap = {};
-	services.forEach((s) => { serviceBannerMap[s._id.toString()] = s.bannerUrl || ""; });
+	services.forEach((s) => {
+		serviceBannerMap[s._id.toString()] = s.bannerUrl || "";
+	});
 
 	return { partnerLogoMap, serviceBannerMap };
 };
@@ -190,14 +240,14 @@ export const getAvailableSlots = async (req, res) => {
 
 		const durationMinutes = parseInt(duration);
 		// Use avail buffer (set on schedule page) falling back to capacity buffer
-		const bufferMinutes = avail.bufferTimeMinutes || cap.bufferTimeMinutes || 15;
+		const bufferMinutes =
+			avail.bufferTimeMinutes || cap.bufferTimeMinutes || 15;
 
 		// For today: only return slots starting at least 30 minutes from now
 		const now = new Date();
 		const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-		const minStartMinutes = date === todayStr
-			? now.getHours() * 60 + now.getMinutes() + 30
-			: null;
+		const minStartMinutes =
+			date === todayStr ? now.getHours() * 60 + now.getMinutes() + 30 : null;
 
 		const existingBookings = await Booking.find({
 			partnerId,
@@ -218,15 +268,20 @@ export const getAvailableSlots = async (req, res) => {
 			const blockStart = timeToMinutes(block.start);
 			const blockEnd = timeToMinutes(block.end);
 
-			for (let startMin = blockStart; startMin + durationMinutes <= blockEnd; startMin += durationMinutes) {
+			for (
+				let startMin = blockStart;
+				startMin + durationMinutes <= blockEnd;
+				startMin += durationMinutes
+			) {
 				// Skip past/too-soon slots when viewing today
 				if (minStartMinutes !== null && startMin < minStartMinutes) continue;
 
 				const endM = startMin + durationMinutes;
 
 				// Count bookings that conflict with this slot (symmetric buffer on both sides)
-				const overlappingCount = bookingTimes.filter((b) =>
-					startMin < b.end + bufferMinutes && b.start < endM + bufferMinutes
+				const overlappingCount = bookingTimes.filter(
+					(b) =>
+						startMin < b.end + bufferMinutes && b.start < endM + bufferMinutes,
 				).length;
 
 				if (overlappingCount < totalBays) {
@@ -240,8 +295,14 @@ export const getAvailableSlots = async (req, res) => {
 			}
 		}
 
-		const responseData = { date, windows, capacity: cap.capacityByCategory, bufferMinutes };
-		if (windows.length === 0) responseData.message = "No available slots for this day";
+		const responseData = {
+			date,
+			windows,
+			capacity: cap.capacityByCategory,
+			bufferMinutes,
+		};
+		if (windows.length === 0)
+			responseData.message = "No available slots for this day";
 		return success(res, responseData);
 	} catch (err) {
 		return error(res, err.message, 500);
@@ -279,7 +340,9 @@ export const calculatePrice = async (req, res) => {
 		// Find price for body type
 		let basePrice = 20;
 		if (service.bodyTypePricing?.length) {
-			const match = service.bodyTypePricing.find((p) => p.bodyType === bodyType);
+			const match = service.bodyTypePricing.find(
+				(p) => p.bodyType === bodyType,
+			);
 			if (match) {
 				basePrice = match.price;
 			} else {
@@ -296,7 +359,9 @@ export const calculatePrice = async (req, res) => {
 			const dbProducts = await Product.find({ _id: { $in: productIds } });
 
 			for (const item of products) {
-				const prod = dbProducts.find((p) => p._id.toString() === item.productId);
+				const prod = dbProducts.find(
+					(p) => p._id.toString() === item.productId,
+				);
 				if (prod) {
 					const itemTotal = prod.price * (item.quantity || 1);
 					productsTotal += itemTotal;
@@ -367,13 +432,14 @@ export const createBooking = async (req, res) => {
 			return error(res, "slot must include date, startTime, and endTime", 400);
 		}
 
-		const [partner, customer, service, capacity, availability] = await Promise.all([
-			Partner.findById(partnerId),
-			Customer.findById(customerId),
-			Service.findById(serviceId),
-			PartnerCapacity.findOne({ partnerId }),
-			PartnerAvailability.findOne({ partnerId }),
-		]);
+		const [partner, customer, service, capacity, availability] =
+			await Promise.all([
+				Partner.findById(partnerId),
+				Customer.findById(customerId),
+				Service.findById(serviceId),
+				PartnerCapacity.findOne({ partnerId }),
+				PartnerAvailability.findOne({ partnerId }),
+			]);
 
 		if (!partner) return error(res, "Partner not found", 404);
 		if (!customer) return error(res, "Customer not found", 404);
@@ -396,7 +462,9 @@ export const createBooking = async (req, res) => {
 		const today = new Date();
 		today.setHours(0, 0, 0, 0);
 		requestedDate.setHours(0, 0, 0, 0);
-		const daysInAdvance = Math.floor((requestedDate - today) / (1000 * 60 * 60 * 24));
+		const daysInAdvance = Math.floor(
+			(requestedDate - today) / (1000 * 60 * 60 * 24),
+		);
 
 		if (daysInAdvance < 0) {
 			return error(res, "Cannot book in the past", 400);
@@ -413,7 +481,11 @@ export const createBooking = async (req, res) => {
 
 		const maxAdvanceDays = avail.maxAdvanceBookingDays || 21;
 		if (daysInAdvance > maxAdvanceDays) {
-			return error(res, `Bookings can only be made up to ${maxAdvanceDays} days in advance`, 400);
+			return error(
+				res,
+				`Bookings can only be made up to ${maxAdvanceDays} days in advance`,
+				400,
+			);
 		}
 
 		// Check slot availability (symmetric buffer - same logic as getAvailableSlots)
@@ -443,7 +515,9 @@ export const createBooking = async (req, res) => {
 		}
 
 		// Assign a bay: prefer named bays, fall back to virtual IDs
-		const categoryBays = cap.bays.filter((b) => b.serviceCategory === svcCategory && b.isActive);
+		const categoryBays = cap.bays.filter(
+			(b) => b.serviceCategory === svcCategory && b.isActive,
+		);
 		const usedBayIds = new Set(overlapping.map((b) => b.bayId).filter(Boolean));
 		let availableBay = categoryBays.find((b) => !usedBayIds.has(b.id));
 
@@ -469,7 +543,9 @@ export const createBooking = async (req, res) => {
 		const bodyType = vehicle.bodyType || "Sedan";
 		let basePrice = 20;
 		if (service.bodyTypePricing?.length) {
-			const match = service.bodyTypePricing.find((p) => p.bodyType === bodyType);
+			const match = service.bodyTypePricing.find(
+				(p) => p.bodyType === bodyType,
+			);
 			basePrice = match ? match.price : service.bodyTypePricing[0].price;
 		}
 
@@ -480,7 +556,9 @@ export const createBooking = async (req, res) => {
 			const productIds = products.map((p) => p.productId);
 			const dbProducts = await Product.find({ _id: { $in: productIds } });
 			for (const item of products) {
-				const prod = dbProducts.find((p) => p._id.toString() === item.productId);
+				const prod = dbProducts.find(
+					(p) => p._id.toString() === item.productId,
+				);
 				if (prod) {
 					productsTotal += prod.price * (item.quantity || 1);
 					productCount += item.quantity || 1;
@@ -503,7 +581,10 @@ export const createBooking = async (req, res) => {
 		const subtotal = serviceTotal + productsTotal;
 		const platformFee = +(subtotal * commissionRate).toFixed(2);
 		const finalPrice = +(subtotal + platformFee).toFixed(2);
-		const partnerPayout = +(subtotal - (subtotal * (settings?.commission?.partnerCommission || 10) / 100)).toFixed(2);
+		const partnerPayout = +(
+			subtotal -
+			(subtotal * (settings?.commission?.partnerCommission || 10)) / 100
+		).toFixed(2);
 
 		const bookingNumber = Booking.generateBookingNumber();
 
@@ -546,15 +627,19 @@ export const createBooking = async (req, res) => {
 				finalPrice,
 				platformFee,
 				partnerPayout,
-				subscriptionDiscount: subscriptionDiscount > 0 ? subscriptionDiscount : undefined,
+				subscriptionDiscount:
+					subscriptionDiscount > 0 ? subscriptionDiscount : undefined,
 			},
 			status: "booked",
 			bayId: availableBay.id,
 			bayName: availableBay.name,
-			productOrder: productsTotal > 0 ? {
-				productCount,
-				totalAmount: productsTotal,
-			} : undefined,
+			productOrder:
+				productsTotal > 0
+					? {
+							productCount,
+							totalAmount: productsTotal,
+						}
+					: undefined,
 			notes: instructions,
 			serviceSteps: getInitialServiceSteps(service.serviceType, svcCategory),
 		});
@@ -562,11 +647,20 @@ export const createBooking = async (req, res) => {
 		// Update stats
 		await Promise.all([
 			Partner.findByIdAndUpdate(partnerId, { $inc: { totalBookings: 1 } }),
-			Customer.findByIdAndUpdate(customerId, { $inc: { totalBookings: 1, totalSpent: finalPrice } }),
+			Customer.findByIdAndUpdate(customerId, {
+				$inc: { totalBookings: 1, totalSpent: finalPrice },
+			}),
 		]);
 
-		const { partnerLogoMap, serviceBannerMap } = await buildEnrichmentMaps([booking]);
-		return success(res, { booking: formatBooking(booking, partnerLogoMap, serviceBannerMap) }, "Booking created successfully", 201);
+		const { partnerLogoMap, serviceBannerMap } = await buildEnrichmentMaps([
+			booking,
+		]);
+		return success(
+			res,
+			{ booking: formatBooking(booking, partnerLogoMap, serviceBannerMap) },
+			"Booking created successfully",
+			201,
+		);
 	} catch (err) {
 		return error(res, err.message, 500);
 	}
@@ -602,9 +696,18 @@ export const getBookings = async (req, res) => {
 		]);
 
 		// Enrich with partner logo and service banner (fallback for older bookings)
-		const { partnerLogoMap, serviceBannerMap } = await buildEnrichmentMaps(bookings);
+		const { partnerLogoMap, serviceBannerMap } =
+			await buildEnrichmentMaps(bookings);
 
-		return success(res, paginatedResponse(bookings.map((b) => formatBooking(b, partnerLogoMap, serviceBannerMap)), total, page, limit));
+		return success(
+			res,
+			paginatedResponse(
+				bookings.map((b) => formatBooking(b, partnerLogoMap, serviceBannerMap)),
+				total,
+				page,
+				limit,
+			),
+		);
 	} catch (err) {
 		return error(res, err.message, 500);
 	}
@@ -624,8 +727,12 @@ export const getBookingDetails = async (req, res) => {
 			return error(res, "Booking not found", 404);
 		}
 
-		const { partnerLogoMap, serviceBannerMap } = await buildEnrichmentMaps([booking]);
-		return success(res, { booking: formatBooking(booking, partnerLogoMap, serviceBannerMap) });
+		const { partnerLogoMap, serviceBannerMap } = await buildEnrichmentMaps([
+			booking,
+		]);
+		return success(res, {
+			booking: formatBooking(booking, partnerLogoMap, serviceBannerMap),
+		});
 	} catch (err) {
 		return error(res, err.message, 500);
 	}
@@ -652,15 +759,19 @@ export const cancelBooking = async (req, res) => {
 
 		// Check cancellation window
 		const settings = await Settings.getSettings();
-		const cancellationHours = settings?.bookingRules?.cancellationWindowHours || 24;
-		const bookingDate = new Date(`${booking.slotDate}T${booking.slotStartTime}`);
-		const hoursUntilBooking = (bookingDate.getTime() - Date.now()) / (1000 * 60 * 60);
+		const cancellationHours =
+			settings?.bookingRules?.cancellationWindowHours || 24;
+		const bookingDate = new Date(
+			`${booking.slotDate}T${booking.slotStartTime}`,
+		);
+		const hoursUntilBooking =
+			(bookingDate.getTime() - Date.now()) / (1000 * 60 * 60);
 
 		if (hoursUntilBooking < cancellationHours) {
 			return error(
 				res,
 				`Bookings can only be cancelled ${cancellationHours} hours in advance`,
-				400
+				400,
 			);
 		}
 
@@ -699,7 +810,11 @@ export const cancelBooking = async (req, res) => {
 			}
 		}
 
-		return success(res, { booking: formatBooking(booking) }, "Booking cancelled");
+		return success(
+			res,
+			{ booking: formatBooking(booking) },
+			"Booking cancelled",
+		);
 	} catch (err) {
 		return error(res, err.message, 500);
 	}
@@ -758,7 +873,8 @@ export const submitReview = async (req, res) => {
 
 		// Update partner rating + auto-monitoring (B3)
 		const allReviews = await Review.find({ partnerId: booking.partnerId });
-		const avgRating = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
+		const avgRating =
+			allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
 		const partner = await Partner.findById(booking.partnerId);
 		if (partner) {
 			partner.rating = parseFloat(avgRating.toFixed(1));
@@ -766,14 +882,18 @@ export const submitReview = async (req, res) => {
 			// Warning threshold: avg < 3.5
 			if (avgRating < 3.5 && !partner.hasWarning) {
 				partner.hasWarning = true;
-				console.log(`[PartnerMonitor] Warning set for partner ${partner._id} (rating: ${avgRating.toFixed(1)})`);
+				console.log(
+					`[PartnerMonitor] Warning set for partner ${partner._id} (rating: ${avgRating.toFixed(1)})`,
+				);
 			}
 			// Auto-suspend threshold: avg < 3.0
 			if (avgRating < 3.0 && partner.status === "active") {
 				partner.status = "suspended";
 				partner.suspensionReason = `Auto-suspended: average rating dropped to ${avgRating.toFixed(1)}`;
 				partner.suspendedAt = new Date();
-				console.log(`[PartnerMonitor] Auto-suspended partner ${partner._id} (rating: ${avgRating.toFixed(1)})`);
+				console.log(
+					`[PartnerMonitor] Auto-suspended partner ${partner._id} (rating: ${avgRating.toFixed(1)})`,
+				);
 			}
 			await partner.save();
 		}
@@ -789,7 +909,7 @@ export const submitReview = async (req, res) => {
 				},
 			},
 			"Review submitted",
-			201
+			201,
 		);
 	} catch (err) {
 		return error(res, err.message, 500);

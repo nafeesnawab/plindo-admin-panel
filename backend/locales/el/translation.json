@@ -1,0 +1,112 @@
+{
+  "auth": {
+    "otp_sent": "Ο κωδικός OTP στάλθηκε με επιτυχία",
+    "otp_verified": "Ο κωδικός OTP επαληθεύτηκε με επιτυχία",
+    "account_created": "Ο λογαριασμός δημιουργήθηκε με επιτυχία",
+    "signin_success": "Συνδεθήκατε με επιτυχία",
+    "password_reset_success": "Ο κωδικός επαναφέρθηκε με επιτυχία",
+    "password_changed": "Ο κωδικός άλλαξε με επιτυχία",
+    "invalid_credentials": "Μη έγκυρα διαπιστευτήρια",
+    "account_suspended": "Ο λογαριασμός σας έχει ανασταλεί",
+    "account_exists": "Υπάρχει ήδη λογαριασμός με αυτό το {{type}}",
+    "account_not_found": "Δεν βρέθηκε λογαριασμός με αυτό το {{type}}",
+    "wait_before_resend": "Παρακαλώ περιμένετε {{seconds}} δευτερόλεπτα πριν ζητήσετε νέο OTP",
+    "invalid_otp": "Μη έγκυρος ή ληγμένος κωδικός OTP",
+    "otp_expired": "Ο κωδικός OTP έχει λήξει",
+    "max_attempts": "Υπέρβαση μέγιστων προσπαθειών. Παρακαλώ ζητήστε νέο OTP",
+    "invalid_otp_attempts": "Μη έγκυρος OTP. Απομένουν {{remaining}} προσπάθειες",
+    "invalid_verification_token": "Μη έγκυρο ή ληγμένο διακριτικό επαλήθευσης",
+    "verification_expired": "Το διακριτικό επαλήθευσης έχει λήξει. Παρακαλώ ξεκινήστε ξανά",
+    "identifier_mismatch": "Το αναγνωριστικό δεν ταιριάζει με το επαληθευμένο OTP",
+    "account_already_exists": "Υπάρχει ήδη λογαριασμός με αυτό το αναγνωριστικό",
+    "reset_password_continue": "Παρακαλώ επαναφέρετε τον κωδικό σας για να συνεχίσετε",
+    "invalid_refresh_token": "Μη έγκυρο διακριτικό ανανέωσης",
+    "type_required": "απαιτούνται τύπος, τιμή και σκοπός",
+    "type_invalid": "ο τύπος πρέπει να είναι 'email' ή 'phone'",
+    "purpose_invalid": "ο σκοπός πρέπει να είναι 'signup' ή 'reset_password'",
+    "verification_password_required": "απαιτούνται διακριτικό επαλήθευσης και κωδικός",
+    "email_phone_required": "απαιτείται email ή τηλέφωνο",
+    "password_min_length": "Ο κωδικός πρέπει να έχει τουλάχιστον 6 χαρακτήρες",
+    "identifier_password_required": "απαιτούνται αναγνωριστικό και κωδικός",
+    "email_required": "Απαιτείται email",
+    "verification_newpassword_required": "απαιτούνται διακριτικό επαλήθευσης και νέος κωδικός",
+    "refresh_token_required": "Απαιτείται διακριτικό ανανέωσης",
+    "invalid_token_type": "Μη έγκυρος τύπος διακριτικού"
+  },
+  "profile": {
+    "customer_not_found": "Ο πελάτης δεν βρέθηκε",
+    "profile_updated": "Το προφίλ ενημερώθηκε",
+    "email_in_use": "Το email χρησιμοποιείται ήδη",
+    "phone_in_use": "Ο αριθμός τηλεφώνου χρησιμοποιείται ήδη",
+    "old_new_password_required": "απαιτούνται παλιός και νέος κωδικός",
+    "current_password_incorrect": "Ο τρέχων κωδικός είναι λανθασμένος",
+    "account_deleted": "Ο λογαριασμός διαγράφηκε με επιτυχία",
+    "logged_out": "Αποσυνδεθήκατε με επιτυχία"
+  },
+  "vehicles": {
+    "vehicle_added": "Το όχημα προστέθηκε",
+    "vehicle_updated": "Το όχημα ενημερώθηκε",
+    "vehicle_deleted": "Το όχημα διαγράφηκε",
+    "vehicle_not_found": "Το όχημα δεν βρέθηκε",
+    "make_model_required": "απαιτούνται κατασκευαστής και μοντέλο",
+    "type_last4_required": "απαιτούνται τύπος και τελευταία 4 ψηφία"
+  },
+  "payment": {
+    "payment_method_added": "Η μέθοδος πληρωμής προστέθηκε",
+    "payment_method_removed": "Η μέθοδος πληρωμής αφαιρέθηκε",
+    "payment_method_not_found": "Η μέθοδος πληρωμής δεν βρέθηκε"
+  },
+  "bookings": {
+    "booking_created": "Η κράτηση δημιουργήθηκε με επιτυχία",
+    "booking_cancelled": "Η κράτηση ακυρώθηκε με επιτυχία",
+    "booking_not_found": "Η κράτηση δεν βρέθηκε",
+    "cannot_cancel": "Δεν είναι δυνατή η ακύρωση της κράτησης στην τρέχουσα κατάσταση",
+    "review_submitted": "Η αξιολόγηση υποβλήθηκε με επιτυχία",
+    "already_reviewed": "Έχετε ήδη αξιολογήσει αυτήν την κράτηση",
+    "cannot_review": "Μπορείτε να αξιολογήσετε μόνο ολοκληρωμένες κρατήσεις",
+    "rating_required": "απαιτείται αξιολόγηση",
+    "rating_invalid": "η αξιολόγηση πρέπει να είναι μεταξύ 1 και 5",
+    "service_required": "απαιτείται αναγνωριστικό υπηρεσίας",
+    "vehicle_required": "απαιτείται αναγνωριστικό οχήματος",
+    "datetime_required": "απαιτούνται προγραμματισμένη ημερομηνία και ώρα",
+    "invalid_datetime": "Μη έγκυρη μορφή ημερομηνίας ή ώρας",
+    "slot_not_available": "Το επιλεγμένο χρονικό διάστημα δεν είναι διαθέσιμο",
+    "partner_not_found": "Ο συνεργάτης δεν βρέθηκε",
+    "service_not_found": "Η υπηρεσία δεν βρέθηκε",
+    "vehicle_not_belongs": "Το όχημα δεν σας ανήκει",
+    "payment_failed": "Η επεξεργασία πληρωμής απέτυχε"
+  },
+  "partners": {
+    "partner_not_found": "Ο συνεργάτης δεν βρέθηκε",
+    "no_services": "Δεν υπάρχουν διαθέσιμες υπηρεσίες",
+    "no_products": "Δεν υπάρχουν διαθέσιμα προϊόντα"
+  },
+  "subscriptions": {
+    "subscription_created": "Η συνδρομή δημιουργήθηκε με επιτυχία",
+    "subscription_cancelled": "Η συνδρομή ακυρώθηκε με επιτυχία",
+    "plan_not_found": "Το πρόγραμμα συνδρομής δεν βρέθηκε",
+    "already_subscribed": "Έχετε ήδη ενεργή συνδρομή",
+    "no_active_subscription": "Δεν βρέθηκε ενεργή συνδρομή"
+  },
+  "messaging": {
+    "conversation_started": "Η συνομιλία ξεκίνησε",
+    "message_sent": "Το μήνυμα στάλθηκε",
+    "conversation_not_found": "Η συνομιλία δεν βρέθηκε",
+    "message_required": "απαιτείται μήνυμα",
+    "partner_required": "απαιτείται αναγνωριστικό συνεργάτη"
+  },
+  "upload": {
+    "upload_success": "Τα αρχεία μεταφορτώθηκαν με επιτυχία",
+    "no_files": "Δεν μεταφορτώθηκαν αρχεία"
+  },
+  "common": {
+    "success": "Επιτυχία",
+    "error": "Παρουσιάστηκε σφάλμα",
+    "invalid_request": "Μη έγκυρο αίτημα",
+    "unauthorized": "Μη εξουσιοδοτημένο",
+    "forbidden": "Απαγορευμένο",
+    "not_found": "Δεν βρέθηκε",
+    "server_error": "Εσωτερικό σφάλμα διακομιστή",
+    "validation_error": "Σφάλμα επικύρωσης"
+  }
+}

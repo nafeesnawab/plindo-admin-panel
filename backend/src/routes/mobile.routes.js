@@ -68,9 +68,13 @@ import {
 import { uploadFiles } from "../controllers/mobile/upload.controller.js";
 
 import { protectCustomer } from "../middleware/auth.middleware.js";
+import { setLanguage } from "../middleware/language.middleware.js";
 import { uploadFlexible } from "../middleware/upload.middleware.js";
 
 const router = express.Router();
+
+// Apply language middleware to all mobile routes
+router.use(setLanguage);
 
 // ─── Public Routes (No Auth Required) ───────────────────────────────────────
 

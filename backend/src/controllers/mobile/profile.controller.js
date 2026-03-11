@@ -1,6 +1,7 @@
+import Booking from "../../models/Booking.model.js";
 import Car from "../../models/Car.model.js";
 import Customer from "../../models/Customer.model.js";
-import Booking from "../../models/Booking.model.js";
+import { t } from "../../utils/i18n.helper.js";
 import { error, success } from "../../utils/response.js";
 
 const formatCustomer = (c) => ({
@@ -38,7 +39,7 @@ export const getProfile = async (req, res) => {
 	try {
 		const customer = await Customer.findById(req.user.id);
 		if (!customer) {
-			return error(res, "Customer not found", 404);
+			return error(res, t(req, "profile.customer_not_found"), 404);
 		}
 
 		return success(res, { customer: formatCustomer(customer) });
@@ -57,14 +58,16 @@ export const updateProfile = async (req, res) => {
 
 		const customer = await Customer.findById(req.user.id);
 		if (!customer) {
-			return error(res, "Customer not found", 404);
+			return error(res, t(req, "profile.customer_not_found"), 404);
 		}
 
 		// Check email uniqueness if changing
 		if (email && email !== customer.email) {
-			const existing = await Customer.findOne({ email: email.toLowerCase().trim() });
+			const existing = await Customer.findOne({
+				email: email.toLowerCase().trim(),
+			});
 			if (existing && existing._id.toString() !== customer._id.toString()) {
-				return error(res, "Email is already in use", 400);
+				return error(res, t(req, "profile.email_in_use"), 400);
 			}
 			customer.email = email.toLowerCase().trim();
 			customer.emailVerified = false; // Reset verification
@@ -74,7 +77,7 @@ export const updateProfile = async (req, res) => {
 		if (phone && phone !== customer.phone) {
 			const existing = await Customer.findOne({ phone: phone.trim() });
 			if (existing && existing._id.toString() !== customer._id.toString()) {
-				return error(res, "Phone number is already in use", 400);
+				return error(res, t(req, "profile.phone_in_use"), 400);
 			}
 			customer.phone = phone.trim();
 			customer.phoneVerified = false; // Reset verification
@@ -86,11 +89,18 @@ export const updateProfile = async (req, res) => {
 		if (location !== undefined) customer.location = location;
 
 		// Check if profile is complete
-		customer.isProfileComplete = !!(customer.name && (customer.email || customer.phone));
+		customer.isProfileComplete = !!(
+			customer.name &&
+			(customer.email || customer.phone)
+		);
 
 		await customer.save();
 
-		return success(res, { customer: formatCustomer(customer) }, "Profile updated");
+		return success(
+			res,
+			{ customer: formatCustomer(customer) },
+			t(req, "profile.profile_updated"),
+		);
 	} catch (err) {
 		return error(res, err.message, 500);
 	}
@@ -105,27 +115,27 @@ export const changePassword = async (req, res) => {
 		const { oldPassword, newPassword } = req.body;
 
 		if (!oldPassword || !newPassword) {
-			return error(res, "oldPassword and newPassword are required", 400);
+			return error(res, t(req, "profile.old_new_password_required"), 400);
 		}
 
 		if (newPassword.length < 6) {
-			return error(res, "Password must be at least 6 characters", 400);
+			return error(res, t(req, "auth.password_min_length"), 400);
 		}
 
 		const customer = await Customer.findById(req.user.id).select("+password");
 		if (!customer) {
-			return error(res, "Customer not found", 404);
+			return error(res, t(req, "profile.customer_not_found"), 404);
 		}
 
 		const isMatch = await customer.comparePassword(oldPassword);
 		if (!isMatch) {
-			return error(res, "Current password is incorrect", 400);
+			return error(res, t(req, "profile.current_password_incorrect"), 400);
 		}
 
 		customer.password = newPassword;
 		await customer.save();
 
-		return success(res, {}, "Password changed successfully");
+		return success(res, {}, t(req, "auth.password_changed"));
 	} catch (err) {
 		return error(res, err.message, 500);
 	}
@@ -139,12 +149,12 @@ export const deleteAccount = async (req, res) => {
 	try {
 		const customer = await Customer.findByIdAndDelete(req.user.id);
 		if (!customer) {
-			return error(res, "Customer not found", 404);
+			return error(res, t(req, "profile.customer_not_found"), 404);
 		}
 
 		// TODO: Clean up related data (bookings, conversations, etc.)
 
-		return success(res, {}, "Account deleted successfully");
+		return success(res, {}, t(req, "profile.account_deleted"));
 	} catch (err) {
 		return error(res, err.message, 500);
 	}
@@ -161,7 +171,7 @@ export const logout = async (req, res) => {
 			await Customer.findByIdAndUpdate(req.user.id, { fcmToken: null });
 		}
 
-		return success(res, {}, "Logged out successfully");
+		return success(res, {}, t(req, "profile.logged_out"));
 	} catch (err) {
 		return error(res, err.message, 500);
 	}
@@ -175,15 +185,19 @@ export const getBookingsSummary = async (req, res) => {
 	try {
 		const customerId = req.user.id;
 
-		const [totalBookings, pendingBookings, completedBookings, totalSpent] = await Promise.all([
-			Booking.countDocuments({ customerId }),
-			Booking.countDocuments({ customerId, status: { $in: ["booked", "in_progress"] } }),
-			Booking.countDocuments({ customerId, status: "completed" }),
-			Booking.aggregate([
-				{ $match: { customerId: customerId } },
-				{ $group: { _id: null, total: { $sum: "$pricing.finalPrice" } } },
-			]),
-		]);
+		const [totalBookings, pendingBookings, completedBookings, totalSpent] =
+			await Promise.all([
+				Booking.countDocuments({ customerId }),
+				Booking.countDocuments({
+					customerId,
+					status: { $in: ["booked", "in_progress"] },
+				}),
+				Booking.countDocuments({ customerId, status: "completed" }),
+				Booking.aggregate([
+					{ $match: { customerId: customerId } },
+					{ $group: { _id: null, total: { $sum: "$pricing.finalPrice" } } },
+				]),
+			]);
 
 		return success(res, {
 			totalBookings,
@@ -206,7 +220,7 @@ export const getVehicles = async (req, res) => {
 	try {
 		const customer = await Customer.findById(req.user.id).select("vehicles");
 		if (!customer) {
-			return error(res, "Customer not found", 404);
+			return error(res, t(req, "profile.customer_not_found"), 404);
 		}
 
 		const vehicles = (customer.vehicles || []).map((v) => ({
@@ -235,12 +249,12 @@ export const addVehicle = async (req, res) => {
 		const { make, model, year, color, plateNumber, bodyType, type } = req.body;
 
 		if (!make || !model) {
-			return error(res, "make and model are required", 400);
+			return error(res, t(req, "vehicles.make_model_required"), 400);
 		}
 
 		const customer = await Customer.findById(req.user.id);
 		if (!customer) {
-			return error(res, "Customer not found", 404);
+			return error(res, t(req, "profile.customer_not_found"), 404);
 		}
 
 		const vehicle = {
@@ -272,8 +286,8 @@ export const addVehicle = async (req, res) => {
 					type: addedVehicle.type,
 				},
 			},
-			"Vehicle added",
-			201
+			t(req, "vehicles.vehicle_added"),
+			201,
 		);
 	} catch (err) {
 		return error(res, err.message, 500);
@@ -291,12 +305,12 @@ export const updateVehicle = async (req, res) => {
 
 		const customer = await Customer.findById(req.user.id);
 		if (!customer) {
-			return error(res, "Customer not found", 404);
+			return error(res, t(req, "profile.customer_not_found"), 404);
 		}
 
 		const vehicle = customer.vehicles.id(id);
 		if (!vehicle) {
-			return error(res, "Vehicle not found", 404);
+			return error(res, t(req, "vehicles.vehicle_not_found"), 404);
 		}
 
 		if (make !== undefined) vehicle.make = make;
@@ -323,63 +337,8 @@ export const updateVehicle = async (req, res) => {
 					type: vehicle.type,
 				},
 			},
-			"Vehicle updated"
+			t(req, "vehicles.vehicle_updated"),
 		);
-	} catch (err) {
-		return error(res, err.message, 500);
-	}
-};
-
-/**
- * DELETE /api/mobile/vehicles/:id
- * Delete a vehicle
- */
-export const deleteVehicle = async (req, res) => {
-	try {
-		const { id } = req.params;
-
-		const customer = await Customer.findById(req.user.id);
-		if (!customer) {
-			return error(res, "Customer not found", 404);
-		}
-
-		const vehicle = customer.vehicles.id(id);
-		if (!vehicle) {
-			return error(res, "Vehicle not found", 404);
-		}
-
-		vehicle.deleteOne();
-		await customer.save();
-
-		return success(res, {}, "Vehicle deleted");
-	} catch (err) {
-		return error(res, err.message, 500);
-	}
-};
-
-// ─── Payment Methods ────────────────────────────────────────────────────────
-
-/**
- * GET /api/mobile/payment-methods
- * List payment methods
- */
-export const getPaymentMethods = async (req, res) => {
-	try {
-		const customer = await Customer.findById(req.user.id).select("paymentMethods");
-		if (!customer) {
-			return error(res, "Customer not found", 404);
-		}
-
-		const paymentMethods = (customer.paymentMethods || []).map((pm) => ({
-			id: pm._id,
-			type: pm.type,
-			brand: pm.brand,
-			last4: pm.last4,
-			expiryDate: pm.expiryDate,
-			isDefault: pm.isDefault,
-		}));
-
-		return success(res, { paymentMethods });
 	} catch (err) {
 		return error(res, err.message, 500);
 	}
@@ -391,15 +350,16 @@ export const getPaymentMethods = async (req, res) => {
  */
 export const addPaymentMethod = async (req, res) => {
 	try {
-		const { type, brand, last4, expiryDate, stripePaymentMethodId, isDefault } = req.body;
+		const { type, brand, last4, expiryDate, stripePaymentMethodId, isDefault } =
+			req.body;
 
 		if (!type || !last4) {
-			return error(res, "type and last4 are required", 400);
+			return error(res, t(req, "payment.type_last4_required"), 400);
 		}
 
 		const customer = await Customer.findById(req.user.id);
 		if (!customer) {
-			return error(res, "Customer not found", 404);
+			return error(res, t(req, "profile.customer_not_found"), 404);
 		}
 
 		// If this is set as default, unset other defaults
@@ -438,9 +398,66 @@ export const addPaymentMethod = async (req, res) => {
 					isDefault: added.isDefault,
 				},
 			},
-			"Payment method added",
-			201
+			t(req, "payment.payment_method_added"),
+			201,
 		);
+	} catch (err) {
+		return error(res, err.message, 500);
+	}
+};
+
+/**
+ * DELETE /api/mobile/vehicles/:id
+ * Delete a vehicle
+ */
+export const deleteVehicle = async (req, res) => {
+	try {
+		const { id } = req.params;
+
+		const customer = await Customer.findById(req.user.id);
+		if (!customer) {
+			return error(res, t(req, "profile.customer_not_found"), 404);
+		}
+
+		const vehicle = customer.vehicles.id(id);
+		if (!vehicle) {
+			return error(res, t(req, "vehicles.vehicle_not_found"), 404);
+		}
+
+		vehicle.deleteOne();
+		await customer.save();
+
+		return success(res, {}, t(req, "vehicles.vehicle_deleted"));
+	} catch (err) {
+		return error(res, err.message, 500);
+	}
+};
+
+// ─── Payment Methods ────────────────────────────────────────────────────────
+
+/**
+ * GET /api/mobile/payment-methods
+ * List payment methods
+ */
+export const getPaymentMethods = async (req, res) => {
+	try {
+		const customer = await Customer.findById(req.user.id).select(
+			"paymentMethods",
+		);
+		if (!customer) {
+			return error(res, t(req, "profile.customer_not_found"), 404);
+		}
+
+		const paymentMethods = (customer.paymentMethods || []).map((pm) => ({
+			id: pm._id,
+			type: pm.type,
+			brand: pm.brand,
+			last4: pm.last4,
+			expiryDate: pm.expiryDate,
+			isDefault: pm.isDefault,
+		}));
+
+		return success(res, { paymentMethods });
 	} catch (err) {
 		return error(res, err.message, 500);
 	}
@@ -456,12 +473,12 @@ export const deletePaymentMethod = async (req, res) => {
 
 		const customer = await Customer.findById(req.user.id);
 		if (!customer) {
-			return error(res, "Customer not found", 404);
+			return error(res, t(req, "profile.customer_not_found"), 404);
 		}
 
 		const pm = customer.paymentMethods.id(id);
 		if (!pm) {
-			return error(res, "Payment method not found", 404);
+			return error(res, t(req, "payment.payment_method_not_found"), 404);
 		}
 
 		const wasDefault = pm.isDefault;
@@ -474,7 +491,7 @@ export const deletePaymentMethod = async (req, res) => {
 
 		await customer.save();
 
-		return success(res, {}, "Payment method removed");
+		return success(res, {}, t(req, "payment.payment_method_removed"));
 	} catch (err) {
 		return error(res, err.message, 500);
 	}
@@ -502,7 +519,9 @@ export const getCarMakes = async (req, res) => {
 export const getCarModels = async (req, res) => {
 	try {
 		const { make } = req.params;
-		const cars = await Car.find({ make }).select("model bodyType").sort({ model: 1 });
+		const cars = await Car.find({ make })
+			.select("model bodyType")
+			.sort({ model: 1 });
 
 		const models = cars.map((c) => ({
 			model: c.model,
